@@ -1,88 +1,93 @@
 
 
-## Plano de Melhorias: Upload de Foto, Like Otimista e Toggles de Dados
+## Analise da Arquitetura Atual e Plano de Ajustes
 
-### 1. Foto aparece imediatamente apos upload (sem refresh)
+### Situacao Atual
 
-**Problema identificado**: Ao fazer upload da foto no `ProfilePhotoUpload` (dentro do dialog de edição), a imagem atualiza apenas no preview do dialog. O `PerfilHeader` só reflete a mudança após salvar e a query ser invalidada. O browser também pode cachear a URL antiga.
+A tabela `perfil_atleta` ja suporta dois cenarios parcialmente:
+- **Atletas do Carreira ID puro**: criados via cadastro, possuem `user_id` e `crianca_id` (gerado localmente)
+- **Atletas vindos do Atleta ID**: possuem `crianca_id` que referencia a crianca no sistema de gestao
 
-**Solucao**:
-- Adicionar um `cache-buster` (`?t=timestamp`) na URL retornada do upload para evitar cache do browser
-- Apos o `onSubmit` do `EditPerfilDialog`, garantir que a invalidacao do React Query force o refetch imediato no `PerfilHeader`
-- No `PerfilHeader`, ao fazer upload direto pelo botao da camera, usar `setQueryData` para atualizar o cache local instantaneamente (optimistic update), sem esperar o refetch
+Porem, nao ha campo que diferencie a **origem** do perfil, nem campo para vincular ao sistema externo Atleta ID.
 
-**Arquivos afetados**:
-- `src/hooks/useCarreiraData.ts` - Adicionar cache-buster na `uploadProfilePhoto` e optimistic update no `useUpdatePerfilAtleta`
-- `src/components/carreira/PerfilHeader.tsx` - Usar `queryClient.setQueryData` apos upload direto
-- `src/components/carreira/ProfilePhotoUpload.tsx` - Adicionar cache-buster na URL do banner
+### Campos a Adicionar na Tabela `perfil_atleta`
 
----
+| Campo | Tipo | Default | Descricao |
+|-------|------|---------|-----------|
+| `origem` | text | `'carreira'` | Origem do perfil: `'carreira'` ou `'atleta_id'` |
+| `atleta_app_id` | uuid | NULL | ID do atleta no sistema Atleta ID (para integracao futura) |
+| `atleta_id_vinculado` | boolean | false | Se o perfil ja esta vinculado ao Atleta ID |
+| `atleta_id_sync_at` | timestamptz | NULL | Ultimo momento de sincronizacao com Atleta ID |
 
-### 2. "Gostei" com atualizacao otimista (sem refresh)
+### Fluxos de Usuario
 
-**Problema identificado**: O hook `usePostLike` usa `invalidateQueries` no `onSuccess`, o que causa um refetch completo do feed. Isso gera um delay visivel - o usuario clica e nao ve a mudanca instantaneamente.
+**Fluxo 1 - Atleta criado no Carreira ID:**
+1. Cadastro (email/Google) → perfil em `profiles` + role em `user_roles`
+2. Escolhe tipo "atleta" → cria `perfil_atleta` com `origem = 'carreira'`, `atleta_app_id = NULL`
+3. Usa normalmente: atividades, eventos, monetizacao (2 gratis, depois assina)
 
-**Solucao**: Implementar **optimistic update** no hook `usePostLike`:
-- Ao clicar em "Gostei", atualizar imediatamente o estado local (`isLiked`) e o contador (`likes_count`) no cache do React Query
-- Se a mutacao falhar, reverter o estado anterior (rollback)
-- Manter o `invalidateQueries` como fallback para sincronizar com o servidor
+**Fluxo 2 - Atleta vindo do Atleta ID:**
+1. Login com mesmo email no Carreira ID
+2. Sistema detecta `atleta_app_id` vinculado (via API futura ou lookup por email)
+3. Cria `perfil_atleta` com `origem = 'atleta_id'`, `atleta_app_id = <uuid>`, `atleta_id_vinculado = true`
+4. Historico esportivo sincronizado via cache (tabela `carreira_atleta_cache`)
 
-**Logica**:
+**Fluxo 3 - Atleta do Carreira vinculado depois ao Atleta ID:**
+1. Atleta ja existe no Carreira com `origem = 'carreira'`
+2. Faz vinculacao (botao "Conectar ao Atleta ID")
+3. UPDATE: `atleta_app_id = <uuid>`, `atleta_id_vinculado = true`, `origem` permanece `'carreira'`
+4. Sync ativado
+
+### Integracao Futura via API
+
+A estrategia ja planejada se mantem:
+- **Edge Function `atleta-id-sync`**: busca dados do Atleta ID por `atleta_app_id`
+- **Tabela `carreira_atleta_cache`**: JSONB snapshot com estatisticas, eventos, gols. TTL de ~1h
+- **Perfil publico**: le do cache local, sem chamadas externas em tempo real
+
+### Monetizacao
+
+Ja implementada via `check_carreira_atividade_limit` (RPC). Funciona independente da origem:
+- Conta atividades em `atividades_externas` por `crianca_id`
+- Limite free = 2 (configuravel em `saas_config`)
+- Assinatura em `carreira_assinaturas` desbloqueia
+
+### Implementacao Tecnica
+
+1. **Migration SQL**: adicionar 4 colunas a `perfil_atleta` + indice em `atleta_app_id`
+2. **Atualizar `useCarreiraData.ts`**: incluir `origem` e `atleta_id_vinculado` no tipo `PerfilAtleta`
+3. **Atualizar `CreatePerfilForm.tsx`**: setar `origem = 'carreira'` ao criar perfil
+4. **Atualizar `ProfileTypeForm.tsx`** e `AtletaFilhoForm`: garantir que `origem` seja enviado
+5. **Nao alterar**: monetizacao, RLS, fluxo de auth (ja funcionais)
+
 ```text
-1. Usuario clica "Gostei"
-2. Imediatamente: isLiked = true, likes_count + 1 (ou inverso)
-3. Envia request ao servidor
-4. Se erro: reverte para estado anterior
-5. Se sucesso: invalida queries para sync
+┌─────────────────────────────────────────────────┐
+│                   Carreira ID                    │
+│                                                  │
+│  perfil_atleta                                   │
+│  ┌────────────────────────────────────────────┐  │
+│  │ user_id          (auth.users.id)           │  │
+│  │ origem           'carreira' | 'atleta_id'  │  │
+│  │ atleta_app_id    uuid (ref Atleta ID)      │  │
+│  │ atleta_id_vinculado  bool                  │  │
+│  │ atleta_id_sync_at    timestamptz           │  │
+│  └────────────────────────────────────────────┘  │
+│                      │                           │
+│          ┌───────────┴───────────┐               │
+│          ▼                       ▼               │
+│  atividades_externas    carreira_atleta_cache     │
+│  (eventos proprios)     (snapshot Atleta ID)      │
+│                                                  │
+│  carreira_assinaturas                            │
+│  (monetizacao: 2 free → assina)                  │
+└──────────────────────┬──────────────────────────┘
+                       │ API (Edge Function)
+                       ▼
+              ┌────────────────┐
+              │   Atleta ID    │
+              │  (sistema ext) │
+              │  historico,    │
+              │  estatisticas  │
+              └────────────────┘
 ```
-
-**Arquivo afetado**:
-- `src/hooks/useCarreiraData.ts` - Reescrever `usePostLike` com `onMutate` (optimistic) e `onError` (rollback)
-
----
-
-### 3. Toggles "Dados visiveis" para atletas Carreira
-
-**Problema identificado**: Os toggles de "Gols marcados", "Amistosos", "Campeonatos", etc. aparecem habilitados para todos os perfis, mas atletas vindos do Carreira nao possuem esses dados (pois vem da escolinha via Atleta ID).
-
-**Solucao**: Detectar se o atleta e "Carreira-only" (sem `crianca_id` vinculado a escolinha ativa) e exibir os toggles como **desabilitados** com uma mensagem explicativa.
-
-**Logica de deteccao**:
-```text
-isCarreiraOnly = perfil.crianca_id existe, MAS nao tem registro ativo em crianca_escolinha
-OU perfil.crianca_id nao existe
-```
-
-**Visual**: Toggles com `disabled={true}` e uma badge/texto abaixo:
-> "Recurso disponivel ao vincular-se a uma escolinha no Atleta ID"
-
-**Arquivo afetado**:
-- `src/components/carreira/EditPerfilDialog.tsx` - Adicionar verificacao de vinculo escolar e condicional nos toggles
-
----
-
-### 4. Estrategia de Conexao Carreira <-> Atleta ID
-
-**Conceito**: Quando um atleta que se cadastrou pelo Carreira passa a treinar em uma escolinha que usa o Atleta ID, o sistema precisa "plugar" ele.
-
-**Fluxo proposto**:
-1. A escola cadastra o aluno normalmente (cria `crianca` + `crianca_escolinha`)
-2. No cadastro, a escola informa o **CPF do responsavel** (que ja existe no Carreira)
-3. O sistema detecta que esse CPF/email ja tem um `perfil_atleta` no Carreira
-4. Automaticamente (ou via aprovacao do responsavel), vincula o `perfil_atleta.crianca_id` ao `crianca.id` da escola
-5. Os dados institucionais (gols, jornada, premiacoes) passam a popular o perfil do Carreira
-6. Os toggles de "Dados visiveis" sao habilitados automaticamente
-
-**Nota**: Este fluxo e complexo e envolve logica de matching (CPF/email), aprovacao e migracao de dados. Recomendo implementar em uma fase posterior, apos estabilizar os 3 pontos acima. Posso detalhar esta integracao quando quiser avancar.
-
----
-
-### Resumo de arquivos
-
-| Arquivo | Alteracao |
-|---|---|
-| `src/hooks/useCarreiraData.ts` | Optimistic update no `usePostLike` + cache-buster no upload |
-| `src/components/carreira/PerfilHeader.tsx` | Update otimista do avatar apos upload |
-| `src/components/carreira/ProfilePhotoUpload.tsx` | Cache-buster na URL do banner |
-| `src/components/carreira/EditPerfilDialog.tsx` | Toggles desabilitados para Carreira-only + verificacao de vinculo |
 
