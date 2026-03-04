@@ -12,7 +12,7 @@ export function isCarreiraDomain(): boolean {
 }
 
 export function getCarreiraBasePath(): string {
-  return isCarreiraDomain() ? '' : '/carreira';
+  return '';
 }
 
 /**
