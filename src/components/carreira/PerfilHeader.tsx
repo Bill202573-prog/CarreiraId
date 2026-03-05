@@ -71,6 +71,10 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
       queryClient.setQueryData(['meu-perfil-atleta', user.id], (old: any) =>
         old ? { ...old, foto_url: url } : old
       );
+      // Also update the page-level cache key used by CarreiraPerfilPage
+      queryClient.setQueryData(['carreira-profile-by-slug', perfil.slug], (old: any) =>
+        old ? { ...old, foto_url: url } : old
+      );
       await updatePerfil.mutateAsync({ id: perfil.id, foto_url: url });
     } catch (error: any) {
       toast.error('Erro ao atualizar foto: ' + error.message);

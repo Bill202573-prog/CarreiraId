@@ -373,10 +373,10 @@ export default function CarreiraPerfilPage() {
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
       {/* Accent top bar */}
-      <div className="h-1 w-full bg-[hsl(25_95%_55%)]" />
+      <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
 
       {/* Header */}
-      <header className={`sticky top-0 z-50 backdrop-blur-sm shadow-sm ${isDarkTheme ? 'bg-[hsl(0_0%_0%/0.97)] border-b border-[hsl(25_95%_55%/0.4)]' : 'bg-background/95 border-b border-border'}`}>
+      <header className={`sticky top-0 z-50 backdrop-blur-sm shadow-sm bg-[hsl(0_0%_0%/0.97)] border-b`} style={{ borderColor: `${accentColor}40` }}>
         {/* Row 1: Logo + Search (desktop inline) + Actions */}
         <div className="container flex items-center justify-between h-14 lg:h-16 px-4 max-w-6xl">
           <Link to={carreiraPath('/explorar')} className="flex items-center gap-2 shrink-0">
@@ -503,7 +503,7 @@ export default function CarreiraPerfilPage() {
           
           {/* Left Sidebar — Athlete Card */}
           <aside className="hidden lg:block space-y-4">
-            <Card className={`text-center border-0 overflow-hidden ${isDarkTheme ? 'bg-card shadow-[0_4px_20px_hsl(25_95%_55%/0.08)] border border-[hsl(25_60%_25%/0.3)]' : 'bg-gradient-to-b from-white to-orange-50/40 shadow-md'}`}>
+            <Card className="text-center border overflow-hidden" style={{ borderColor: `${accentColor}30`, backgroundColor: 'hsl(220 12% 10%)' }}>
               {/* Banner */}
               {perfil.banner_url && (
                 <div className="h-20 w-full overflow-hidden">
@@ -513,7 +513,8 @@ export default function CarreiraPerfilPage() {
               <div className={`p-4 ${perfil.banner_url ? '-mt-8' : ''}`}>
               {/* Avatar */}
               <Avatar 
-                className="w-20 h-20 mx-auto mb-3 ring-2 ring-[hsl(25_95%_55%)] ring-offset-2 ring-offset-background"
+                className="w-20 h-20 mx-auto mb-3 ring-2 ring-offset-2 ring-offset-background"
+                style={{ '--tw-ring-color': accentColor } as any}
               >
                 {perfil.foto_url ? (
                   <AvatarImage src={perfil.foto_url} alt={perfil.nome} className="object-cover" />
@@ -592,7 +593,7 @@ export default function CarreiraPerfilPage() {
 
             {/* Escolinhas vinculadas */}
             {escolinhas && escolinhas.length > 0 && (
-              <Card className="p-4">
+              <Card className="p-4 border" style={{ borderColor: `${accentColor}25` }}>
                 <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
                   <School className="w-3.5 h-3.5" />
                   Escolinhas ({escolinhas.length})
@@ -676,7 +677,7 @@ export default function CarreiraPerfilPage() {
             {/* Mobile-only: Pending connection requests */}
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
               <div className="lg:hidden">
-                <Card className={`p-4 ${isDarkTheme ? 'border-[hsl(25_60%_30%)] bg-[hsl(25_20%_12%)]' : 'border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50'}`}>
+                <Card className="p-4 border" style={{ borderColor: `${accentColor}40` }}>
                   <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                     Solicitações de conexão ({pendingRequests.length})
@@ -715,7 +716,7 @@ export default function CarreiraPerfilPage() {
             {perfil.type === 'atleta' ? (
               <CarreiraTimeline perfil={perfil as any} isOwner={isOwner} />
             ) : (
-              <RedeTimelineInline perfilId={perfil.id} isOwner={isOwner} perfilNome={perfil.nome} perfilFoto={perfil.foto_url} />
+              <RedeTimelineInline perfilId={perfil.id} isOwner={isOwner} perfilNome={perfil.nome} perfilFoto={perfil.foto_url} accentColor={accentColor} />
             )}
           </div>
 
@@ -760,7 +761,7 @@ export default function CarreiraPerfilPage() {
             )}
 
             {currentUserId && suggestions && suggestions.length > 0 && (
-              <Card className={`p-4 border-0 ${isDarkTheme ? 'bg-card shadow-[0_4px_20px_hsl(200_100%_50%/0.06)] border border-[hsl(200_60%_30%/0.3)]' : 'bg-gradient-to-br from-white to-blue-50/40 shadow-md'}`}>
+              <Card className="p-4 border" style={{ borderColor: `${accentColor}30` }}>
                 <h3 className="text-sm font-semibold text-foreground mb-3">Sugestões para conectar</h3>
                 <div className="space-y-3">
                   {suggestions.map((person) => (
@@ -791,7 +792,7 @@ export default function CarreiraPerfilPage() {
 
             {/* Connected people */}
             {connections && connections.length > 0 && (
-              <Card className={`p-4 ${isDarkTheme ? 'border border-border bg-card' : ''}`}>
+              <Card className="p-4 border" style={{ borderColor: `${accentColor}30` }}>
                 <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" />
                   Conectados ({connections.length})
@@ -889,17 +890,17 @@ function ShareButton({ slug, nome }: { slug: string; nome: string }) {
   );
 }
 
-function RedeTimelineInline({ perfilId, isOwner, perfilNome, perfilFoto }: { perfilId: string; isOwner: boolean; perfilNome: string; perfilFoto: string | null }) {
+function RedeTimelineInline({ perfilId, isOwner, perfilNome, perfilFoto, accentColor }: { perfilId: string; isOwner: boolean; perfilNome: string; perfilFoto: string | null; accentColor?: string }) {
   const { data: posts, isLoading } = usePostsRede(perfilId);
 
   return (
     <div className="space-y-4">
       {isOwner && (
-        <CreatePostForm perfilRedeId={perfilId} perfilRedeNome={perfilNome} perfilRedeFoto={perfilFoto} />
+        <CreatePostForm perfilRedeId={perfilId} perfilRedeNome={perfilNome} perfilRedeFoto={perfilFoto} accentColor={accentColor} />
       )}
       {isLoading && <div className="text-center py-4"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>}
       {posts?.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} accentColor={accentColor} />
       ))}
       {!isLoading && (!posts || posts.length === 0) && !isOwner && (
         <p className="text-center text-sm text-muted-foreground py-6">Nenhuma publicação ainda.</p>

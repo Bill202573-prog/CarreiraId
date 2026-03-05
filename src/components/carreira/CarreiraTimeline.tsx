@@ -255,7 +255,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
       )}
 
       {/* Posts feed - always visible, priority */}
-      {isOwner && <CreatePostForm perfil={perfil} />}
+      {isOwner && <CreatePostForm perfil={perfil} accentColor={accentColor} />}
 
       {postsLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -264,7 +264,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
       ) : (posts?.length || 0) > 0 ? (
         <div className="space-y-4">
           {posts?.map((post) => (
-            <PostCard key={`post-${post.id}`} post={post} showAuthor={true} />
+            <PostCard key={`post-${post.id}`} post={post} showAuthor={true} accentColor={accentColor} />
           ))}
         </div>
       ) : isOwner ? (
