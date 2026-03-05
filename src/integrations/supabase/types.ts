@@ -292,6 +292,33 @@ export type Database = {
         }
         Relationships: []
       }
+      criancas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_nascimento: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_nascimento?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_nascimento?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       perfil_atleta: {
         Row: {
           atleta_app_id: string | null
@@ -601,6 +628,27 @@ export type Database = {
           solicitante_id?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rede_convites: {
+        Row: {
+          convidado_user_id: string
+          convidante_perfil_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          convidado_user_id: string
+          convidante_perfil_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          convidado_user_id?: string
+          convidante_perfil_id?: string
+          created_at?: string
+          id?: string
         }
         Relationships: []
       }
