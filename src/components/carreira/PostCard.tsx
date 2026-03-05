@@ -20,6 +20,7 @@ import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 interface PostCardProps {
   post: PostAtleta;
   showAuthor?: boolean;
+  accentColor?: string;
 }
 
 function renderTextWithLinks(text: string) {
@@ -40,7 +41,7 @@ function renderTextWithLinks(text: string) {
   });
 }
 
-export function PostCard({ post, showAuthor = true }: PostCardProps) {
+export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps) {
   const { user } = useAuth();
   const { isLiked, toggleLike } = usePostLike(post.id);
   const deletePost = useDeletePostAtleta();
@@ -99,7 +100,7 @@ export function PostCard({ post, showAuthor = true }: PostCardProps) {
 
   return (
     <>
-      <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow">
+      <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow" style={accentColor ? { borderColor: `${accentColor}30`, borderWidth: 1 } : { border: 'none' }}>
         {showAuthor && hasAuthor && (
           <CardHeader className="pb-2 px-3 pt-3">
             <div className="flex items-start justify-between">
@@ -183,7 +184,7 @@ export function PostCard({ post, showAuthor = true }: PostCardProps) {
           </div>
         )}
 
-        <CardFooter className="px-2 py-0 border-t bg-gradient-to-r from-orange-50/50 via-amber-50/30 to-transparent">
+        <CardFooter className="px-2 py-0 border-t" style={accentColor ? { borderColor: `${accentColor}20` } : undefined}>
           <div className="flex items-center w-full">
             <Button variant="ghost" size="sm"
               onClick={() => { if (user) toggleLike.mutate(); else toast.error('Faça login para curtir'); }}

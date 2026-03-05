@@ -18,9 +18,10 @@ interface CreatePostFormProps {
   perfilRedeId?: string;
   perfilRedeNome?: string;
   perfilRedeFoto?: string | null;
+  accentColor?: string;
 }
 
-export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRedeFoto }: CreatePostFormProps) {
+export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRedeFoto, accentColor }: CreatePostFormProps) {
   const { user } = useAuth();
   const createPost = useCreatePostAtleta();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -154,7 +155,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const isSubmitting = uploading || createPost.isPending;
 
   return (
-    <Card className="border-0 shadow-md bg-[hsl(25_15%_10%)]">
+    <Card className="shadow-md" style={accentColor ? { borderColor: `${accentColor}30`, borderWidth: 1 } : { border: 'none' }}>
       <CardContent className="pt-4">
         <div className="flex gap-3">
           <Avatar className="w-10 h-10 flex-shrink-0">
