@@ -45,35 +45,37 @@ export default function CarreiraCadastroPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [selectedType, setSelectedType] = useState<ProfileType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  // Track if login was initiated locally (email/password or signup) to skip cross-domain redirect
-  const [localLogin, setLocalLogin] = useState(false);
 
   // Auth check + cross-domain session transfer
   useEffect(() => {
+    const isPreviewDomain =
+      window.location.hostname.includes('lovableproject.com') ||
+      window.location.hostname.includes('lovable.app');
     const CANONICAL_ORIGINS = ['https://atletaid.com.br', 'https://carreiraid.com.br'];
-    const isCanonical = CANONICAL_ORIGINS.includes(window.location.origin)
+    const isCanonical = isPreviewDomain || CANONICAL_ORIGINS.includes(window.location.origin)
       || window.location.origin.includes('localhost')
       || window.location.origin.includes('www.atletaid.com.br')
       || window.location.origin.includes('www.carreiraid.com.br');
     const isWrongDomain = !isCanonical;
 
+    // Only do cross-domain redirect if there's a hash token in URL (OAuth callback from another domain)
+    const hasHashToken = window.location.hash.includes('access_token');
+
     let handled = false;
 
-    const handleSession = async (session: any, skipRedirect?: boolean): Promise<boolean> => {
+    const handleSession = async (session: any): Promise<boolean> => {
       if (!session?.user) return false;
       if (handled) return true;
       handled = true;
 
-      // If on wrong domain (Lovable preview), transfer session to canonical domain
-      // But skip if login was initiated locally (email/password)
-      if (isWrongDomain && !skipRedirect && session.access_token && session.refresh_token) {
+      // Transfer session to canonical domain ONLY for OAuth callbacks on non-canonical, non-preview domains
+      if (isWrongDomain && hasHashToken && session.access_token && session.refresh_token) {
         const { data: existing } = await supabase
           .from('perfis_rede')
           .select('id, slug')
           .eq('user_id', session.user.id)
           .maybeSingle();
 
-        // Determine target origin based on context
         const targetOrigin = 'https://carreiraid.com.br';
         const targetPath = existing?.slug ? carreiraPath(`/${existing.slug}`) : carreiraPath('/cadastro');
         const tokenHash = `#access_token=${session.access_token}&refresh_token=${session.refresh_token}&token_type=bearer&type=recovery`;
@@ -124,7 +126,7 @@ export default function CarreiraCadastroPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-        const result = await handleSession(session, localLogin);
+        const result = await handleSession(session);
         if (!result) setCheckingAuth(false);
       }
     });
@@ -140,12 +142,11 @@ export default function CarreiraCadastroPage() {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, [navigate, inviteCode, localLogin]);
+  }, [navigate, inviteCode]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setLocalLogin(true);
 
     try {
       if (isLogin) {
