@@ -20,6 +20,7 @@ function calcularCategoria(dataNascimento: string): string {
 }
 import { toast } from 'sonner';
 import { EditPerfilDialog } from './EditPerfilDialog';
+import { EditContaDialog } from './EditContaDialog';
 
 interface PerfilHeaderProps {
   perfil: PerfilAtleta;
@@ -33,6 +34,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editContaOpen, setEditContaOpen] = useState(false);
   const { data: isFollowing } = useIsFollowing(perfil.id);
   const toggleFollow = useToggleFollow();
 
@@ -185,9 +187,14 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               {/* Actions */}
               <div className="flex gap-1.5 mt-2 flex-wrap">
                 {isOwner && (
-                  <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3 h-3 mr-1" />Editar
-                  </Button>
+                  <>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditDialogOpen(true)}>
+                      <Pencil className="w-3 h-3 mr-1" />Editar Perfil
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditContaOpen(true)}>
+                      <User className="w-3 h-3 mr-1" />Minha Conta
+                    </Button>
+                  </>
                 )}
                 {!isOwner && user && (
                   <>
@@ -209,6 +216,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
       </Card>
 
       {isOwner && <EditPerfilDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} perfil={perfil} />}
+      {isOwner && <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />}
     </>
   );
 }

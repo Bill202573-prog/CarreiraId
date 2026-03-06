@@ -103,37 +103,38 @@
           var appName = document.querySelector('meta[name="application-name"]');
           if (appName) appName.content = 'CARREIRA ID';
 
-          // Update page title and OG tags for Carreira domain
-          if (isCarreiraDomain) {
-            document.title = 'CARREIRA ID - Identidade Esportiva Digital para Atletas de Base';
-            
-            // Update meta description
-            var metaDesc = document.querySelector('meta[name="description"]');
-            if (metaDesc) metaDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base. Perfil público, histórico de clubes, campeonatos e conquistas documentadas.';
+          // Update favicon for Carreira routes
+          var favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) favicon.href = '/carreira-icon-512.png';
 
-            // Update canonical
+          // Update page title and OG/Twitter meta for Carreira (both domain and route)
+          document.title = 'CARREIRA ID - Identidade Esportiva Digital para Atletas de Base';
+          var metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base. Perfil público, histórico de clubes, campeonatos e conquistas documentadas.';
+          var ogTitle = document.querySelector('meta[property="og:title"]');
+          if (ogTitle) ogTitle.content = 'CARREIRA ID - Identidade Esportiva Digital';
+          var ogDesc = document.querySelector('meta[property="og:description"]');
+          if (ogDesc) ogDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base. Histórico de clubes, campeonatos e conquistas documentadas.';
+          var ogImage = document.querySelector('meta[property="og:image"]');
+          if (ogImage) ogImage.content = window.location.origin + '/carreira-og-image.png';
+          var twitterImage = document.querySelector('meta[name="twitter:image"]');
+          if (twitterImage) twitterImage.content = window.location.origin + '/carreira-og-image.png';
+          var twitterTitle = document.querySelector('meta[name="twitter:title"]');
+          if (twitterTitle) twitterTitle.content = 'CARREIRA ID - Identidade Esportiva Digital';
+          var twitterDesc = document.querySelector('meta[name="twitter:description"]');
+          if (twitterDesc) twitterDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base.';
+
+          // Update canonical and og:url for Carreira domain specifically
+          if (isCarreiraDomain) {
             var canonical = document.querySelector('link[rel="canonical"]');
             if (canonical) canonical.href = 'https://carreiraid.com.br/';
-
-            // Update OG meta tags
-            var ogTitle = document.querySelector('meta[property="og:title"]');
-            if (ogTitle) ogTitle.content = 'CARREIRA ID - Identidade Esportiva Digital';
-            var ogDesc = document.querySelector('meta[property="og:description"]');
-            if (ogDesc) ogDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base. Histórico de clubes, campeonatos e conquistas documentadas.';
             var ogUrl = document.querySelector('meta[property="og:url"]');
             if (ogUrl) ogUrl.content = 'https://carreiraid.com.br/';
-            var ogImage = document.querySelector('meta[property="og:image"]');
-            if (ogImage) ogImage.content = 'https://carreiraid.com.br/carreira-og-image.png';
-            var twitterImage = document.querySelector('meta[name="twitter:image"]');
-            if (twitterImage) twitterImage.content = 'https://carreiraid.com.br/carreira-og-image.png';
-            var twitterTitle = document.querySelector('meta[name="twitter:title"]');
-            if (twitterTitle) twitterTitle.content = 'CARREIRA ID - Identidade Esportiva Digital';
-            var twitterDesc = document.querySelector('meta[name="twitter:description"]');
-            if (twitterDesc) twitterDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base.';
-            
-            // Update favicon
-            var favicon = document.querySelector('link[rel="icon"]');
-            if (favicon) favicon.href = '/carreira-icon-512.png';
+            // Override OG image with absolute domain URL
+            var ogImageDomain = document.querySelector('meta[property="og:image"]');
+            if (ogImageDomain) ogImageDomain.content = 'https://carreiraid.com.br/carreira-og-image.png';
+            var twitterImageDomain = document.querySelector('meta[name="twitter:image"]');
+            if (twitterImageDomain) twitterImageDomain.content = 'https://carreiraid.com.br/carreira-og-image.png';
           }
 
           // Register ONLY carreira-sw.js and unregister any Workbox SW
