@@ -80,14 +80,15 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
     const shareTitle = `${authorName} no Carreira ID`;
     const shareText = `🏆 ${postText}\n\n📲 Confira no Carreira ID`;
 
+    // Try Web Share API (only works in secure contexts, not iframes)
     try {
-      if (typeof navigator.share === 'function') {
+      if (typeof navigator.share === 'function' && navigator.canShare?.({ url: shareUrl })) {
         await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
         return;
       }
     } catch (e: any) {
-      // AbortError = user cancelled, ignore. Other errors fall through to clipboard.
       if (e?.name === 'AbortError') return;
+      // Any other error (NotAllowedError in iframes, etc.) → fall through to clipboard
     }
 
     // Clipboard fallback

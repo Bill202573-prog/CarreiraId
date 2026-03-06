@@ -86,27 +86,32 @@ export default function CarreiraCadastroPage() {
       // Normal flow
       setUserId(session.user.id);
 
+      // Check if user wants to create an additional profile (query param)
+      const wantsNewProfile = new URLSearchParams(window.location.search).get('novo') === '1';
+
       try {
-        const { data: perfilAtleta } = await supabase
-          .from('perfil_atleta')
-          .select('id, slug')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+        if (!wantsNewProfile) {
+          const { data: perfilAtleta } = await supabase
+            .from('perfil_atleta')
+            .select('id, slug')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
 
-        if (perfilAtleta?.slug) {
-          navigate(carreiraPath(`/${perfilAtleta.slug}`), { replace: true });
-          return true;
-        }
+          if (perfilAtleta?.slug) {
+            navigate(carreiraPath(`/${perfilAtleta.slug}`), { replace: true });
+            return true;
+          }
 
-        const { data: perfilRede } = await supabase
-          .from('perfis_rede')
-          .select('id, slug')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+          const { data: perfilRede } = await supabase
+            .from('perfis_rede')
+            .select('id, slug')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
 
-        if (perfilRede?.slug) {
-          navigate(carreiraPath(`/${perfilRede.slug}`), { replace: true });
-          return true;
+          if (perfilRede?.slug) {
+            navigate(carreiraPath(`/${perfilRede.slug}`), { replace: true });
+            return true;
+          }
         }
       } catch (err) {
         console.error('Erro ao verificar perfil:', err);
