@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Instagram, Trash2 } from 'lucide-react';
+import { Loader2, Instagram, Trash2, Globe, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,6 +19,8 @@ const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   bio: z.string().max(500, 'Máximo de 500 caracteres').optional(),
   instagram: z.string().max(200).optional(),
+  site: z.string().max(200).optional(),
+  whatsapp_publico: z.boolean().optional(),
   // dados_perfil fields
   escola_nome: z.string().optional(),
   localizacao: z.string().optional(),
@@ -50,6 +52,8 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       nome: perfil?.nome || '',
       bio: perfil?.bio || '',
       instagram: perfil?.instagram || '',
+      site: perfil?.site || '',
+      whatsapp_publico: perfil?.whatsapp_publico || false,
       escola_nome: dados.escola_nome || '',
       localizacao: dados.localizacao || '',
       modalidades: Array.isArray(dados.modalidades) ? dados.modalidades.join(', ') : (dados.modalidades || ''),
@@ -66,6 +70,8 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         nome: perfil.nome || '',
         bio: perfil.bio || '',
         instagram: perfil.instagram || '',
+        site: perfil.site || '',
+        whatsapp_publico: perfil.whatsapp_publico || false,
         escola_nome: d.escola_nome || '',
         localizacao: d.localizacao || '',
         modalidades: Array.isArray(d.modalidades) ? d.modalidades.join(', ') : (d.modalidades || ''),
@@ -96,9 +102,11 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
           nome: data.nome,
           bio: data.bio || null,
           instagram: data.instagram || null,
+          site: data.site || null,
+          whatsapp_publico: data.whatsapp_publico || false,
           foto_url: photoUrl || null,
           dados_perfil: newDados,
-        })
+        } as any)
         .eq('id', perfil.id);
 
       if (error) throw error;
