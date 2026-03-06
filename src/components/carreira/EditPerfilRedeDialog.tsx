@@ -161,6 +161,30 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
+            <FormField control={form.control} name="site" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1.5"><Globe className="w-4 h-4" /> Site</FormLabel>
+                <FormControl><Input placeholder="https://seusite.com.br" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
+              <FormItem className="flex items-center gap-2 space-y-0">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    className="rounded border-border"
+                  />
+                </FormControl>
+                <FormLabel className="flex items-center gap-1.5 font-normal cursor-pointer">
+                  <Phone className="w-4 h-4" /> Exibir WhatsApp publicamente
+                </FormLabel>
+              </FormItem>
+            )} />
+
             <FormField control={form.control} name="escola_nome" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome da Escola / Instituição</FormLabel>
