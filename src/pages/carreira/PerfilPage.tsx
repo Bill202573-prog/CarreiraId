@@ -23,6 +23,7 @@ export default function PerfilPage() {
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editContaOpen, setEditContaOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -107,9 +108,14 @@ export default function PerfilPage() {
             <img src={logoCarreira} alt="Carreira" className="h-24" />
           </button>
           {isOwnProfile && (
-            <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-              Editar Perfil
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+                <Settings className="w-3.5 h-3.5 mr-1" />Editar Perfil
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setEditContaOpen(true)}>
+                <User className="w-3.5 h-3.5 mr-1" />Minha Conta
+              </Button>
+            </div>
           )}
         </div>
       </header>
