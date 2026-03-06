@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SchoolDashboardLayout } from '@/components/layout/SchoolDashboardLayout';
@@ -54,6 +54,11 @@ const Dashboard = () => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Admins são redirecionados para o painel dedicado do Carreira ID
+  if (user.role === 'admin') {
+    return <Navigate to="/carreira/admin" replace />;
   }
 
   if (!user.role) {
