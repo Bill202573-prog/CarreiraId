@@ -184,11 +184,14 @@ export default function PerfilPage() {
       </main>
 
       {isOwnProfile && redeProfile && (
-        <EditPerfilRedeDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          perfil={redeProfile}
-        />
+        <>
+          <EditPerfilRedeDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            perfil={redeProfile}
+          />
+          <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />
+        </>
       )}
 
       <CarreiraBottomNav currentUserId={currentUserId} profileSlug={null} />
