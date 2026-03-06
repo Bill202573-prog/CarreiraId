@@ -28,7 +28,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [nome, setNome] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup, user } = useAuth();
+  const { login, signup, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // Redirecionar se ja estiver logado
@@ -66,9 +66,9 @@ const Auth = () => {
             title: 'Login realizado!',
             description: 'Bem-vindo ao sistema.',
           });
-          // Admin vai para painel do Carreira ID, demais vão para dashboard
-          // Note: user state may not be updated yet, so we check the role from login context
-          // The useEffect above will handle the redirect once user state is set
+          // Navigate will also be handled by useEffect when user state updates
+          // but we do it here too for immediate response
+          navigate('/dashboard');
         } else {
           toast({
             title: 'Erro no login',
