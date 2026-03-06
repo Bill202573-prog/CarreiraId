@@ -23,7 +23,7 @@ export default function PerfilPage() {
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editContaOpen, setEditContaOpen] = useState(false);
+  
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -178,14 +178,11 @@ export default function PerfilPage() {
       </main>
 
       {isOwnProfile && redeProfile && (
-        <>
-          <EditPerfilRedeDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            perfil={redeProfile}
-          />
-          <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />
-        </>
+        <EditPerfilRedeDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          perfil={redeProfile}
+        />
       )}
 
       <CarreiraBottomNav currentUserId={currentUserId} profileSlug={null} />
