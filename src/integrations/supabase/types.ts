@@ -380,6 +380,7 @@ export type Database = {
           content_type: string
           created_at: string
           id: string
+          justificativa: string | null
           level: string
           reason: string | null
           reviewed_at: string | null
@@ -393,6 +394,7 @@ export type Database = {
           content_type?: string
           created_at?: string
           id?: string
+          justificativa?: string | null
           level?: string
           reason?: string | null
           reviewed_at?: string | null
@@ -406,6 +408,7 @@ export type Database = {
           content_type?: string
           created_at?: string
           id?: string
+          justificativa?: string | null
           level?: string
           reason?: string | null
           reviewed_at?: string | null

@@ -32,6 +32,7 @@ interface ModerationLog {
   reason: string | null;
   level: string;
   status: string;
+  justificativa: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
   created_at: string;
@@ -214,7 +215,7 @@ function BlockedWordsSection() {
 function ModerationLogsSection() {
   const [logs, setLogs] = useState<ModerationLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'bloqueado' | 'aprovado' | 'removido'>('all');
+  const [filter, setFilter] = useState<'all' | 'bloqueado' | 'recurso' | 'aprovado' | 'removido'>('all');
   const [violationCounts, setViolationCounts] = useState<Record<string, number>>({});
 
   const fetchLogs = async () => {
@@ -267,6 +268,7 @@ function ModerationLogsSection() {
   const statusBadge = (status: string) => {
     switch (status) {
       case 'bloqueado': return <Badge variant="destructive">Bloqueado</Badge>;
+      case 'recurso': return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Recurso</Badge>;
       case 'aprovado': return <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">Aprovado</Badge>;
       case 'removido': return <Badge variant="secondary">Removido</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
@@ -279,6 +281,7 @@ function ModerationLogsSection() {
   };
 
   const blockedCount = logs.filter(l => l.status === 'bloqueado').length;
+  const appealCount = logs.filter(l => l.status === 'recurso').length;
   const topViolators = Object.entries(violationCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
@@ -286,7 +289,7 @@ function ModerationLogsSection() {
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{logs.length}</div>
@@ -297,6 +300,12 @@ function ModerationLogsSection() {
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-destructive">{blockedCount}</div>
             <p className="text-xs text-muted-foreground">Pendentes de revisão</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-amber-600">{appealCount}</div>
+            <p className="text-xs text-muted-foreground">Recursos pendentes</p>
           </CardContent>
         </Card>
         <Card>
@@ -342,6 +351,7 @@ function ModerationLogsSection() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="recurso">Recursos</SelectItem>
             <SelectItem value="bloqueado">Bloqueados</SelectItem>
             <SelectItem value="aprovado">Aprovados</SelectItem>
             <SelectItem value="removido">Removidos</SelectItem>
@@ -371,6 +381,7 @@ function ModerationLogsSection() {
                 <TableHead>Tipo</TableHead>
                 <TableHead>Conteúdo</TableHead>
                 <TableHead>Motivo</TableHead>
+                <TableHead>Justificativa</TableHead>
                 <TableHead>Nível</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -387,10 +398,17 @@ function ModerationLogsSection() {
                   </TableCell>
                   <TableCell className="max-w-[300px] truncate text-sm">{log.content}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">{log.reason}</TableCell>
+                  <TableCell className="max-w-[200px] text-xs">
+                    {log.justificativa ? (
+                      <span className="text-amber-600 dark:text-amber-400 font-medium">{log.justificativa}</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>{levelBadge(log.level)}</TableCell>
                   <TableCell>{statusBadge(log.status)}</TableCell>
                   <TableCell className="text-right">
-                    {log.status === 'bloqueado' && (
+                    {(log.status === 'bloqueado' || log.status === 'recurso') && (
                       <div className="flex gap-1 justify-end">
                         <Button size="sm" variant="ghost" onClick={() => handleApprove(log)} title="Aprovar">
                           <CheckCircle className="w-4 h-4 text-emerald-500" />
