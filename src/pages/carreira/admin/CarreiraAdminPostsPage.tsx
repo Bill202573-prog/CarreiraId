@@ -10,7 +10,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Search, Loader2, Trash2, User, FileText, Send, Image, X, ExternalLink } from 'lucide-react';
+import { Search, Loader2, Trash2, User, FileText, Send, Image, X, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { LinkPreviewCard } from '@/components/carreira/LinkPreviewCard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -56,9 +57,15 @@ function useAutoCreateAdminPerfil() {
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('Não autenticado');
-      const { data: existing } = await supabase.from('perfil_atleta').select('id').eq('user_id', user.id).maybeSingle();
-      if (existing) return existing;
-      const nome = 'Carreira ID (Admin)';
+      const { data: existing } = await supabase.from('perfil_atleta').select('id, nome').eq('user_id', user.id).maybeSingle();
+      if (existing) {
+        // Corrige nome legado "(Admin)" → "Carreira ID"
+        if (existing.nome?.includes('(Admin)')) {
+          await supabase.from('perfil_atleta').update({ nome: 'Carreira ID' }).eq('id', existing.id);
+        }
+        return existing;
+      }
+      const nome = 'Carreira ID';
       const slug = generateSlug(nome);
       const { data, error } = await supabase.from('perfil_atleta')
         .insert({ user_id: user.id, slug, nome, modalidade: 'Plataforma', bio: 'Conta oficial Carreira ID', is_public: true })
@@ -77,6 +84,9 @@ export default function CarreiraAdminPostsPage() {
   const [texto, setTexto] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [linkPreview, setLinkPreview] = useState<any>(null);
+  const [fetchingPreview, setFetchingPreview] = useState(false);
+  const lastFetchedUrl = useRef<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: posts, isLoading } = useAdminPosts(search);
@@ -97,6 +107,25 @@ export default function CarreiraAdminPostsPage() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  const handleTextChange = (value: string) => {
+    setTexto(value);
+    const urlMatch = value.match(/(https?:\/\/[^\s]+)/);
+    if (urlMatch) {
+      const detectedUrl = urlMatch[1];
+      if (detectedUrl !== lastFetchedUrl.current && !fetchingPreview) {
+        lastFetchedUrl.current = detectedUrl;
+        setFetchingPreview(true);
+        supabase.functions.invoke('fetch-link-preview', { body: { url: detectedUrl } })
+          .then(({ data, error }) => { if (!error && data?.title) setLinkPreview(data); })
+          .catch(() => {})
+          .finally(() => setFetchingPreview(false));
+      }
+    } else {
+      setLinkPreview(null);
+      lastFetchedUrl.current = null;
+    }
+  };
+
   const handlePublicar = async () => {
     if (!texto.trim() && images.length === 0) { toast.error('Escreva algo ou adicione imagem'); return; }
     if (!meuPerfil) { toast.error('Perfil admin necessário'); return; }
@@ -111,8 +140,8 @@ export default function CarreiraAdminPostsPage() {
         const { data: urlData } = supabase.storage.from('atleta-posts').getPublicUrl(path);
         urls.push(urlData.publicUrl);
       }
-      await createPost.mutateAsync({ autor_id: meuPerfil.id, texto: texto.trim(), imagens_urls: urls });
-      setTexto(''); setImages([]);
+      await createPost.mutateAsync({ autor_id: meuPerfil.id, texto: texto.trim(), imagens_urls: urls, link_preview: linkPreview || null });
+      setTexto(''); setImages([]); setLinkPreview(null); lastFetchedUrl.current = null;
     } catch (err: any) { toast.error('Erro: ' + err.message); }
     finally { setUploading(false); }
   };
@@ -142,7 +171,14 @@ export default function CarreiraAdminPostsPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <Textarea placeholder="O que compartilhar na rede?" value={texto} onChange={e => setTexto(e.target.value)} rows={3} disabled={!meuPerfil || isSubmitting} className="resize-none" />
+                <Textarea placeholder="O que compartilhar na rede? Cole um link para gerar preview automaticamente" value={texto} onChange={e => handleTextChange(e.target.value)} rows={3} disabled={!meuPerfil || isSubmitting} className="resize-none" />
+                {fetchingPreview && <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="w-3 h-3 animate-spin" />Carregando preview...</div>}
+                {linkPreview && (
+                  <div className="relative">
+                    <LinkPreviewCard preview={linkPreview} />
+                    <button onClick={() => { setLinkPreview(null); lastFetchedUrl.current = null; }} className="absolute top-2 right-2 bg-background/80 rounded-full p-1"><X className="w-3 h-3" /></button>
+                  </div>
+                )}
                 {images.length > 0 && (
                   <div className={cn('grid gap-2', images.length === 1 && 'grid-cols-1', images.length === 2 && 'grid-cols-2', images.length >= 3 && 'grid-cols-3')}>
                     {images.map((img, i) => (
