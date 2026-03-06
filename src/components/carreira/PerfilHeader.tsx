@@ -20,6 +20,7 @@ function calcularCategoria(dataNascimento: string): string {
 }
 import { toast } from 'sonner';
 import { EditPerfilDialog } from './EditPerfilDialog';
+import { EditContaDialog } from './EditContaDialog';
 
 interface PerfilHeaderProps {
   perfil: PerfilAtleta;

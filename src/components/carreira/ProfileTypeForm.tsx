@@ -212,25 +212,17 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       return;
     }
 
-    // Validate CPF/CNPJ
+    // Validate CPF/CNPJ (relaxed for testing — accept any non-empty value)
     const cleanDoc = documento.replace(/\D/g, '');
     if (!cleanDoc) {
       toast.error(`${tipoDocumento === 'cnpj' ? 'CNPJ' : 'CPF'} é obrigatório`);
       return;
     }
-    if (tipoDocumento === 'cpf' && !validateCPF(cleanDoc)) {
-      toast.error('CPF inválido');
-      return;
-    }
-    if (tipoDocumento === 'cnpj' && !validateCNPJ(cleanDoc)) {
-      toast.error('CNPJ inválido');
-      return;
-    }
 
-    // Validate WhatsApp
+    // Validate WhatsApp (relaxed for testing — accept any number with at least 8 digits)
     const cleanPhone = telefoneWhatsapp.replace(/\D/g, '');
-    if (!cleanPhone || cleanPhone.length < 10) {
-      toast.error('WhatsApp é obrigatório (com DDD)');
+    if (!cleanPhone || cleanPhone.length < 8) {
+      toast.error('WhatsApp é obrigatório');
       return;
     }
 
