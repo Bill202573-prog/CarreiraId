@@ -30,6 +30,11 @@ const CarreiraConexoesPage = lazy(() => import("./pages/carreira/CarreiraConexoe
 const TermosPage = lazy(() => import("./pages/carreira/TermosPage"));
 const PrivacidadePage = lazy(() => import("./pages/carreira/PrivacidadePage"));
 const ContatoPage = lazy(() => import("./pages/carreira/ContatoPage"));
+const CarreiraAdminDashboard = lazy(() => import("./pages/carreira/admin/CarreiraAdminDashboard"));
+const CarreiraAdminPerfisPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerfisPage"));
+const CarreiraAdminPostsPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPostsPage"));
+const CarreiraAdminAssinaturasPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAssinaturasPage"));
+const CarreiraAdminAtividadesPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAtividadesPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +67,12 @@ const App = () => (
               <Route path="/termos" element={<TermosPage />} />
               <Route path="/privacidade" element={<PrivacidadePage />} />
               <Route path="/contato" element={<ContatoPage />} />
+              {/* Carreira ID — Admin */}
+              <Route path="/carreira/admin" element={<CarreiraAdminDashboard />} />
+              <Route path="/carreira/admin/perfis" element={<CarreiraAdminPerfisPage />} />
+              <Route path="/carreira/admin/posts" element={<CarreiraAdminPostsPage />} />
+              <Route path="/carreira/admin/assinaturas" element={<CarreiraAdminAssinaturasPage />} />
+              <Route path="/carreira/admin/atividades" element={<CarreiraAdminAtividadesPage />} />
               <Route path="/perfil/:userId" element={<PerfilPage />} />
               <Route path="/escola/:slug" element={<EscolaPerfilPage />} />
               {/* Atleta ID / escolinhas — rotas secundárias */}
