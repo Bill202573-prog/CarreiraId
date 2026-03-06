@@ -34,7 +34,11 @@ const Auth = () => {
   // Redirecionar se ja estiver logado
   useEffect(() => {
     if (user && user.role) {
-      navigate('/dashboard');
+      if (user.role === 'admin') {
+        navigate('/carreira/admin');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [user, navigate]);
 
@@ -62,7 +66,9 @@ const Auth = () => {
             title: 'Login realizado!',
             description: 'Bem-vindo ao sistema.',
           });
-          navigate('/dashboard');
+          // Admin vai para painel do Carreira ID, demais vão para dashboard
+          // Note: user state may not be updated yet, so we check the role from login context
+          // The useEffect above will handle the redirect once user state is set
         } else {
           toast({
             title: 'Erro no login',
