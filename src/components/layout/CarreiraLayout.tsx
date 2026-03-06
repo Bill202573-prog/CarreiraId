@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Home, ArrowLeft } from 'lucide-react';
+import { LogOut, User, Home, ArrowLeft, Settings } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { EditContaDialog } from '@/components/carreira/EditContaDialog';
 
 interface CarreiraLayoutProps {
   children: React.ReactNode;
@@ -20,6 +22,7 @@ interface CarreiraLayoutProps {
 export function CarreiraLayout({ children }: CarreiraLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [editContaOpen, setEditContaOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -79,6 +82,10 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
                     <User className="w-4 h-4 mr-2" />
                     Minha Carreira
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEditContaOpen(true)}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Editar Minha Conta
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleBackToDashboard}>
                     <Home className="w-4 h-4 mr-2" />
                     App da Escolinha
@@ -94,6 +101,8 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
           </div>
         </div>
       </header>
+
+      <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />
 
       {/* Main Content */}
       <main className="container max-w-2xl py-6 px-4">

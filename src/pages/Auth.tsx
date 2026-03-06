@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
-import logoAtletaId from '@/assets/logo-atleta-id.png';
+import logoCarreiraId from '@/assets/logo-carreira-id-dark.png';
 import PwaInstallButton from '@/components/shared/PwaInstallButton';
 
 const loginSchema = z.object({
@@ -127,8 +127,8 @@ const Auth = () => {
       <div className="w-full max-w-md relative animate-fade-in">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <img src={logoAtletaId} alt="ATLETA ID" className="h-32 w-auto mx-auto mb-4" />
-          <p className="text-muted-foreground">Sistema de Gestão de Escolinhas</p>
+          <img src={logoCarreiraId} alt="Carreira ID" className="h-32 w-auto mx-auto mb-4" />
+          <p className="text-muted-foreground">Carreira Esportiva</p>
         </div>
 
         <Card variant="elevated" className="border border-border/50">

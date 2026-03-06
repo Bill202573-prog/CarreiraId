@@ -437,7 +437,7 @@ export default function CarreiraCadastroPage() {
                         try {
                           setIsLoading(true);
                           const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                            redirectTo: `${window.location.origin}${carreiraPath('/cadastro')}`,
+                            redirectTo: `${window.location.origin}/reset-password`,
                           });
                           if (error) throw error;
                           toast.success('Link de recuperação enviado para seu email!', { duration: 6000 });
