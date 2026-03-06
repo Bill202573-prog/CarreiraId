@@ -19,6 +19,7 @@ const navItems = [
   { title: 'Posts', url: '/carreira/admin/posts', icon: FileText },
   { title: 'Assinaturas', url: '/carreira/admin/assinaturas', icon: CreditCard },
   { title: 'Atividades Externas', url: '/carreira/admin/atividades', icon: Activity },
+  { title: 'Performance', url: '/carreira/admin/performance', icon: Trophy },
 ];
 
 function CarreiraAdminSidebar() {

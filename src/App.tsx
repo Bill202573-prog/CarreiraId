@@ -35,6 +35,7 @@ const CarreiraAdminPerfisPage = lazy(() => import("./pages/carreira/admin/Carrei
 const CarreiraAdminPostsPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPostsPage"));
 const CarreiraAdminAssinaturasPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAssinaturasPage"));
 const CarreiraAdminAtividadesPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAtividadesPage"));
+const CarreiraAdminPerformancePage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerformancePage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +74,7 @@ const App = () => (
               <Route path="/carreira/admin/posts" element={<CarreiraAdminPostsPage />} />
               <Route path="/carreira/admin/assinaturas" element={<CarreiraAdminAssinaturasPage />} />
               <Route path="/carreira/admin/atividades" element={<CarreiraAdminAtividadesPage />} />
+              <Route path="/carreira/admin/performance" element={<CarreiraAdminPerformancePage />} />
               <Route path="/perfil/:userId" element={<PerfilPage />} />
               <Route path="/escola/:slug" element={<EscolaPerfilPage />} />
               {/* Atleta ID / escolinhas — rotas secundárias */}
