@@ -1,8 +1,11 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ConectarButton } from '../ConectarButton';
 import { ConexoesCount } from '../ConexoesCount';
+import { EditContaDialog } from '../EditContaDialog';
+import { Instagram, Globe, Phone, Settings, User } from 'lucide-react';
 import type { ProfileType } from '../ProfileTypeSelector';
 
 const TYPE_CONFIG: Record<ProfileType, { label: string; icon: string; color: string }> = {
@@ -27,17 +30,32 @@ interface PerfilData {
   bio: string | null;
   instagram: string | null;
   dados_perfil: Record<string, any> | null;
+  site?: string | null;
+  telefone_whatsapp?: string | null;
+  whatsapp_publico?: boolean;
 }
 
 interface Props {
   perfil: PerfilData;
   isOwnProfile: boolean;
   currentUserId?: string | null;
+  onEditProfile?: () => void;
   children?: ReactNode;
 }
 
-export function PerfilLayout({ perfil, isOwnProfile, currentUserId, children }: Props) {
+export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfile, children }: Props) {
   const config = TYPE_CONFIG[perfil.tipo as ProfileType] || { label: perfil.tipo, icon: '👤', color: 'bg-muted text-muted-foreground' };
+  const [editContaOpen, setEditContaOpen] = useState(false);
+
+  const siteUrl = perfil.site || perfil.dados_perfil?.site;
+  const instagramHandle = perfil.instagram?.replace('@', '');
+
+  const formatWhatsApp = (phone: string) => {
+    const clean = phone.replace(/\D/g, '');
+    if (clean.length <= 2) return clean;
+    if (clean.length <= 7) return `(${clean.slice(0, 2)}) ${clean.slice(2)}`;
+    return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7)}`;
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -60,15 +78,44 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, children }: 
               {config.icon} {config.label}
             </Badge>
 
-            {perfil.instagram && (
+            {instagramHandle && (
               <div className="mt-2">
                 <a
-                  href={`https://instagram.com/${perfil.instagram.replace('@', '')}`}
+                  href={`https://instagram.com/${instagramHandle}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
                 >
-                  @{perfil.instagram.replace('@', '')}
+                  <Instagram className="w-3.5 h-3.5" />
+                  @{instagramHandle}
+                </a>
+              </div>
+            )}
+
+            {siteUrl && (
+              <div className="mt-1">
+                <a
+                  href={siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  {siteUrl.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
+
+            {perfil.whatsapp_publico && perfil.telefone_whatsapp && (
+              <div className="mt-1">
+                <a
+                  href={`https://wa.me/55${perfil.telefone_whatsapp.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-green-600 hover:underline"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  {formatWhatsApp(perfil.telefone_whatsapp)}
                 </a>
               </div>
             )}
@@ -77,18 +124,34 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, children }: 
               <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{perfil.bio}</p>
             )}
 
-            <div className="mt-3 flex items-center gap-3 justify-center sm:justify-start">
+            <div className="mt-3 flex items-center gap-3 justify-center sm:justify-start flex-wrap">
               <ConexoesCount userId={perfil.user_id} />
               {!isOwnProfile && currentUserId && (
                 <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} />
               )}
             </div>
+
+            {/* Owner action buttons */}
+            {isOwnProfile && (
+              <div className="mt-3 flex gap-2 justify-center sm:justify-start flex-wrap">
+                {onEditProfile && (
+                  <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={onEditProfile}>
+                    <Settings className="w-3 h-3 mr-1" />Editar Perfil
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditContaOpen(true)}>
+                  <User className="w-3 h-3 mr-1" />Minha Conta
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </Card>
 
       {/* Specific Data */}
       {children}
+
+      {isOwnProfile && <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />}
     </div>
   );
 }

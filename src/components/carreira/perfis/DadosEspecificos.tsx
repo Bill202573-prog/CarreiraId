@@ -1,6 +1,13 @@
 import { Card } from '@/components/ui/card';
 import type { ProfileType } from '../ProfileTypeSelector';
 
+const LINK_FIELDS = new Set(['site', 'portfolio', 'site_whatsapp', 'contato', 'arroba']);
+function isLinkField(key: string, val: any): boolean {
+  if (!val || typeof val !== 'string') return false;
+  if (LINK_FIELDS.has(key)) return val.includes('.') || val.startsWith('http');
+  return false;
+}
+
 interface Props {
   tipo: ProfileType;
   dados: Record<string, any> | null;
@@ -110,6 +117,15 @@ export function DadosEspecificos({ tipo, dados }: Props) {
                 </div>
               ) : field.type === 'multiline' ? (
                 <p className="text-sm text-foreground mt-0.5 whitespace-pre-line">{val}</p>
+              ) : isLinkField(field.key, val) ? (
+                <a
+                  href={String(val).startsWith('http') ? String(val) : `https://${val}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline mt-0.5 block"
+                >
+                  {String(val).replace(/^https?:\/\//, '')}
+                </a>
               ) : (
                 <p className="text-sm text-foreground mt-0.5">{val}</p>
               )}

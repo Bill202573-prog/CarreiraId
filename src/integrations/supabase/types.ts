@@ -528,6 +528,7 @@ export type Database = {
           id: string
           instagram: string | null
           nome: string
+          site: string | null
           slug: string | null
           status_conta: string | null
           telefone_whatsapp: string | null
@@ -536,6 +537,7 @@ export type Database = {
           tipo_documento: string | null
           updated_at: string
           user_id: string
+          whatsapp_publico: boolean
         }
         Insert: {
           bio?: string | null
@@ -547,6 +549,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           nome: string
+          site?: string | null
           slug?: string | null
           status_conta?: string | null
           telefone_whatsapp?: string | null
@@ -555,6 +558,7 @@ export type Database = {
           tipo_documento?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_publico?: boolean
         }
         Update: {
           bio?: string | null
@@ -566,6 +570,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           nome?: string
+          site?: string | null
           slug?: string | null
           status_conta?: string | null
           telefone_whatsapp?: string | null
@@ -574,6 +579,7 @@ export type Database = {
           tipo_documento?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_publico?: boolean
         }
         Relationships: []
       }

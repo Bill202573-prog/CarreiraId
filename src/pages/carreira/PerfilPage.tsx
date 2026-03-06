@@ -3,12 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Loader2, User, Settings } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
 import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
-import { EditContaDialog } from '@/components/carreira/EditContaDialog';
+
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { CreatePostForm } from '@/components/carreira/CreatePostForm';
@@ -23,7 +23,7 @@ export default function PerfilPage() {
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editContaOpen, setEditContaOpen] = useState(false);
+  
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -107,16 +107,6 @@ export default function PerfilPage() {
             <ArrowLeft className="w-4 h-4" />
             <img src={logoCarreira} alt="Carreira" className="h-24" />
           </button>
-          {isOwnProfile && (
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-                <Settings className="w-3.5 h-3.5 mr-1" />Editar Perfil
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setEditContaOpen(true)}>
-                <User className="w-3.5 h-3.5 mr-1" />Minha Conta
-              </Button>
-            </div>
-          )}
         </div>
       </header>
 
@@ -154,9 +144,13 @@ export default function PerfilPage() {
             bio: redeProfile.bio,
             instagram: redeProfile.instagram,
             dados_perfil: redeProfile.dados_perfil as Record<string, any> | null,
+            site: (redeProfile as any).site,
+            telefone_whatsapp: (redeProfile as any).telefone_whatsapp,
+            whatsapp_publico: (redeProfile as any).whatsapp_publico,
           }}
           isOwnProfile={isOwnProfile}
           currentUserId={currentUserId}
+          onEditProfile={isOwnProfile ? () => setEditDialogOpen(true) : undefined}
         >
           <Tabs defaultValue="publicacoes" className="mt-4">
             <TabsList className="w-full">
@@ -184,14 +178,11 @@ export default function PerfilPage() {
       </main>
 
       {isOwnProfile && redeProfile && (
-        <>
-          <EditPerfilRedeDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            perfil={redeProfile}
-          />
-          <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />
-        </>
+        <EditPerfilRedeDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          perfil={redeProfile}
+        />
       )}
 
       <CarreiraBottomNav currentUserId={currentUserId} profileSlug={null} />

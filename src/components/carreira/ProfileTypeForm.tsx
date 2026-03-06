@@ -159,6 +159,7 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
   const [documento, setDocumento] = useState('');
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const [whatsappPublico, setWhatsappPublico] = useState(false);
 
   const isDono = type === 'dono_escola';
 
@@ -244,16 +245,19 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       let fotoUrl: string | null = null;
       if (fotoFile) {
         const ext = fotoFile.name.split('.').pop();
-        const path = `perfis-rede/${userId}.${ext}`;
+        const path = `perfis-rede/${userId}-${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from('atleta-fotos')
           .upload(path, fotoFile, { upsert: true });
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error('Erro upload foto:', uploadError);
+          toast.error('Erro ao enviar foto, mas o perfil será criado sem foto.');
+        } else {
           const { data: urlData } = supabase.storage
             .from('atleta-fotos')
             .getPublicUrl(path);
-          fotoUrl = urlData.publicUrl;
+          fotoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
         }
       }
 
@@ -291,6 +295,8 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
         cpf_cnpj: cleanDoc,
         tipo_documento: tipoDocumento,
         telefone_whatsapp: cleanPhone,
+        whatsapp_publico: whatsappPublico,
+        site: dadosPerfil.site || null,
       } as any);
 
       if (error) throw error;
@@ -410,6 +416,19 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
               placeholder="(11) 99999-9999"
               maxLength={15}
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="whatsapp-publico"
+              checked={whatsappPublico}
+              onChange={(e) => setWhatsappPublico(e.target.checked)}
+              className="rounded border-border"
+            />
+            <Label htmlFor="whatsapp-publico" className="text-sm font-normal cursor-pointer">
+              Exibir WhatsApp publicamente no perfil (para contato)
+            </Label>
           </div>
         </div>
 
