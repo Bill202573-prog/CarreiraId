@@ -119,6 +119,22 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
 
     setUploading(true);
     try {
+      // Moderation check (if there's text)
+      if (texto.trim()) {
+        try {
+          const { data: modResult, error: modError } = await supabase.functions.invoke('moderate-content', {
+            body: { content: texto.trim(), user_id: effectiveUserId, content_type: 'post' },
+          });
+          if (!modError && modResult && modResult.aprovado === false) {
+            toast.error('Conteúdo não permitido: ' + (modResult.motivo || 'Conteúdo inadequado'));
+            setUploading(false);
+            return;
+          }
+        } catch {
+          // If moderation fails, allow post (don't block users due to service issues)
+        }
+      }
+
       // Compress and upload images
       const imageUrls: string[] = [];
       for (const img of images) {

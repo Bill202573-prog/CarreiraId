@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  LayoutDashboard, Users, FileText, CreditCard, Activity, LogOut, Loader2, Trophy
+  LayoutDashboard, Users, FileText, CreditCard, Activity, LogOut, Loader2, Trophy, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +20,7 @@ const navItems = [
   { title: 'Assinaturas', url: '/carreira/admin/assinaturas', icon: CreditCard },
   { title: 'Atividades Externas', url: '/carreira/admin/atividades', icon: Activity },
   { title: 'Performance', url: '/carreira/admin/performance', icon: Trophy },
+  { title: 'Moderação', url: '/carreira/admin/moderacao', icon: Shield },
 ];
 
 function CarreiraAdminSidebar() {
