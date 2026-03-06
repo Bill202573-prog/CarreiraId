@@ -37,6 +37,7 @@ const CarreiraAdminAssinaturasPage = lazy(() => import("./pages/carreira/admin/C
 const CarreiraAdminAtividadesPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAtividadesPage"));
 const CarreiraAdminPerformancePage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerformancePage"));
 const CarreiraAdminModeracaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminModeracaoPage"));
+const ResetPasswordPage = lazy(() => import("./pages/carreira/ResetPasswordPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +81,7 @@ const App = () => (
               <Route path="/perfil/:userId" element={<PerfilPage />} />
               <Route path="/escola/:slug" element={<EscolaPerfilPage />} />
               {/* Atleta ID / escolinhas — rotas secundárias */}
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Auth />} />
               <Route path="/install" element={<InstallApp />} />
