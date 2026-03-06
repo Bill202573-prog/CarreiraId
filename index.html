@@ -70,10 +70,41 @@
     <script>
       (function() {
         var CARREIRA_DOMAINS = ['carreiraid.com.br', 'www.carreiraid.com.br'];
+        var ATLETAID_DOMAINS = ['atletaid.com.br', 'www.atletaid.com.br'];
         var isCarreiraDomain = CARREIRA_DOMAINS.indexOf(window.location.hostname) !== -1;
+        var isAtletaIdDomain = ATLETAID_DOMAINS.indexOf(window.location.hostname) !== -1;
         var isCarreiraRoute = window.location.pathname.startsWith('/carreira');
         
-        if (isCarreiraDomain || isCarreiraRoute) {
+        if (isAtletaIdDomain && !isCarreiraRoute) {
+          // === ATLETAID DOMAIN (non-carreira routes) ===
+          // Override meta tags back to Atleta ID
+          document.title = 'ATLETA ID - Gestão Inteligente para Escolinhas de Futebol';
+          var metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.content = 'Sistema completo de gestão para escolinhas de futebol.';
+          var favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) favicon.href = '/pwa-icon-192.png';
+          var ogTitle = document.querySelector('meta[property="og:title"]');
+          if (ogTitle) ogTitle.content = 'ATLETA ID - Gestão Inteligente para Escolinhas';
+          var ogDesc = document.querySelector('meta[property="og:description"]');
+          if (ogDesc) ogDesc.content = 'Sistema completo de gestão para escolinhas de futebol.';
+          var ogImage = document.querySelector('meta[property="og:image"]');
+          if (ogImage) ogImage.content = 'https://atletaid.com.br/pwa-icon-512.png';
+          var ogUrl = document.querySelector('meta[property="og:url"]');
+          if (ogUrl) ogUrl.content = 'https://atletaid.com.br/';
+          var canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) canonical.href = 'https://atletaid.com.br/';
+          var appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          if (appleTitle) appleTitle.content = 'ATLETA ID';
+          var appName = document.querySelector('meta[name="application-name"]');
+          if (appName) appName.content = 'ATLETA ID';
+
+          // Register Workbox SW
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js', { scope: '/' });
+            });
+          }
+        } else if (isCarreiraDomain || isCarreiraRoute) {
           // === CARREIRA DOMAIN / ROUTE ===
           // Remove any existing manifest links (from vite-plugin-pwa)
           var existingManifests = document.querySelectorAll('link[rel="manifest"]');
@@ -96,53 +127,12 @@
           link.rel = 'manifest';
           link.href = '/carreira-manifest.json';
           document.head.appendChild(link);
-          
-          // Update apple meta tags for Carreira
-          var appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-          if (appleTitle) appleTitle.content = 'CARREIRA ID';
-          var appName = document.querySelector('meta[name="application-name"]');
-          if (appName) appName.content = 'CARREIRA ID';
-
-          // Update favicon for Carreira routes
-          var favicon = document.querySelector('link[rel="icon"]');
-          if (favicon) favicon.href = '/carreira-icon-512.png';
-
-          // Update page title and OG/Twitter meta for Carreira (both domain and route)
-          document.title = 'CARREIRA ID - Identidade Esportiva Digital para Atletas de Base';
-          var metaDesc = document.querySelector('meta[name="description"]');
-          if (metaDesc) metaDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base. Perfil público, histórico de clubes, campeonatos e conquistas documentadas.';
-          var ogTitle = document.querySelector('meta[property="og:title"]');
-          if (ogTitle) ogTitle.content = 'CARREIRA ID - Identidade Esportiva Digital';
-          var ogDesc = document.querySelector('meta[property="og:description"]');
-          if (ogDesc) ogDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base. Histórico de clubes, campeonatos e conquistas documentadas.';
-          var ogImage = document.querySelector('meta[property="og:image"]');
-          if (ogImage) ogImage.content = window.location.origin + '/carreira-og-image.png';
-          var twitterImage = document.querySelector('meta[name="twitter:image"]');
-          if (twitterImage) twitterImage.content = window.location.origin + '/carreira-og-image.png';
-          var twitterTitle = document.querySelector('meta[name="twitter:title"]');
-          if (twitterTitle) twitterTitle.content = 'CARREIRA ID - Identidade Esportiva Digital';
-          var twitterDesc = document.querySelector('meta[name="twitter:description"]');
-          if (twitterDesc) twitterDesc.content = 'Organize e valorize a trajetória esportiva do atleta desde a base.';
-
-          // Update canonical and og:url for Carreira domain specifically
-          if (isCarreiraDomain) {
-            var canonical = document.querySelector('link[rel="canonical"]');
-            if (canonical) canonical.href = 'https://carreiraid.com.br/';
-            var ogUrl = document.querySelector('meta[property="og:url"]');
-            if (ogUrl) ogUrl.content = 'https://carreiraid.com.br/';
-            // Override OG image with absolute domain URL
-            var ogImageDomain = document.querySelector('meta[property="og:image"]');
-            if (ogImageDomain) ogImageDomain.content = 'https://carreiraid.com.br/carreira-og-image.png';
-            var twitterImageDomain = document.querySelector('meta[name="twitter:image"]');
-            if (twitterImageDomain) twitterImageDomain.content = 'https://carreiraid.com.br/carreira-og-image.png';
-          }
 
           // Register ONLY carreira-sw.js and unregister any Workbox SW
           if ('serviceWorker' in navigator) {
             var swScope = isCarreiraDomain ? '/' : '/carreira';
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
               registrations.forEach(function(reg) {
-                // Unregister Workbox SWs (sw.js) on carreira domain to prevent conflicts
                 if (reg.active && reg.active.scriptURL && !reg.active.scriptURL.includes('carreira-sw.js') && !reg.active.scriptURL.includes('push-sw.js')) {
                   reg.unregister();
                 }
@@ -151,8 +141,7 @@
             navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope });
           }
         } else {
-          // === ATLETAID DOMAIN ===
-          // Register Workbox SW manually (injectRegister is disabled in vite config)
+          // === Other domains (preview, localhost) ===
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
               navigator.serviceWorker.register('/sw.js', { scope: '/' });
