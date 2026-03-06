@@ -1,0 +1,1 @@
+ALTER TABLE public.moderation_logs ADD COLUMN IF NOT EXISTS justificativa text DEFAULT NULL;

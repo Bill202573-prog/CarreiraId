@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { LinkPreviewCard } from './LinkPreviewCard';
+import { ModerationBlockDialog } from './ModerationBlockDialog';
 import { compressImage } from '@/lib/image-compressor';
 import heic2any from 'heic2any';
 
@@ -32,6 +33,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const [linkPreview, setLinkPreview] = useState<any>(null);
   const [fetchingPreview, setFetchingPreview] = useState(false);
   const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+  const [moderationBlock, setModerationBlock] = useState<{ open: boolean; reason: string; level: string; logId?: string }>({ open: false, reason: '', level: '' });
 
   // Fallback to direct Supabase auth for Carreira-only users (no user_roles entry)
   useEffect(() => {
@@ -126,7 +128,12 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
             body: { content: texto.trim(), user_id: effectiveUserId, content_type: 'post' },
           });
           if (!modError && modResult && modResult.aprovado === false) {
-            toast.error('Conteúdo não permitido: ' + (modResult.motivo || 'Conteúdo inadequado'));
+            setModerationBlock({
+              open: true,
+              reason: modResult.motivo || 'Conteúdo inadequado',
+              level: modResult.level || 'filtro',
+              logId: modResult.log_id || undefined,
+            });
             setUploading(false);
             return;
           }
@@ -171,6 +178,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const isSubmitting = uploading || createPost.isPending;
 
   return (
+    <> 
     <Card className="shadow-md" style={accentColor ? { borderColor: `${accentColor}50`, borderWidth: 2 } : { border: 'none' }}>
       <CardContent className="pt-4">
         <div className="flex gap-3">
@@ -280,5 +288,13 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
         </div>
       </CardContent>
     </Card>
+    <ModerationBlockDialog
+      open={moderationBlock.open}
+      onOpenChange={(open) => setModerationBlock(prev => ({ ...prev, open }))}
+      reason={moderationBlock.reason}
+      level={moderationBlock.level}
+      logId={moderationBlock.logId}
+    />
+    </>
   );
 }

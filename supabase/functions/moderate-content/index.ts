@@ -42,19 +42,20 @@ serve(async (req) => {
         const regex = new RegExp(`\\b${wordNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
         if (regex.test(contentLower)) {
           // Log and block
-          await supabase.from('moderation_logs').insert({
+          const { data: logData } = await supabase.from('moderation_logs').insert({
             user_id,
             content,
             content_type,
             reason: `Palavra bloqueada: "${bw.word}" (${bw.category})`,
             level: 'filtro',
             status: 'bloqueado',
-          });
+          }).select('id').single();
 
           return new Response(JSON.stringify({
             aprovado: false,
             motivo: `Conteúdo contém linguagem inadequada.`,
             level: 'filtro',
+            log_id: logData?.id || null,
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -112,21 +113,24 @@ serve(async (req) => {
       console.error('Failed to parse AI response:', aiText);
     }
 
+    let logId = null;
     if (!result.aprovado) {
-      await supabase.from('moderation_logs').insert({
+      const { data: logData } = await supabase.from('moderation_logs').insert({
         user_id,
         content,
         content_type,
         reason: result.motivo || 'Reprovado pela IA',
         level: 'ia',
         status: 'bloqueado',
-      });
+      }).select('id').single();
+      logId = logData?.id || null;
     }
 
     return new Response(JSON.stringify({
       aprovado: result.aprovado,
       motivo: result.motivo || '',
       level: 'ia',
+      log_id: logId,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
