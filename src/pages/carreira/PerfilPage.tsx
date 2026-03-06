@@ -8,7 +8,7 @@ import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
 import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
-import { EditContaDialog } from '@/components/carreira/EditContaDialog';
+
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { CreatePostForm } from '@/components/carreira/CreatePostForm';
