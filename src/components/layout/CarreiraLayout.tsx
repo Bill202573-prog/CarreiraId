@@ -102,6 +102,8 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
         </div>
       </header>
 
+      <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />
+
       {/* Main Content */}
       <main className="container max-w-2xl py-6 px-4">
         {children}
