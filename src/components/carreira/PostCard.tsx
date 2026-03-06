@@ -23,13 +23,15 @@ interface PostCardProps {
   accentColor?: string;
 }
 
-function renderTextWithLinks(text: string) {
+function renderTextWithLinks(text: string, hasLinkPreview?: boolean) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
   
   return parts.map((part, i) => {
     if (urlRegex.test(part)) {
       urlRegex.lastIndex = 0;
+      // If there's a link preview, hide the raw URL from the text
+      if (hasLinkPreview) return null;
       return (
         <a key={i} href={part} target="_blank" rel="noopener noreferrer"
           className="text-primary hover:underline break-all">
@@ -38,7 +40,7 @@ function renderTextWithLinks(text: string) {
       );
     }
     return part;
-  });
+  }).filter(Boolean);
 }
 
 export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps) {
@@ -160,7 +162,7 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
 
         <CardContent className={cn("px-3 pb-2", !showAuthor && "pt-3")}>
           {post.texto && (
-            <p className="text-sm whitespace-pre-wrap mb-2">{renderTextWithLinks(post.texto)}</p>
+            <p className="text-sm whitespace-pre-wrap mb-2">{renderTextWithLinks(post.texto, !!(linkPreview && linkPreview.title))}</p>
           )}
 
           {linkPreview && linkPreview.title && (
