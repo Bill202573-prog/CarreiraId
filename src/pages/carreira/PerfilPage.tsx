@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Loader2, User, Settings } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
 import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
@@ -107,16 +107,6 @@ export default function PerfilPage() {
             <ArrowLeft className="w-4 h-4" />
             <img src={logoCarreira} alt="Carreira" className="h-24" />
           </button>
-          {isOwnProfile && (
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-                <Settings className="w-3.5 h-3.5 mr-1" />Editar Perfil
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setEditContaOpen(true)}>
-                <User className="w-3.5 h-3.5 mr-1" />Minha Conta
-              </Button>
-            </div>
-          )}
         </div>
       </header>
 
@@ -154,9 +144,13 @@ export default function PerfilPage() {
             bio: redeProfile.bio,
             instagram: redeProfile.instagram,
             dados_perfil: redeProfile.dados_perfil as Record<string, any> | null,
+            site: (redeProfile as any).site,
+            telefone_whatsapp: (redeProfile as any).telefone_whatsapp,
+            whatsapp_publico: (redeProfile as any).whatsapp_publico,
           }}
           isOwnProfile={isOwnProfile}
           currentUserId={currentUserId}
+          onEditProfile={isOwnProfile ? () => setEditDialogOpen(true) : undefined}
         >
           <Tabs defaultValue="publicacoes" className="mt-4">
             <TabsList className="w-full">
