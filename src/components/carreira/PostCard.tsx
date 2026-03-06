@@ -73,28 +73,35 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
   const linkPreview = post.link_preview || (post as any).link_preview;
 
   const handleShare = async () => {
-    const url = `${window.location.origin}${authorLink}`;
+    const postText = post.texto.substring(0, 100) + (post.texto.length > 100 ? '...' : '');
+    const shareUrl = `${window.location.origin}${authorLink}`;
+    const shareTitle = `${authorName} no Carreira ID`;
+    const shareText = `🏆 ${postText}\n\n📲 Confira no Carreira ID`;
+
     try {
-      if (navigator.share) {
-        await navigator.share({ title: `Post de ${authorName} - Carreira ID`, text: post.texto.substring(0, 100), url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copiado!');
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+        return;
       }
+    } catch (e: any) {
+      // AbortError = user cancelled, ignore. Other errors fall through to clipboard.
+      if (e?.name === 'AbortError') return;
+    }
+
+    // Clipboard fallback
+    const fullText = `${shareTitle}\n${shareText}\n${shareUrl}`;
+    try {
+      await navigator.clipboard.writeText(fullText);
+      toast.success('Link copiado para a área de transferência!');
     } catch {
-      // Fallback if both share and clipboard fail (e.g. iframe)
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copiado!');
-      } catch {
-        toast.info(url);
-      }
+      // Final fallback: prompt with text
+      toast.info('Copie o link: ' + shareUrl);
     }
   };
 
   const handleSend = () => {
     const url = `${window.location.origin}${authorLink}`;
-    const text = `Confira o post de ${authorName} no Carreira ID: ${url}`;
+    const text = `🏆 Confira o perfil de ${authorName} no *Carreira ID*!\n\n📲 ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -230,6 +237,7 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
             {comments?.map((c) => (
               <div key={c.id} className="flex gap-2">
                 <Avatar className="w-6 h-6 mt-0.5">
+                  {c.profile?.foto_url && <AvatarImage src={c.profile.foto_url} alt={c.profile?.nome || ''} />}
                   <AvatarFallback className="text-[10px]"><User className="w-3 h-3" /></AvatarFallback>
                 </Avatar>
                 <div className="flex-1 bg-muted rounded-lg px-2.5 py-1.5">
@@ -241,6 +249,7 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
             {isAuthenticated && (
               <div className="flex gap-2 items-center">
                 <Avatar className="w-6 h-6">
+                  {authorPhoto && isOwner && <AvatarImage src={authorPhoto} />}
                   <AvatarFallback className="text-[10px]"><User className="w-3 h-3" /></AvatarFallback>
                 </Avatar>
                 <Input

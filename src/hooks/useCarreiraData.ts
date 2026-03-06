@@ -66,7 +66,7 @@ export interface PostComentario {
   texto: string;
   created_at: string;
   // joined
-  profile?: { nome: string; email: string };
+  profile?: { nome: string; email: string; foto_url?: string | null };
 }
 
 export interface AtividadeExternaPublica {
@@ -527,19 +527,34 @@ export function usePostComments(postId: string) {
       if (error) throw error;
       if (!data?.length) return [] as PostComentario[];
 
-      // Fetch profile names
+      // Fetch profile names from profiles table
       const userIds = [...new Set(data.map(c => c.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, nome, email')
+        .select('user_id, nome, email, avatar_url')
+        .in('user_id', userIds);
+
+      // Also fetch from perfil_atleta for photo/name fallback
+      const { data: perfisAtleta } = await supabase
+        .from('perfil_atleta')
+        .select('user_id, nome, foto_url')
         .in('user_id', userIds);
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+      const perfilAtletaMap = new Map((perfisAtleta || []).map(p => [p.user_id, p]));
 
-      return data.map(c => ({
-        ...c,
-        profile: profileMap.get(c.user_id) as { nome: string; email: string } | undefined,
-      })) as PostComentario[];
+      return data.map(c => {
+        const prof = profileMap.get(c.user_id);
+        const atletaPerfil = perfilAtletaMap.get(c.user_id);
+        return {
+          ...c,
+          profile: {
+            nome: atletaPerfil?.nome || prof?.nome || 'Usuário',
+            email: prof?.email || '',
+            foto_url: atletaPerfil?.foto_url || prof?.avatar_url || null,
+          },
+        };
+      }) as PostComentario[];
     },
     enabled: !!postId,
   });
