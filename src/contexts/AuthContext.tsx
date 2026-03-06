@@ -49,8 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .single();
+        .eq('user_id', userId);
+
+      if (roleError) {
+        console.error('[AuthContext] fetchUserData: role query error', roleError);
+      }
 
       // Buscar profile do usuario
       const { data: profileData, error: profileError } = await supabase
@@ -64,8 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      // If no role exists yet (e.g. Google OAuth race condition), default to 'guardian'
-      const userRole = roleData?.role || 'guardian';
+      // Se houver múltiplas roles, aplica prioridade para evitar travar no .single()
+      const rolePriority: UserRole[] = ['admin', 'school', 'teacher', 'guardian'];
+      const roleList = (roleData ?? []).map((item) => item.role as UserRole);
+      const userRole = rolePriority.find((role) => roleList.includes(role)) || 'guardian';
 
       let escolinhaId: string | undefined;
       let escolinhaNome: string | undefined;
@@ -104,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         escolinhaId = professorData?.escolinha_id;
       }
 
-      console.log('[AuthContext] fetchUserData success:', roleData.role, profileData.nome);
+      console.log('[AuthContext] fetchUserData success:', userRole, profileData.nome);
 
       return {
         id: userId,
