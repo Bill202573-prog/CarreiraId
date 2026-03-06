@@ -1,0 +1,141 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { content, user_id, content_type = 'post' } = await req.json();
+
+    if (!content || !user_id) {
+      return new Response(JSON.stringify({ error: 'content and user_id required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // ===== LEVEL 1: Word filter =====
+    const { data: blockedWords } = await supabase
+      .from('blocked_words')
+      .select('word, category');
+
+    if (blockedWords && blockedWords.length > 0) {
+      const contentLower = content.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      for (const bw of blockedWords) {
+        const wordNorm = bw.word.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        
+        // Word boundary check
+        const regex = new RegExp(`\\b${wordNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (regex.test(contentLower)) {
+          // Log and block
+          await supabase.from('moderation_logs').insert({
+            user_id,
+            content,
+            content_type,
+            reason: `Palavra bloqueada: "${bw.word}" (${bw.category})`,
+            level: 'filtro',
+            status: 'bloqueado',
+          });
+
+          return new Response(JSON.stringify({
+            aprovado: false,
+            motivo: `Conteúdo contém linguagem inadequada.`,
+            level: 'filtro',
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    }
+
+    // ===== LEVEL 2: AI moderation =====
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiKey) {
+      // If no OpenAI key, pass with just word filter
+      return new Response(JSON.stringify({ aprovado: true, motivo: '', level: 'filtro' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const systemPrompt = `Você é um moderador de conteúdo de uma rede social esportiva voltada para atletas e jovens. Analise o texto abaixo e responda APENAS com JSON no formato: {"aprovado": true/false, "motivo": "..."}. Reprove conteúdos que contenham: linguagem sexual explícita ou implícita, discurso de ódio, racismo, xingamentos, spam, links suspeitos, conteúdo inadequado para menores de 18 anos ou qualquer conteúdo que não seja adequado para um ambiente esportivo profissional. Texto para analisar:`;
+
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content },
+        ],
+        temperature: 0,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      console.error('OpenAI error:', await aiResponse.text());
+      // On AI failure, allow (don't block users due to API issues)
+      return new Response(JSON.stringify({ aprovado: true, motivo: '', level: 'filtro' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const aiData = await aiResponse.json();
+    const aiText = aiData.choices?.[0]?.message?.content?.trim() || '';
+
+    let result = { aprovado: true, motivo: '' };
+    try {
+      // Extract JSON from response
+      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = JSON.parse(jsonMatch[0]);
+      }
+    } catch {
+      console.error('Failed to parse AI response:', aiText);
+    }
+
+    if (!result.aprovado) {
+      await supabase.from('moderation_logs').insert({
+        user_id,
+        content,
+        content_type,
+        reason: result.motivo || 'Reprovado pela IA',
+        level: 'ia',
+        status: 'bloqueado',
+      });
+    }
+
+    return new Response(JSON.stringify({
+      aprovado: result.aprovado,
+      motivo: result.motivo || '',
+      level: 'ia',
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Moderation error:', error);
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

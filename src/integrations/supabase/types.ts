@@ -193,6 +193,27 @@ export type Database = {
           },
         ]
       }
+      blocked_words: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          word: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          word: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          word?: string
+        }
+        Relationships: []
+      }
       carreira_assinaturas: {
         Row: {
           cancelada_em: string | null
@@ -349,6 +370,48 @@ export type Database = {
           id?: string
           nome?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      moderation_logs: {
+        Row: {
+          content: string
+          content_id: string | null
+          content_type: string
+          created_at: string
+          id: string
+          level: string
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          content_id?: string | null
+          content_type?: string
+          created_at?: string
+          id?: string
+          level?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          content_id?: string | null
+          content_type?: string
+          created_at?: string
+          id?: string
+          level?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
