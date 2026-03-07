@@ -218,11 +218,15 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
                 <FormItem>
                   <FormLabel>Tipo de documento</FormLabel>
                   <FormControl>
-                    <Input
-                      value={field.value === 'cnpj' ? 'cnpj' : 'cpf'}
-                      onChange={(e) => field.onChange(e.target.value === 'cnpj' ? 'cnpj' : 'cpf')}
-                      placeholder="cpf ou cnpj"
-                    />
+                    <Select value={field.value || 'cpf'} onValueChange={(value) => field.onChange(value as 'cpf' | 'cnpj')}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cpf">CPF</SelectItem>
+                        <SelectItem value="cnpj">CNPJ</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
