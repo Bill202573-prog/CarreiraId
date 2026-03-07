@@ -188,12 +188,20 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
+            <FormField control={form.control} name="telefone_whatsapp" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> WhatsApp</FormLabel>
+                <FormControl><Input placeholder="(11) 99999-9999" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
             <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
               <FormItem className="flex items-center gap-2 space-y-0">
                 <FormControl>
                   <input
                     type="checkbox"
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onChange={field.onChange}
                     className="rounded border-border"
                   />
@@ -204,7 +212,31 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
-            <FormField control={form.control} name="escola_nome" render={({ field }) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField control={form.control} name="tipo_documento" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de documento</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.value === 'cnpj' ? 'cnpj' : 'cpf'}
+                      onChange={(e) => field.onChange(e.target.value === 'cnpj' ? 'cnpj' : 'cpf')}
+                      placeholder="cpf ou cnpj"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="cpf_cnpj" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CPF / CNPJ</FormLabel>
+                  <FormControl><Input placeholder="Documento cadastral" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <FormField control={form.control} name="nome_escola" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome da Escola / Instituição</FormLabel>
                 <FormControl><Input placeholder="Ex: Escola do Flamengo" {...field} /></FormControl>
