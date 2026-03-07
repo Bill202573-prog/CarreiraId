@@ -109,16 +109,16 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
               </div>
             )}
 
-            {perfil.whatsapp_publico && perfil.telefone_whatsapp && (
+            {perfil.whatsapp_publico && whatsappIntl && (
               <div className="mt-1">
                 <a
-                  href={`https://wa.me/55${perfil.telefone_whatsapp.replace(/\D/g, '')}`}
+                  href={`https://wa.me/${whatsappIntl}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-green-600 hover:underline"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
                 >
                   <Phone className="w-3.5 h-3.5" />
-                  {formatWhatsApp(perfil.telefone_whatsapp)}
+                  {formatWhatsApp(whatsappDigits)}
                 </a>
               </div>
             )}
