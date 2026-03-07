@@ -183,6 +183,9 @@ type UnifiedProfile = {
   // Rede-specific
   tipo?: string;
   instagram?: string | null;
+  site?: string | null;
+  telefone_whatsapp?: string | null;
+  whatsapp_publico?: boolean;
   dados_perfil?: Record<string, any> | null;
   // Theme
   tema?: string | null;
