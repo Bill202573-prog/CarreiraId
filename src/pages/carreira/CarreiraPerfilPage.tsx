@@ -10,7 +10,7 @@ import { CreatePostForm } from '@/components/carreira/CreatePostForm';
 import { PostCard } from '@/components/carreira/PostCard';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
 import { EditPerfilDialog } from '@/components/carreira/EditPerfilDialog';
-import { EditContaDialog } from '@/components/carreira/EditContaDialog';
+// EditContaDialog removed — unified into EditPerfilRedeDialog
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { Button } from '@/components/ui/button';
@@ -231,7 +231,6 @@ export default function CarreiraPerfilPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editContaOpen, setEditContaOpen] = useState(false);
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
   
   const [mySlug, setMySlug] = useState<string | null>(null);
