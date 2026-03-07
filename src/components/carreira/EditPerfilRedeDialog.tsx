@@ -95,9 +95,12 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const onSubmit = async (data: FormData) => {
     setSaving(true);
     try {
+      const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
+      const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
+
       const newDados = {
         ...dados,
-        escola_nome: data.escola_nome || null,
+        nome_escola: data.nome_escola || null,
         localizacao: data.localizacao || null,
         modalidades: data.modalidades ? data.modalidades.split(',').map(s => s.trim()).filter(Boolean) : [],
         categorias: data.categorias ? data.categorias.split(',').map(s => s.trim()).filter(Boolean) : [],
@@ -113,6 +116,9 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
           instagram: data.instagram || null,
           site: data.site || null,
           whatsapp_publico: data.whatsapp_publico || false,
+          telefone_whatsapp: cleanPhone || null,
+          cpf_cnpj: cleanDoc || null,
+          tipo_documento: data.tipo_documento || 'cpf',
           foto_url: photoUrl || null,
           dados_perfil: newDados,
         } as any)
@@ -122,6 +128,10 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       toast.success('Perfil atualizado!');
       queryClient.invalidateQueries({ queryKey: ['perfil-rede'] });
       queryClient.invalidateQueries({ queryKey: ['meu-perfil-rede'] });
+      queryClient.invalidateQueries({ queryKey: ['carreira-profile-by-slug'] });
+      if (perfil?.slug) {
+        queryClient.invalidateQueries({ queryKey: ['carreira-profile-by-slug', perfil.slug] });
+      }
       onOpenChange(false);
     } catch (err: any) {
       toast.error('Erro ao salvar: ' + err.message);
