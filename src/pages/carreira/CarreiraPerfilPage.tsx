@@ -231,6 +231,7 @@ export default function CarreiraPerfilPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editContaOpen, setEditContaOpen] = useState(false);
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
   
   const [mySlug, setMySlug] = useState<string | null>(null);
