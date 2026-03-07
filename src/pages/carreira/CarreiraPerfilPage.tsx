@@ -431,16 +431,10 @@ export default function CarreiraPerfilPage() {
             {currentUserId && (
               <>
                 {isOwner && (
-                  <>
-                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
-                      <Pencil className="w-3.5 h-3.5 mr-1" />
-                      Editar Perfil
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditContaOpen(true)}>
-                      <User className="w-3.5 h-3.5 mr-1" />
-                      Minha Conta
-                    </Button>
-                  </>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
+                    <Pencil className="w-3.5 h-3.5 mr-1" />
+                    Editar Perfil
+                  </Button>
                 )}
                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
                   if (mySlug) {
@@ -599,15 +593,16 @@ export default function CarreiraPerfilPage() {
 
               {/* Contact links for network profiles */}
               {isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
-                <div className="mt-3 space-y-1.5 text-xs border-t border-border pt-3">
+                <div className="mt-3 flex flex-col gap-1.5 text-xs border-t border-border pt-3">
                   {instagramHandle && (
                     <a
                       href={`https://instagram.com/${instagramHandle}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                      className="flex items-center gap-1.5 text-primary hover:underline"
                     >
-                      <Instagram className="w-3.5 h-3.5" />@{instagramHandle}
+                      <Instagram className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">@{instagramHandle}</span>
                     </a>
                   )}
                   {siteUrl && (
@@ -615,9 +610,10 @@ export default function CarreiraPerfilPage() {
                       href={siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                      className="flex items-center gap-1.5 text-primary hover:underline"
                     >
-                      <Globe className="w-3.5 h-3.5" />{siteUrl.replace(/^https?:\/\//, '')}
+                      <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{siteUrl.replace(/^https?:\/\//, '')}</span>
                     </a>
                   )}
                   {perfil.whatsapp_publico && whatsappIntl && (
@@ -625,9 +621,10 @@ export default function CarreiraPerfilPage() {
                       href={`https://wa.me/${whatsappIntl}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                      className="flex items-center gap-1.5 text-primary hover:underline"
                     >
-                      <Phone className="w-3.5 h-3.5" />{formatWhatsAppDisplay(whatsappDigits)}
+                      <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>{formatWhatsAppDisplay(whatsappDigits)}</span>
                     </a>
                   )}
                 </div>
@@ -916,12 +913,6 @@ export default function CarreiraPerfilPage() {
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           perfil={perfil as any}
-        />
-      )}
-      {isOwner && (
-        <EditContaDialog
-          open={editContaOpen}
-          onOpenChange={setEditContaOpen}
         />
       )}
     </div>
