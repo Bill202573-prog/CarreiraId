@@ -597,6 +597,42 @@ export default function CarreiraPerfilPage() {
                 <p className="text-xs text-muted-foreground mt-2 whitespace-pre-line line-clamp-4">{perfil.bio}</p>
               )}
 
+              {/* Contact links for network profiles */}
+              {isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
+                <div className="mt-3 space-y-1.5 text-xs border-t border-border pt-3">
+                  {instagramHandle && (
+                    <a
+                      href={`https://instagram.com/${instagramHandle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <Instagram className="w-3.5 h-3.5" />@{instagramHandle}
+                    </a>
+                  )}
+                  {siteUrl && (
+                    <a
+                      href={siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <Globe className="w-3.5 h-3.5" />{siteUrl.replace(/^https?:\/\//, '')}
+                    </a>
+                  )}
+                  {perfil.whatsapp_publico && whatsappIntl && (
+                    <a
+                      href={`https://wa.me/${whatsappIntl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <Phone className="w-3.5 h-3.5" />{formatWhatsAppDisplay(whatsappDigits)}
+                    </a>
+                  )}
+                </div>
+              )}
+
               {/* Followers & Connections */}
               <div className="mt-3 pt-3 border-t border-border space-y-1">
                 <div className="text-xs text-muted-foreground">
