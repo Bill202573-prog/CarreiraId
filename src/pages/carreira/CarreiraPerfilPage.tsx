@@ -698,9 +698,13 @@ export default function CarreiraPerfilPage() {
                     bio: perfil.bio,
                     instagram: perfil.instagram || null,
                     dados_perfil: perfil.dados_perfil || null,
+                    site: perfil.site || null,
+                    telefone_whatsapp: perfil.telefone_whatsapp || null,
+                    whatsapp_publico: perfil.whatsapp_publico ?? false,
                   }}
                   isOwnProfile={isOwner}
                   currentUserId={currentUserId}
+                  onEditProfile={isOwner ? () => setEditDialogOpen(true) : undefined}
                 />
               </div>
             )}
