@@ -1,11 +1,10 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConectarButton } from '../ConectarButton';
 import { ConexoesCount } from '../ConexoesCount';
-import { EditContaDialog } from '../EditContaDialog';
-import { Instagram, Globe, Phone, Settings, User } from 'lucide-react';
+import { Instagram, Globe, Phone, Settings } from 'lucide-react';
 import type { ProfileType } from '../ProfileTypeSelector';
 
 const TYPE_CONFIG: Record<ProfileType, { label: string; icon: string; color: string }> = {
@@ -45,7 +44,6 @@ interface Props {
 
 export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfile, children }: Props) {
   const config = TYPE_CONFIG[perfil.tipo as ProfileType] || { label: perfil.tipo, icon: '👤', color: 'bg-muted text-muted-foreground' };
-  const [editContaOpen, setEditContaOpen] = useState(false);
 
   const siteUrl = (perfil.site || perfil.dados_perfil?.site || perfil.dados_perfil?.portfolio || '').trim();
   const instagramHandle = (perfil.instagram || perfil.dados_perfil?.arroba || '').replace(/^@+/, '').trim();
@@ -60,16 +58,17 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
     return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9, 13)}`;
   };
 
+  const hasLinks = !!(instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappIntl));
+
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Header Card */}
       <Card className="p-5 border-border/50">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-shrink-0 flex justify-center sm:justify-start">
             {perfil.foto_url ? (
-              <img src={perfil.foto_url} alt={perfil.nome} className="w-24 h-24 rounded-full object-cover ring-2 ring-[hsl(25_95%_55%)] ring-offset-2 ring-offset-background shadow-lg" />
+              <img src={perfil.foto_url} alt={perfil.nome} className="w-24 h-24 rounded-full object-cover ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg" />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground ring-2 ring-[hsl(25_95%_55%)] ring-offset-2 ring-offset-background">
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground ring-2 ring-primary ring-offset-2 ring-offset-background">
                 {perfil.nome?.[0]?.toUpperCase()}
               </div>
             )}
@@ -81,50 +80,47 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
               {config.icon} {config.label}
             </Badge>
 
-            {instagramHandle && (
-              <div className="mt-2">
-                <a
-                  href={`https://instagram.com/${instagramHandle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                >
-                  <Instagram className="w-3.5 h-3.5" />
-                  @{instagramHandle}
-                </a>
-              </div>
-            )}
-
-            {siteUrl && (
-              <div className="mt-1">
-                <a
-                  href={siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  {siteUrl.replace(/^https?:\/\//, '')}
-                </a>
-              </div>
-            )}
-
-            {perfil.whatsapp_publico && whatsappIntl && (
-              <div className="mt-1">
-                <a
-                  href={`https://wa.me/${whatsappIntl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  {formatWhatsApp(whatsappDigits)}
-                </a>
-              </div>
-            )}
-
             {perfil.bio && (
               <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{perfil.bio}</p>
+            )}
+
+            {/* Links - vertical stack */}
+            {hasLinks && (
+              <div className="mt-3 flex flex-col gap-1.5">
+                {instagramHandle && (
+                  <a
+                    href={`https://instagram.com/${instagramHandle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline w-fit"
+                  >
+                    <Instagram className="w-4 h-4 flex-shrink-0" />
+                    @{instagramHandle}
+                  </a>
+                )}
+                {siteUrl && (
+                  <a
+                    href={siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline w-fit"
+                  >
+                    <Globe className="w-4 h-4 flex-shrink-0" />
+                    {siteUrl.replace(/^https?:\/\//, '')}
+                  </a>
+                )}
+                {perfil.whatsapp_publico && whatsappIntl && (
+                  <a
+                    href={`https://wa.me/${whatsappIntl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline w-fit"
+                  >
+                    <Phone className="w-4 h-4 flex-shrink-0" />
+                    {formatWhatsApp(whatsappDigits)}
+                  </a>
+                )}
+              </div>
             )}
 
             <div className="mt-3 flex items-center gap-3 justify-center sm:justify-start flex-wrap">
@@ -134,16 +130,11 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
               )}
             </div>
 
-            {/* Owner action buttons */}
-            {isOwnProfile && (
-              <div className="mt-3 flex gap-2 justify-center sm:justify-start flex-wrap">
-                {onEditProfile && (
-                  <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={onEditProfile}>
-                    <Settings className="w-3 h-3 mr-1" />Editar Perfil
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditContaOpen(true)}>
-                  <User className="w-3 h-3 mr-1" />Minha Conta
+            {/* Owner action button - single unified edit */}
+            {isOwnProfile && onEditProfile && (
+              <div className="mt-3 flex justify-center sm:justify-start">
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={onEditProfile}>
+                  <Settings className="w-3 h-3 mr-1" />Editar Perfil e Conta
                 </Button>
               </div>
             )}
@@ -151,10 +142,7 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
         </div>
       </Card>
 
-      {/* Specific Data */}
       {children}
-
-      {isOwnProfile && <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />}
     </div>
   );
 }

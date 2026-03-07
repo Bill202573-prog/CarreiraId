@@ -94,6 +94,8 @@ export function DadosEspecificos({ tipo, dados }: Props) {
 
   if (!hasData) return null;
 
+  const unidades = Array.isArray(dados.unidades) ? dados.unidades : [];
+
   return (
     <Card className="p-5">
       <h2 className="font-semibold text-foreground mb-3">Informações Profissionais</h2>
@@ -132,6 +134,24 @@ export function DadosEspecificos({ tipo, dados }: Props) {
             </div>
           );
         })}
+
+        {/* Unidades / Filiais for dono_escola */}
+        {tipo === 'dono_escola' && unidades.length > 0 && (
+          <div>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Unidades / Filiais
+            </span>
+            <div className="mt-1.5 space-y-2">
+              {unidades.map((u: any, idx: number) => (
+                <div key={idx} className="rounded-md border border-border p-2.5 bg-muted/20">
+                  {u.nome && <p className="text-sm font-medium text-foreground">{u.nome}</p>}
+                  {u.bairro && <p className="text-xs text-muted-foreground">📍 {u.bairro}</p>}
+                  {u.referencia && <p className="text-xs text-muted-foreground">{u.referencia}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

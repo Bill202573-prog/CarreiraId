@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,13 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Instagram, Trash2, Globe, Phone } from 'lucide-react';
+import { Loader2, Instagram, Trash2, Globe, Phone, Mail, User, Plus, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 import { Separator } from '@/components/ui/separator';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { formatCPF } from '@/lib/cpf-validator';
+import { formatCNPJ } from '@/lib/cnpj-validator';
 
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -25,7 +29,6 @@ const formSchema = z.object({
   telefone_whatsapp: z.string().max(20).optional(),
   cpf_cnpj: z.string().max(20).optional(),
   tipo_documento: z.enum(['cpf', 'cnpj']).optional(),
-  // dados_perfil fields
   nome_escola: z.string().optional(),
   localizacao: z.string().optional(),
   modalidades: z.string().optional(),
@@ -36,17 +39,44 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+interface Unidade {
+  nome: string;
+  bairro: string;
+  referencia: string;
+}
+
 interface EditPerfilRedeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   perfil: any;
 }
 
+const formatPhone = (value: string) => {
+  const d = value.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+};
+
+const formatDoc = (value: string, tipo: 'cpf' | 'cnpj') => {
+  return tipo === 'cnpj' ? formatCNPJ(value) : formatCPF(value);
+};
+
 export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilRedeDialogProps) {
   const queryClient = useQueryClient();
+  const { user, refreshUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState(perfil?.foto_url || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Account fields (from profiles table)
+  const [contaEmail, setContaEmail] = useState('');
+  const [contaTelefone, setContaTelefone] = useState('');
+  const [loadingConta, setLoadingConta] = useState(false);
+
+  // Unidades (filiais) for dono_escola
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const isDono = perfil?.tipo === 'dono_escola';
 
   const dados = (perfil?.dados_perfil || {}) as Record<string, any>;
 
@@ -58,8 +88,8 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       instagram: perfil?.instagram || '',
       site: perfil?.site || '',
       whatsapp_publico: perfil?.whatsapp_publico || false,
-      telefone_whatsapp: perfil?.telefone_whatsapp || '',
-      cpf_cnpj: perfil?.cpf_cnpj || '',
+      telefone_whatsapp: formatPhone(String(perfil?.telefone_whatsapp || '')),
+      cpf_cnpj: '',
       tipo_documento: perfil?.tipo_documento === 'cnpj' ? 'cnpj' : 'cpf',
       nome_escola: dados.nome_escola || dados.escola_nome || '',
       localizacao: dados.localizacao || '',
@@ -70,18 +100,22 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
     },
   });
 
+  const tipoDoc = form.watch('tipo_documento') || 'cpf';
+
   useEffect(() => {
     if (open && perfil) {
       const d = (perfil.dados_perfil || {}) as Record<string, any>;
+      const rawDoc = String(perfil.cpf_cnpj || '').replace(/\D/g, '');
+      const docTipo = perfil.tipo_documento === 'cnpj' ? 'cnpj' as const : 'cpf' as const;
       form.reset({
         nome: perfil.nome || '',
         bio: perfil.bio || '',
         instagram: perfil.instagram || '',
         site: perfil.site || '',
         whatsapp_publico: perfil.whatsapp_publico || false,
-        telefone_whatsapp: perfil.telefone_whatsapp || '',
-        cpf_cnpj: perfil.cpf_cnpj || '',
-        tipo_documento: perfil.tipo_documento === 'cnpj' ? 'cnpj' : 'cpf',
+        telefone_whatsapp: formatPhone(String(perfil.telefone_whatsapp || '')),
+        cpf_cnpj: rawDoc ? formatDoc(rawDoc, docTipo) : '',
+        tipo_documento: docTipo,
         nome_escola: d.nome_escola || d.escola_nome || '',
         localizacao: d.localizacao || '',
         modalidades: Array.isArray(d.modalidades) ? d.modalidades.join(', ') : (d.modalidades || ''),
@@ -90,8 +124,38 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         certificacoes: d.certificacoes || '',
       });
       setPhotoUrl(perfil.foto_url || '');
+      setUnidades(Array.isArray(d.unidades) ? d.unidades : []);
+
+      // Load account data
+      if (user) {
+        setLoadingConta(true);
+        supabase
+          .from('profiles')
+          .select('email, telefone')
+          .eq('user_id', user.id)
+          .single()
+          .then(({ data: profileData }) => {
+            if (profileData) {
+              setContaEmail(profileData.email || '');
+              setContaTelefone(profileData.telefone || '');
+            }
+            setLoadingConta(false);
+          });
+      }
     }
-  }, [open, perfil, form]);
+  }, [open, perfil, form, user]);
+
+  const addUnidade = useCallback(() => {
+    if (unidades.length < 5) setUnidades(prev => [...prev, { nome: '', bairro: '', referencia: '' }]);
+  }, [unidades.length]);
+
+  const removeUnidade = useCallback((idx: number) => {
+    setUnidades(prev => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const updateUnidade = useCallback((idx: number, field: keyof Unidade, value: string) => {
+    setUnidades(prev => prev.map((u, i) => i === idx ? { ...u, [field]: value } : u));
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     setSaving(true);
@@ -107,6 +171,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         categorias: data.categorias ? data.categorias.split(',').map(s => s.trim()).filter(Boolean) : [],
         experiencia_anos: data.experiencia_anos ? parseInt(data.experiencia_anos) : null,
         certificacoes: data.certificacoes || null,
+        unidades: isDono ? unidades.filter(u => u.nome.trim() || u.bairro.trim()) : (dados.unidades || null),
       };
 
       const { error } = await supabase
@@ -126,6 +191,32 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         .eq('id', perfil.id);
 
       if (error) throw error;
+
+      // Update account data (profiles table)
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            nome: data.nome.trim(),
+            telefone: contaTelefone.trim() || null,
+          })
+          .eq('user_id', user.id);
+
+        if (profileError) console.error('Erro ao atualizar profile:', profileError);
+
+        // Update email if changed
+        if (contaEmail.trim() && contaEmail.trim() !== user.email) {
+          const { error: emailError } = await supabase.auth.updateUser({ email: contaEmail.trim() });
+          if (emailError) {
+            toast.error('Erro ao atualizar email: ' + emailError.message);
+          } else {
+            toast.info('Um email de confirmação foi enviado para o novo endereço');
+          }
+        }
+
+        await refreshUser();
+      }
+
       toast.success('Perfil atualizado!');
       queryClient.invalidateQueries({ queryKey: ['perfil-rede'] });
       queryClient.invalidateQueries({ queryKey: ['meu-perfil-rede'] });
@@ -141,11 +232,13 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
     }
   };
 
+  const canUseCnpj = ['dono_escola', 'empresario'].includes(perfil?.tipo || '');
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Perfil</DialogTitle>
+          <DialogTitle>Editar Perfil e Conta</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -173,79 +266,126 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
-            <FormField control={form.control} name="instagram" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1.5"><Instagram className="w-4 h-4" /> Instagram</FormLabel>
-                <FormControl><Input placeholder="@usuario" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <FormField control={form.control} name="site" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1.5"><Globe className="w-4 h-4" /> Site</FormLabel>
-                <FormControl><Input placeholder="https://seusite.com.br" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <FormField control={form.control} name="telefone_whatsapp" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> WhatsApp</FormLabel>
-                <FormControl><Input placeholder="(11) 99999-9999" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
-              <FormItem className="flex items-center gap-2 space-y-0">
-                <FormControl>
-                  <input
-                    type="checkbox"
-                    checked={field.value ?? false}
-                    onChange={field.onChange}
-                    className="rounded border-border"
-                  />
-                </FormControl>
-                <FormLabel className="flex items-center gap-1.5 font-normal cursor-pointer">
-                  <Phone className="w-4 h-4" /> Exibir WhatsApp publicamente
-                </FormLabel>
-              </FormItem>
-            )} />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <FormField control={form.control} name="tipo_documento" render={({ field }) => (
+            {/* Contact & Social */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-foreground">Redes e contato</p>
+              <FormField control={form.control} name="instagram" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de documento</FormLabel>
+                  <FormLabel className="flex items-center gap-1.5"><Instagram className="w-4 h-4" /> Instagram</FormLabel>
+                  <FormControl><Input placeholder="@usuario" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="site" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5"><Globe className="w-4 h-4" /> Site</FormLabel>
+                  <FormControl><Input placeholder="https://seusite.com.br" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="telefone_whatsapp" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> WhatsApp</FormLabel>
                   <FormControl>
-                    <Select value={field.value || 'cpf'} onValueChange={(value) => field.onChange(value as 'cpf' | 'cnpj')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cpf">CPF</SelectItem>
-                        <SelectItem value="cnpj">CNPJ</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      placeholder="(11) 99999-9999"
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                      maxLength={15}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
 
-              <FormField control={form.control} name="cpf_cnpj" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CPF / CNPJ</FormLabel>
-                  <FormControl><Input placeholder="Documento cadastral" {...field} /></FormControl>
-                  <FormMessage />
+              <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value ?? false}
+                      onChange={field.onChange}
+                      className="rounded border-border"
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal cursor-pointer text-sm">
+                    Exibir WhatsApp publicamente
+                  </FormLabel>
                 </FormItem>
               )} />
             </div>
 
+            {/* Dados Privados */}
+            <div className="rounded-lg border border-border p-4 space-y-3 bg-muted/30">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Lock className="w-4 h-4" />
+                Dados da conta (privados)
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-sm"><Mail className="w-4 h-4" /> E-mail</Label>
+                <Input
+                  type="email"
+                  value={contaEmail}
+                  onChange={(e) => setContaEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  disabled={loadingConta}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-sm"><Phone className="w-4 h-4" /> Telefone da conta</Label>
+                <Input
+                  value={contaTelefone}
+                  onChange={(e) => setContaTelefone(formatPhone(e.target.value))}
+                  placeholder="(11) 99999-9999"
+                  maxLength={15}
+                  disabled={loadingConta}
+                />
+              </div>
+
+              {canUseCnpj && (
+                <FormField control={form.control} name="tipo_documento" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de documento</FormLabel>
+                    <FormControl>
+                      <Select value={field.value || 'cpf'} onValueChange={(value) => {
+                        field.onChange(value as 'cpf' | 'cnpj');
+                        form.setValue('cpf_cnpj', '');
+                      }}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cpf">CPF</SelectItem>
+                          <SelectItem value="cnpj">CNPJ</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItem>
+                )} />
+              )}
+
+              <FormField control={form.control} name="cpf_cnpj" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tipoDoc === 'cnpj' ? 'CNPJ' : 'CPF'}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={tipoDoc === 'cnpj' ? '00.000.000/0000-00' : '000.000.000-00'}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(formatDoc(e.target.value, tipoDoc as 'cpf' | 'cnpj'))}
+                      maxLength={tipoDoc === 'cnpj' ? 18 : 14}
+                    />
+                  </FormControl>
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Profile-specific fields */}
             <FormField control={form.control} name="nome_escola" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome da Escola / Instituição</FormLabel>
                 <FormControl><Input placeholder="Ex: Escola do Flamengo" {...field} /></FormControl>
-                <FormMessage />
               </FormItem>
             )} />
 
@@ -253,41 +393,73 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               <FormItem>
                 <FormLabel>Localização</FormLabel>
                 <FormControl><Input placeholder="Ex: Rio de Janeiro" {...field} /></FormControl>
-                <FormMessage />
               </FormItem>
             )} />
 
-            <FormField control={form.control} name="modalidades" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Modalidades</FormLabel>
-                <FormControl><Input placeholder="Futebol, Futsal (separar por vírgula)" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField control={form.control} name="modalidades" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Modalidades</FormLabel>
+                  <FormControl><Input placeholder="Futebol, Futsal" {...field} /></FormControl>
+                </FormItem>
+              )} />
 
-            <FormField control={form.control} name="categorias" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categorias</FormLabel>
-                <FormControl><Input placeholder="Sub-7, Sub-9 (separar por vírgula)" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+              <FormField control={form.control} name="categorias" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categorias</FormLabel>
+                  <FormControl><Input placeholder="Sub-7, Sub-9" {...field} /></FormControl>
+                </FormItem>
+              )} />
+            </div>
 
-            <FormField control={form.control} name="experiencia_anos" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Anos de Experiência</FormLabel>
-                <FormControl><Input type="number" placeholder="Ex: 5" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField control={form.control} name="experiencia_anos" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Anos de Experiência</FormLabel>
+                  <FormControl><Input type="number" placeholder="5" {...field} /></FormControl>
+                </FormItem>
+              )} />
 
-            <FormField control={form.control} name="certificacoes" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Certificações</FormLabel>
-                <FormControl><Textarea placeholder="Suas certificações e formações" rows={2} {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+              <FormField control={form.control} name="certificacoes" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Certificações</FormLabel>
+                  <FormControl><Input placeholder="Suas certificações" {...field} /></FormControl>
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Unidades (filiais) - only for dono_escola */}
+            {isDono && (
+              <div className="space-y-3 rounded-lg border border-border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Filiais / Unidades</Label>
+                  {unidades.length < 5 && (
+                    <Button type="button" variant="outline" size="sm" onClick={addUnidade} className="gap-1 h-7 text-xs">
+                      <Plus className="w-3.5 h-3.5" /> Adicionar
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Adicione unidades da sua escolinha (ex: filiais em diferentes bairros)
+                </p>
+                {unidades.map((unidade, idx) => (
+                  <div key={idx} className="space-y-2 rounded-md border border-border/60 p-3 bg-muted/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Unidade {idx + 1}</span>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeUnidade(idx)} className="h-6 w-6 p-0 text-destructive hover:text-destructive">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <Input value={unidade.nome} onChange={(e) => updateUnidade(idx, 'nome', e.target.value)} placeholder="Nome (ex: Unidade Tijuca)" maxLength={100} />
+                    <Input value={unidade.bairro} onChange={(e) => updateUnidade(idx, 'bairro', e.target.value)} placeholder="Bairro" maxLength={100} />
+                    <Input value={unidade.referencia} onChange={(e) => updateUnidade(idx, 'referencia', e.target.value)} placeholder="Referência" maxLength={200} />
+                  </div>
+                ))}
+                {unidades.length === 0 && (
+                  <p className="text-xs text-muted-foreground italic text-center py-2">Nenhuma unidade adicionada</p>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-2 justify-end pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
