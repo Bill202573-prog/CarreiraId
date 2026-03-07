@@ -21,8 +21,11 @@ const formSchema = z.object({
   instagram: z.string().max(200).optional(),
   site: z.string().max(200).optional(),
   whatsapp_publico: z.boolean().optional(),
+  telefone_whatsapp: z.string().max(20).optional(),
+  cpf_cnpj: z.string().max(20).optional(),
+  tipo_documento: z.enum(['cpf', 'cnpj']).optional(),
   // dados_perfil fields
-  escola_nome: z.string().optional(),
+  nome_escola: z.string().optional(),
   localizacao: z.string().optional(),
   modalidades: z.string().optional(),
   categorias: z.string().optional(),
