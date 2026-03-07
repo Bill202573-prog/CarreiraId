@@ -918,6 +918,12 @@ export default function CarreiraPerfilPage() {
           perfil={perfil as any}
         />
       )}
+      {isOwner && (
+        <EditContaDialog
+          open={editContaOpen}
+          onOpenChange={setEditContaOpen}
+        />
+      )}
     </div>
   );
 }
