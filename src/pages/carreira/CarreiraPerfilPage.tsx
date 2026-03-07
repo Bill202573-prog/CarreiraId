@@ -431,10 +431,16 @@ export default function CarreiraPerfilPage() {
             {currentUserId && (
               <>
                 {isOwner && (
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3.5 h-3.5 mr-1" />
-                    Editar Perfil
-                  </Button>
+                  <>
+                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
+                      <Pencil className="w-3.5 h-3.5 mr-1" />
+                      Editar Perfil
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditContaOpen(true)}>
+                      <User className="w-3.5 h-3.5 mr-1" />
+                      Minha Conta
+                    </Button>
+                  </>
                 )}
                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
                   if (mySlug) {
