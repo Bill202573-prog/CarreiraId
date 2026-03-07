@@ -368,6 +368,26 @@ export default function CarreiraPerfilPage() {
     ? (perfil.modalidades?.length ? perfil.modalidades : [perfil.modalidade || 'Futebol'])
     : [];
   const isRedeProfile = perfil.type === 'rede';
+  const instagramHandle = isRedeProfile
+    ? (perfil.instagram || perfil.dados_perfil?.arroba || '').replace(/^@+/, '').trim()
+    : '';
+  const siteUrl = isRedeProfile
+    ? (perfil.site || perfil.dados_perfil?.site || perfil.dados_perfil?.portfolio || '').trim()
+    : '';
+  const whatsappDigits = isRedeProfile
+    ? String(perfil.telefone_whatsapp || '').replace(/\D/g, '')
+    : '';
+  const whatsappIntl = whatsappDigits
+    ? (whatsappDigits.startsWith('55') ? whatsappDigits : `55${whatsappDigits}`)
+    : '';
+
+  const formatWhatsAppDisplay = (digits: string) => {
+    if (!digits) return '';
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9, 13)}`;
+  };
 
   const sidebarCategoria = criancaSidebar?.data_nascimento
     ? (() => { const age = new Date().getFullYear() - new Date(criancaSidebar.data_nascimento).getFullYear(); return `Sub ${age}`; })()
