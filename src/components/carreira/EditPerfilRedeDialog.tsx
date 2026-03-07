@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Instagram, Trash2, Globe, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -21,8 +22,11 @@ const formSchema = z.object({
   instagram: z.string().max(200).optional(),
   site: z.string().max(200).optional(),
   whatsapp_publico: z.boolean().optional(),
+  telefone_whatsapp: z.string().max(20).optional(),
+  cpf_cnpj: z.string().max(20).optional(),
+  tipo_documento: z.enum(['cpf', 'cnpj']).optional(),
   // dados_perfil fields
-  escola_nome: z.string().optional(),
+  nome_escola: z.string().optional(),
   localizacao: z.string().optional(),
   modalidades: z.string().optional(),
   categorias: z.string().optional(),
@@ -54,7 +58,10 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       instagram: perfil?.instagram || '',
       site: perfil?.site || '',
       whatsapp_publico: perfil?.whatsapp_publico || false,
-      escola_nome: dados.escola_nome || '',
+      telefone_whatsapp: perfil?.telefone_whatsapp || '',
+      cpf_cnpj: perfil?.cpf_cnpj || '',
+      tipo_documento: perfil?.tipo_documento === 'cnpj' ? 'cnpj' : 'cpf',
+      nome_escola: dados.nome_escola || dados.escola_nome || '',
       localizacao: dados.localizacao || '',
       modalidades: Array.isArray(dados.modalidades) ? dados.modalidades.join(', ') : (dados.modalidades || ''),
       categorias: Array.isArray(dados.categorias) ? dados.categorias.join(', ') : (dados.categorias || ''),
@@ -72,7 +79,10 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         instagram: perfil.instagram || '',
         site: perfil.site || '',
         whatsapp_publico: perfil.whatsapp_publico || false,
-        escola_nome: d.escola_nome || '',
+        telefone_whatsapp: perfil.telefone_whatsapp || '',
+        cpf_cnpj: perfil.cpf_cnpj || '',
+        tipo_documento: perfil.tipo_documento === 'cnpj' ? 'cnpj' : 'cpf',
+        nome_escola: d.nome_escola || d.escola_nome || '',
         localizacao: d.localizacao || '',
         modalidades: Array.isArray(d.modalidades) ? d.modalidades.join(', ') : (d.modalidades || ''),
         categorias: Array.isArray(d.categorias) ? d.categorias.join(', ') : (d.categorias || ''),
@@ -86,9 +96,12 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const onSubmit = async (data: FormData) => {
     setSaving(true);
     try {
+      const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
+      const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
+
       const newDados = {
         ...dados,
-        escola_nome: data.escola_nome || null,
+        nome_escola: data.nome_escola || null,
         localizacao: data.localizacao || null,
         modalidades: data.modalidades ? data.modalidades.split(',').map(s => s.trim()).filter(Boolean) : [],
         categorias: data.categorias ? data.categorias.split(',').map(s => s.trim()).filter(Boolean) : [],
@@ -104,6 +117,9 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
           instagram: data.instagram || null,
           site: data.site || null,
           whatsapp_publico: data.whatsapp_publico || false,
+          telefone_whatsapp: cleanPhone || null,
+          cpf_cnpj: cleanDoc || null,
+          tipo_documento: data.tipo_documento || 'cpf',
           foto_url: photoUrl || null,
           dados_perfil: newDados,
         } as any)
@@ -113,6 +129,10 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       toast.success('Perfil atualizado!');
       queryClient.invalidateQueries({ queryKey: ['perfil-rede'] });
       queryClient.invalidateQueries({ queryKey: ['meu-perfil-rede'] });
+      queryClient.invalidateQueries({ queryKey: ['carreira-profile-by-slug'] });
+      if (perfil?.slug) {
+        queryClient.invalidateQueries({ queryKey: ['carreira-profile-by-slug', perfil.slug] });
+      }
       onOpenChange(false);
     } catch (err: any) {
       toast.error('Erro ao salvar: ' + err.message);
@@ -169,12 +189,20 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
+            <FormField control={form.control} name="telefone_whatsapp" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> WhatsApp</FormLabel>
+                <FormControl><Input placeholder="(11) 99999-9999" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
             <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
               <FormItem className="flex items-center gap-2 space-y-0">
                 <FormControl>
                   <input
                     type="checkbox"
-                    checked={field.value}
+                    checked={field.value ?? false}
                     onChange={field.onChange}
                     className="rounded border-border"
                   />
@@ -185,7 +213,35 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
-            <FormField control={form.control} name="escola_nome" render={({ field }) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField control={form.control} name="tipo_documento" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de documento</FormLabel>
+                  <FormControl>
+                    <Select value={field.value || 'cpf'} onValueChange={(value) => field.onChange(value as 'cpf' | 'cnpj')}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cpf">CPF</SelectItem>
+                        <SelectItem value="cnpj">CNPJ</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="cpf_cnpj" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CPF / CNPJ</FormLabel>
+                  <FormControl><Input placeholder="Documento cadastral" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <FormField control={form.control} name="nome_escola" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome da Escola / Instituição</FormLabel>
                 <FormControl><Input placeholder="Ex: Escola do Flamengo" {...field} /></FormControl>

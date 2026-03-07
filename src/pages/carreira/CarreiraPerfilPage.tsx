@@ -10,13 +10,14 @@ import { CreatePostForm } from '@/components/carreira/CreatePostForm';
 import { PostCard } from '@/components/carreira/PostCard';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
 import { EditPerfilDialog } from '@/components/carreira/EditPerfilDialog';
+import { EditContaDialog } from '@/components/carreira/EditContaDialog';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil } from 'lucide-react';
+import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -182,6 +183,9 @@ type UnifiedProfile = {
   // Rede-specific
   tipo?: string;
   instagram?: string | null;
+  site?: string | null;
+  telefone_whatsapp?: string | null;
+  whatsapp_publico?: boolean;
   dados_perfil?: Record<string, any> | null;
   // Theme
   tema?: string | null;
@@ -227,6 +231,7 @@ export default function CarreiraPerfilPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editContaOpen, setEditContaOpen] = useState(false);
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
   
   const [mySlug, setMySlug] = useState<string | null>(null);
@@ -363,6 +368,26 @@ export default function CarreiraPerfilPage() {
     ? (perfil.modalidades?.length ? perfil.modalidades : [perfil.modalidade || 'Futebol'])
     : [];
   const isRedeProfile = perfil.type === 'rede';
+  const instagramHandle = isRedeProfile
+    ? (perfil.instagram || perfil.dados_perfil?.arroba || '').replace(/^@+/, '').trim()
+    : '';
+  const siteUrl = isRedeProfile
+    ? (perfil.site || perfil.dados_perfil?.site || perfil.dados_perfil?.portfolio || '').trim()
+    : '';
+  const whatsappDigits = isRedeProfile
+    ? String(perfil.telefone_whatsapp || '').replace(/\D/g, '')
+    : '';
+  const whatsappIntl = whatsappDigits
+    ? (whatsappDigits.startsWith('55') ? whatsappDigits : `55${whatsappDigits}`)
+    : '';
+
+  const formatWhatsAppDisplay = (digits: string) => {
+    if (!digits) return '';
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9, 13)}`;
+  };
 
   const sidebarCategoria = criancaSidebar?.data_nascimento
     ? (() => { const age = new Date().getFullYear() - new Date(criancaSidebar.data_nascimento).getFullYear(); return `Sub ${age}`; })()
@@ -406,10 +431,16 @@ export default function CarreiraPerfilPage() {
             {currentUserId && (
               <>
                 {isOwner && (
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3.5 h-3.5 mr-1" />
-                    Editar Perfil
-                  </Button>
+                  <>
+                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
+                      <Pencil className="w-3.5 h-3.5 mr-1" />
+                      Editar Perfil
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditContaOpen(true)}>
+                      <User className="w-3.5 h-3.5 mr-1" />
+                      Minha Conta
+                    </Button>
+                  </>
                 )}
                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
                   if (mySlug) {
@@ -566,6 +597,42 @@ export default function CarreiraPerfilPage() {
                 <p className="text-xs text-muted-foreground mt-2 whitespace-pre-line line-clamp-4">{perfil.bio}</p>
               )}
 
+              {/* Contact links for network profiles */}
+              {isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
+                <div className="mt-3 space-y-1.5 text-xs border-t border-border pt-3">
+                  {instagramHandle && (
+                    <a
+                      href={`https://instagram.com/${instagramHandle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <Instagram className="w-3.5 h-3.5" />@{instagramHandle}
+                    </a>
+                  )}
+                  {siteUrl && (
+                    <a
+                      href={siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <Globe className="w-3.5 h-3.5" />{siteUrl.replace(/^https?:\/\//, '')}
+                    </a>
+                  )}
+                  {perfil.whatsapp_publico && whatsappIntl && (
+                    <a
+                      href={`https://wa.me/${whatsappIntl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                    >
+                      <Phone className="w-3.5 h-3.5" />{formatWhatsAppDisplay(whatsappDigits)}
+                    </a>
+                  )}
+                </div>
+              )}
+
               {/* Followers & Connections */}
               <div className="mt-3 pt-3 border-t border-border space-y-1">
                 <div className="text-xs text-muted-foreground">
@@ -667,9 +734,13 @@ export default function CarreiraPerfilPage() {
                     bio: perfil.bio,
                     instagram: perfil.instagram || null,
                     dados_perfil: perfil.dados_perfil || null,
+                    site: perfil.site || null,
+                    telefone_whatsapp: perfil.telefone_whatsapp || null,
+                    whatsapp_publico: perfil.whatsapp_publico ?? false,
                   }}
                   isOwnProfile={isOwner}
                   currentUserId={currentUserId}
+                  onEditProfile={isOwner ? () => setEditDialogOpen(true) : undefined}
                 />
               </div>
             )}
@@ -845,6 +916,12 @@ export default function CarreiraPerfilPage() {
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           perfil={perfil as any}
+        />
+      )}
+      {isOwner && (
+        <EditContaDialog
+          open={editContaOpen}
+          onOpenChange={setEditContaOpen}
         />
       )}
     </div>
