@@ -47,14 +47,17 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
   const config = TYPE_CONFIG[perfil.tipo as ProfileType] || { label: perfil.tipo, icon: '👤', color: 'bg-muted text-muted-foreground' };
   const [editContaOpen, setEditContaOpen] = useState(false);
 
-  const siteUrl = perfil.site || perfil.dados_perfil?.site;
-  const instagramHandle = perfil.instagram?.replace('@', '');
+  const siteUrl = (perfil.site || perfil.dados_perfil?.site || perfil.dados_perfil?.portfolio || '').trim();
+  const instagramHandle = (perfil.instagram || perfil.dados_perfil?.arroba || '').replace(/^@+/, '').trim();
+  const whatsappDigits = String(perfil.telefone_whatsapp || '').replace(/\D/g, '');
+  const whatsappIntl = whatsappDigits ? (whatsappDigits.startsWith('55') ? whatsappDigits : `55${whatsappDigits}`) : '';
 
-  const formatWhatsApp = (phone: string) => {
-    const clean = phone.replace(/\D/g, '');
-    if (clean.length <= 2) return clean;
-    if (clean.length <= 7) return `(${clean.slice(0, 2)}) ${clean.slice(2)}`;
-    return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7)}`;
+  const formatWhatsApp = (digits: string) => {
+    if (!digits) return '';
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9, 13)}`;
   };
 
   return (
