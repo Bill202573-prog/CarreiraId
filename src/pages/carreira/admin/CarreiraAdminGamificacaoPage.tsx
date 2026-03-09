@@ -253,6 +253,7 @@ export default function CarreiraAdminGamificacaoPage() {
 function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () => void }) {
   const [editing, setEditing] = useState<NivelConfig | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const handleSave = async (nivel: NivelConfig) => {
     setSaving(true);
@@ -269,6 +270,31 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
     setSaving(false);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editing) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `niveis/${editing.id}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('carreira-assets')
+        .upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('carreira-assets').getPublicUrl(path);
+      // Append cache-buster so browser shows the new image
+      const url = `${urlData.publicUrl}?v=${Date.now()}`;
+      setEditing({ ...editing, icone: url });
+      toast.success('Imagem carregada!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Erro ao fazer upload da imagem');
+    }
+    setUploading(false);
+  };
+
+  const isUrl = (v: string) => v.startsWith('http') || v.startsWith('blob:') || v.startsWith('/');
+
   return (
     <Card>
       <CardHeader>
@@ -277,15 +303,25 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">Edite os nomes, ícones e cores dos níveis de progressão.</p>
+        <p className="text-sm text-muted-foreground mb-4">Edite os nomes, imagens e cores dos níveis de progressão.</p>
         <div className="space-y-2">
           {niveis.map(n => (
             <div key={n.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
               {editing?.id === n.id ? (
                 <>
                   <div className="flex flex-col items-center gap-1">
-                    <Input className="w-16 h-12 text-center text-2xl" value={editing.icone} onChange={e => setEditing({ ...editing, icone: e.target.value })} title="Cole um emoji ou texto curto" />
-                    <span className="text-[9px] text-muted-foreground">Emoji/ícone</span>
+                    {/* Image preview */}
+                    <div className="w-14 h-14 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden bg-muted/50 relative">
+                      {isUrl(editing.icone) ? (
+                        <img src={editing.icone} alt="Ícone" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-2xl">{editing.icone}</span>
+                      )}
+                    </div>
+                    <label className="cursor-pointer text-[10px] text-primary hover:underline">
+                      {uploading ? 'Enviando...' : 'Trocar imagem'}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                    </label>
                   </div>
                   <div className="flex-1 grid grid-cols-3 gap-2">
                     <Input placeholder="Nome" value={editing.nome} onChange={e => setEditing({ ...editing, nome: e.target.value })} />
@@ -297,7 +333,13 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
                 </>
               ) : (
                 <>
-                  <span className="text-2xl w-10 text-center">{n.icone}</span>
+                  <div className="w-10 h-10 flex items-center justify-center">
+                    {isUrl(n.icone) ? (
+                      <img src={n.icone} alt={n.nome} className="w-10 h-10 object-contain rounded-lg" />
+                    ) : (
+                      <span className="text-2xl">{n.icone}</span>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{n.nome}</span>
