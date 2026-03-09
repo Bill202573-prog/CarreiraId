@@ -430,7 +430,12 @@ export default function CarreiraPerfilPage() {
           <div className="flex items-center gap-2">
             {currentUserId && (
               <>
-                
+                {isOwner && (
+                  <Button variant="outline" size="sm" className="h-8 text-xs hidden lg:flex gap-1" style={{ borderColor: `${accentColor}50`, color: accentColor }} onClick={() => setEditDialogOpen(true)}>
+                    <Pencil className="w-3 h-3" />
+                    Editar Perfil
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
                   if (mySlug) {
                     navigate(carreiraPath(`/${mySlug}`));
@@ -635,17 +640,11 @@ export default function CarreiraPerfilPage() {
 
               {/* Actions */}
               <div className="mt-3 space-y-2">
-                {isOwner && (
-                  <Button variant="outline" size="sm" className="w-full gap-1 text-xs" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3 h-3" />
-                    Editar Perfil
-                  </Button>
-                )}
                 {!isOwner && currentUserId && (
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} />
                 )}
                 <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
-                <ShareButton slug={perfil.slug} nome={perfil.nome} />
+                <ShareButton slug={perfil.slug} nome={perfil.nome} accentColor={accentColor} />
               </div>
               </div>
             </Card>
@@ -940,7 +939,7 @@ function FollowButton({ perfil, currentUserId, isOwner }: { perfil: any; current
   );
 }
 
-function ShareButton({ slug, nome }: { slug: string; nome: string }) {
+function ShareButton({ slug, nome, accentColor }: { slug: string; nome: string; accentColor?: string }) {
   const handleShare = async () => {
     const url = `${window.location.origin}${carreiraPath(`/${slug}`)}`;
     if (navigator.share) {
@@ -952,7 +951,8 @@ function ShareButton({ slug, nome }: { slug: string; nome: string }) {
   };
 
   return (
-    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={handleShare}>
+    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={handleShare}
+      style={accentColor ? { borderColor: `${accentColor}50`, color: accentColor } : undefined}>
       <Share2 className="w-3.5 h-3.5 mr-1" />Compartilhar
     </Button>
   );

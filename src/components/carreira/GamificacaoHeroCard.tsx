@@ -14,7 +14,6 @@ export function GamificacaoHeroCard() {
   const { gamificacao, niveis, isLoading } = useGamificacao();
   const [copied, setCopied] = useState(false);
 
-  // Fetch perfil to get cor_destaque and convite_codigo
   const { data: perfil } = useQuery({
     queryKey: ['gamificacao-perfil', user?.id],
     queryFn: async () => {
@@ -52,7 +51,7 @@ export function GamificacaoHeroCard() {
 
   const handleCopyInvite = async () => {
     if (!inviteLink) {
-      toast.error('Link de convite não encontrado');
+      toast.error('Link de convite não encontrado. Verifique seu perfil.');
       return;
     }
     try {
@@ -69,10 +68,14 @@ export function GamificacaoHeroCard() {
         setTimeout(() => setCopied(false), 2000);
       }
     } catch {
-      await navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
-      toast.success('Link copiado!');
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(inviteLink);
+        setCopied(true);
+        toast.success('Link copiado!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error('Não foi possível copiar o link');
+      }
     }
   };
 
@@ -91,22 +94,22 @@ export function GamificacaoHeroCard() {
         style={{ background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88, ${accentColor})` }}
       />
 
-      <CardContent className="pt-5 pb-5 px-4">
+      <CardContent className="pt-4 pb-4 px-4">
         {/* Level display */}
-        <div className="flex items-center gap-4 mb-5">
+        <div className="flex items-center gap-3 mb-4">
           {/* Level avatar */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <div
-              className="flex items-center justify-center w-[72px] h-[72px] rounded-2xl text-[34px] shadow-xl"
+              className="flex items-center justify-center w-16 h-16 rounded-2xl text-[28px] shadow-lg"
               style={{
                 background: `linear-gradient(145deg, ${levelColor}, ${levelColor}cc)`,
-                boxShadow: `0 0 24px ${levelColor}35, 0 6px 16px rgba(0,0,0,0.4)`,
+                boxShadow: `0 0 20px ${levelColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
               }}
             >
               {levelIcon}
             </div>
             <div
-              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold text-white"
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: levelColor, borderWidth: 2, borderColor: 'hsl(0 0% 4%)' }}
             >
               {gamificacao.nivel}
@@ -115,23 +118,23 @@ export function GamificacaoHeroCard() {
 
           {/* Level info */}
           <div className="flex-1 min-w-0">
-            <p className="text-foreground font-bold text-lg leading-tight">{levelTitle}</p>
-            <p className="text-[13px] mt-0.5" style={{ color: accentColor }}>
+            <p className="text-foreground font-bold text-base leading-tight truncate">{levelTitle}</p>
+            <p className="text-xs mt-0.5" style={{ color: accentColor }}>
               Nível {gamificacao.nivel}
             </p>
             <div className="flex items-center gap-1.5 mt-1">
-              <Zap className="w-3.5 h-3.5" style={{ color: levelColor }} />
-              <span className="text-muted-foreground text-xs">
+              <Zap className="w-3 h-3 shrink-0" style={{ color: levelColor }} />
+              <span className="text-muted-foreground text-[11px]">
                 {gamificacao.xp_atual.toLocaleString()} / {xpNext.toLocaleString()} XP
               </span>
             </div>
           </div>
 
           {/* Points */}
-          <div className="text-right">
+          <div className="text-right shrink-0">
             <div className="flex items-center gap-1" style={{ color: accentColor }}>
-              <Zap className="w-4 h-4" />
-              <span className="font-bold text-xl">{gamificacao.pontos_total.toLocaleString()}</span>
+              <Zap className="w-3.5 h-3.5" />
+              <span className="font-bold text-lg">{gamificacao.pontos_total.toLocaleString()}</span>
             </div>
             <p className="text-muted-foreground text-[10px] mt-0.5">pontos</p>
           </div>
@@ -139,7 +142,7 @@ export function GamificacaoHeroCard() {
 
         {/* Progress bar */}
         <div className="relative mb-2">
-          <div className="w-full h-3 rounded-full overflow-hidden" style={{ backgroundColor: `${levelColor}15` }}>
+          <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: `${levelColor}15` }}>
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
               style={{
@@ -153,7 +156,7 @@ export function GamificacaoHeroCard() {
 
         {/* Level progression icons */}
         {niveis.length > 0 && (
-          <div className="flex items-center justify-between px-0.5 mb-5">
+          <div className="flex items-center justify-between px-0.5 mb-4">
             {niveis.slice(0, 10).map((n) => {
               const isActive = gamificacao.nivel >= n.nivel;
               const isCurrent = gamificacao.nivel === n.nivel;
@@ -164,7 +167,7 @@ export function GamificacaoHeroCard() {
                   title={`${n.nome} - ${n.xp_minimo} XP`}
                 >
                   <span
-                    className="text-sm transition-all duration-300"
+                    className="text-xs transition-all duration-300"
                     style={{
                       opacity: isActive ? 1 : 0.25,
                       filter: isActive ? 'none' : 'grayscale(1)',
@@ -186,7 +189,7 @@ export function GamificacaoHeroCard() {
         )}
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-2 mb-5">
+        <div className="grid grid-cols-4 gap-1.5 mb-4">
           {[
             { value: gamificacao.convites_confirmados, label: 'Convites' },
             { value: gamificacao.posts_criados, label: 'Posts' },
@@ -195,11 +198,11 @@ export function GamificacaoHeroCard() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="text-center py-2 rounded-lg"
+              className="text-center py-1.5 rounded-lg"
               style={{ backgroundColor: `${accentColor}08`, border: `1px solid ${accentColor}15` }}
             >
-              <div className="text-foreground font-bold text-sm">{stat.value}</div>
-              <div className="text-muted-foreground text-[10px]">{stat.label}</div>
+              <div className="text-foreground font-bold text-xs">{stat.value}</div>
+              <div className="text-muted-foreground text-[9px]">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -207,22 +210,22 @@ export function GamificacaoHeroCard() {
         {/* Invite CTA button */}
         <Button
           onClick={handleCopyInvite}
-          className="w-full h-12 text-sm font-bold rounded-xl gap-2 border-0 text-white"
+          className="w-full h-10 text-xs font-bold rounded-xl gap-2 border-0 text-white"
           style={{
             background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
-            boxShadow: `0 4px 16px ${accentColor}30`,
+            boxShadow: `0 4px 12px ${accentColor}25`,
           }}
         >
           {copied ? (
             <>
-              <Check className="w-5 h-5" />
+              <Check className="w-4 h-4" />
               Link Copiado!
             </>
           ) : (
             <>
-              <Gift className="w-5 h-5" />
+              <Gift className="w-4 h-4" />
               Convidar e Ganhar XP
-              <Share2 className="w-4 h-4 ml-1 opacity-70" />
+              <Share2 className="w-3.5 h-3.5 ml-1 opacity-70" />
             </>
           )}
         </Button>
