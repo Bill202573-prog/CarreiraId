@@ -25,12 +25,26 @@ export function GamificacaoHeroCard() {
         .maybeSingle();
       const { data: pr } = await supabase
         .from('perfis_rede')
-        .select('convite_codigo')
+        .select('convite_codigo, slug')
         .eq('user_id', user.id)
         .maybeSingle();
+      
+      let conviteCodigo = pr?.convite_codigo || null;
+      
+      // If no convite_codigo exists but user has a perfis_rede record, generate one
+      if (!conviteCodigo && pr) {
+        const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        await supabase
+          .from('perfis_rede')
+          .update({ convite_codigo: newCode } as any)
+          .eq('user_id', user.id);
+        conviteCodigo = newCode;
+      }
+      
       return {
         cor_destaque: pa?.cor_destaque || '#3b82f6',
-        convite_codigo: pr?.convite_codigo || null,
+        convite_codigo: conviteCodigo,
+        slug: pa?.slug || pr?.slug || null,
       };
     },
     enabled: !!user?.id,

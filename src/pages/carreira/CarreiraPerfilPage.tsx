@@ -436,7 +436,9 @@ export default function CarreiraPerfilPage() {
                     Editar Perfil
                   </Button>
                 )}
-                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
+                <Button variant="outline" size="sm" className="h-8 text-xs"
+                  style={{ borderColor: `${accentColor}50`, color: accentColor }}
+                  onClick={async () => {
                   if (mySlug) {
                     navigate(carreiraPath(`/${mySlug}`));
                   } else {
@@ -641,7 +643,7 @@ export default function CarreiraPerfilPage() {
               {/* Actions */}
               <div className="mt-3 space-y-2">
                 {!isOwner && currentUserId && (
-                  <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} />
+                  <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                 )}
                 <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
                 <ShareButton slug={perfil.slug} nome={perfil.nome} accentColor={accentColor} />
@@ -746,7 +748,7 @@ export default function CarreiraPerfilPage() {
               <div className="lg:hidden">
                 <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
                    <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                     <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
                      Solicitações de conexão ({pendingRequests.length})
                   </h3>
                   <div className="space-y-3">
@@ -766,7 +768,7 @@ export default function CarreiraPerfilPage() {
                           <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
                         </div>
                         <div className="flex gap-1">
-                          <Button size="sm" className="h-7 text-[10px] px-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0" onClick={() => person.connectionId && handleAcceptRequest(person.connectionId)}>
+                          <Button size="sm" className="h-7 text-[10px] px-2 text-white border-0" style={{ backgroundColor: accentColor }} onClick={() => person.connectionId && handleAcceptRequest(person.connectionId)}>
                             <Check className="w-3 h-3 mr-0.5" /> Aceitar
                           </Button>
                           <Button size="sm" variant="ghost" className="h-7 text-[10px] px-1.5" onClick={() => person.connectionId && handleRejectRequest(person.connectionId)}>
@@ -791,9 +793,10 @@ export default function CarreiraPerfilPage() {
           <aside className="hidden lg:block space-y-4">
             {/* Pending connection requests (own profile only) */}
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
-              <Card className={`p-4 ${isDarkTheme ? 'border border-[hsl(25_60%_25%/0.3)] bg-card' : ''}`}>
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
                 <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+                  Solicitações ({pendingRequests.length})
                   Solicitações ({pendingRequests.length})
                 </h3>
                 <div className="space-y-3">
@@ -850,7 +853,7 @@ export default function CarreiraPerfilPage() {
                         </p>
                         <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
                       </div>
-                      <ConectarButton targetUserId={person.user_id} currentUserId={currentUserId} />
+                      <ConectarButton targetUserId={person.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                     </div>
                   ))}
                 </div>

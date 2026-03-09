@@ -8,9 +8,10 @@ import { UserPlus, Check, Clock, Loader2, UserMinus } from 'lucide-react';
 interface Props {
   targetUserId: string;
   currentUserId?: string | null;
+  accentColor?: string;
 }
 
-export function ConectarButton({ targetUserId, currentUserId }: Props) {
+export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6' }: Props) {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
@@ -109,7 +110,8 @@ export function ConectarButton({ targetUserId, currentUserId }: Props) {
 
   if (!conexao) {
     return (
-      <Button size="sm" onClick={handleConectar} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-sm">
+      <Button size="sm" onClick={handleConectar} className="text-white border-0 shadow-sm"
+        style={{ backgroundColor: accentColor }}>
         <UserPlus className="w-4 h-4 mr-1" /> Conectar
       </Button>
     );
@@ -149,7 +151,8 @@ export function ConectarButton({ targetUserId, currentUserId }: Props) {
 
   // Rejected - allow re-connect
   return (
-    <Button size="sm" onClick={handleConectar} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-sm">
+    <Button size="sm" onClick={handleConectar} className="text-white border-0 shadow-sm"
+      style={{ backgroundColor: accentColor }}>
       <UserPlus className="w-4 h-4 mr-1" /> Conectar
     </Button>
   );
