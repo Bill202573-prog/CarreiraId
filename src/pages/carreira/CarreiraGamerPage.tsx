@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
+import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
+import { GamificacaoCard } from '@/components/carreira/GamificacaoCard';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 
-export default function CarreiraConexoesPage() {
+export default function CarreiraGamerPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [mySlug, setMySlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,12 +48,13 @@ export default function CarreiraConexoesPage() {
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
             <img src={logoCarreira} alt="Carreira" className="h-16 lg:h-20" />
           </Link>
-          <h1 className="ml-4 text-lg font-semibold text-foreground">Conexões</h1>
+          <h1 className="ml-4 text-lg font-semibold text-foreground">Gamer</h1>
         </div>
       </header>
 
       <main className="container max-w-2xl px-4 py-6 pb-24 space-y-6">
-        <ConnectionsSection userId={currentUserId} currentUserId={currentUserId} />
+        <GamificacaoHeroCard />
+        <GamificacaoCard />
       </main>
 
       <CarreiraBottomNav currentUserId={currentUserId} profileSlug={mySlug} />

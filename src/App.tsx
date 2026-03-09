@@ -27,6 +27,7 @@ const CarreiraCadastroPage = lazy(() => import("./pages/carreira/CarreiraCadastr
 const PerfilPage = lazy(() => import("./pages/carreira/PerfilPage"));
 const CarreiraLandingV2Page = lazy(() => import("./pages/carreira/CarreiraLandingV2Page"));
 const CarreiraConexoesPage = lazy(() => import("./pages/carreira/CarreiraConexoesPage"));
+const CarreiraGamerPage = lazy(() => import("./pages/carreira/CarreiraGamerPage"));
 const TermosPage = lazy(() => import("./pages/carreira/TermosPage"));
 const PrivacidadePage = lazy(() => import("./pages/carreira/PrivacidadePage"));
 const ContatoPage = lazy(() => import("./pages/carreira/ContatoPage"));
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/feed" element={<CarreiraExplorarPage />} />
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
               <Route path="/conexoes" element={<CarreiraConexoesPage />} />
+              <Route path="/gamer" element={<CarreiraGamerPage />} />
               <Route path="/termos" element={<TermosPage />} />
               <Route path="/privacidade" element={<PrivacidadePage />} />
               <Route path="/contato" element={<ContatoPage />} />

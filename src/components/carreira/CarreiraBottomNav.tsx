@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -55,6 +55,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
 
   const feedPath = carreiraPath('/feed');
   const conexoesPath = carreiraPath('/conexoes');
+  const gamerPath = carreiraPath('/gamer');
 
   const items = [
     {
@@ -70,6 +71,13 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       onClick: () => navigate(conexoesPath),
       active: location.pathname === conexoesPath,
       badge: (pendingCount || 0),
+    },
+    {
+      icon: Gamepad2,
+      label: 'Gamer',
+      onClick: () => navigate(gamerPath),
+      active: location.pathname === gamerPath,
+      badge: 0,
     },
     {
       icon: User,

@@ -209,10 +209,10 @@ export function GamificacaoHeroCard() {
         {/* Invite CTA button - pulsating */}
         <Button
           onClick={handleCopyInvite}
-          className="w-full h-12 text-sm font-bold rounded-xl gap-2 border-0 text-white animate-pulse-soft"
+          className="w-full h-12 text-sm font-bold rounded-xl gap-2 border-0 text-white"
           style={{
             background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
-            boxShadow: `0 4px 20px ${accentColor}40, 0 0 40px ${accentColor}15`,
+            boxShadow: `0 4px 16px ${accentColor}30`,
           }}
         >
           {copied ? (
