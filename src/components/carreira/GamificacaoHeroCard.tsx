@@ -59,7 +59,7 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
       
       let conviteCodigo = pr?.convite_codigo || null;
       
-      // If no convite_codigo exists, generate one
+      // If no convite_codigo exists, generate one and PERSIST it
       if (!conviteCodigo) {
         const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         if (pr) {
@@ -68,8 +68,16 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
             .from('perfis_rede')
             .update({ convite_codigo: newCode } as any)
             .eq('user_id', userId);
+        } else if (pa) {
+          // User only has perfil_atleta — create a minimal perfis_rede entry
+          // so the invite code is persisted and discoverable
+          await supabase.from('perfis_rede').insert({
+            user_id: userId,
+            tipo: 'pai_responsavel',
+            nome: pa.slug?.replace(/-[a-z0-9]+$/, '').replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) || 'Responsável',
+            convite_codigo: newCode,
+          } as any);
         }
-        // Even if no perfis_rede record, we can use the generated code
         conviteCodigo = newCode;
       }
       
