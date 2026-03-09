@@ -100,8 +100,8 @@ export function GamificacaoCard() {
           {/* Stats rápidos */}
           <div className="grid grid-cols-4 gap-2 mt-4">
             <div className="text-center">
-              <div className="text-white font-bold text-sm">{gamificacao.convites_confirmados}</div>
-              <div className="text-gray-500 text-[10px]">Convites</div>
+              <div className="text-foreground font-bold text-sm">{gamificacao.convites_confirmados}</div>
+              <div className="text-muted-foreground text-[10px]">Convites</div>
             </div>
             <div className="text-center">
               <div className="text-white font-bold text-sm">{gamificacao.posts_criados}</div>
