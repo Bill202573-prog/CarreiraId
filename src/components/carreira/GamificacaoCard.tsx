@@ -164,7 +164,7 @@ export function GamificacaoCard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Progress value={pct} className="h-1.5 bg-gray-800 flex-1" />
-                      <span className="text-gray-400 text-[10px] whitespace-nowrap">
+                      <span className="text-muted-foreground text-[10px] whitespace-nowrap">
                         {prog?.progresso_atual || 0}/{desafio.quantidade_meta}
                       </span>
                     </div>
