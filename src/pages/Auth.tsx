@@ -133,10 +133,10 @@ const Auth = () => {
 
         <Card variant="elevated" className="border border-orange-500/20" style={{ backgroundColor: 'hsl(220 12% 10%)' }}>
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-xl">
+            <CardTitle className="text-xl text-white">
               {isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-400">
               {isLogin 
                 ? 'Use suas credenciais para acessar' 
                 : 'Preencha os dados para se cadastrar'}
