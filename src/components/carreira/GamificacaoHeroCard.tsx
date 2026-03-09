@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Zap, Share2, Gift } from 'lucide-react';
+import { LevelIcon } from './LevelIcon';
 import { useGamificacao, getLevelProgress, getLevelTitle, getLevelIcon, getLevelColor, getNextLevelXp } from '@/hooks/useGamificacaoData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -170,7 +171,7 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
                 boxShadow: `0 0 16px ${levelColor}30, 0 4px 10px rgba(0,0,0,0.3)`,
               }}
             >
-              {levelIcon}
+              <LevelIcon icone={levelIcon} size={28} />
             </div>
             <div
               className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
@@ -230,16 +231,15 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
                   className="flex flex-col items-center gap-0.5 transition-all duration-300"
                   title={`${n.nome} - ${n.xp_minimo} XP`}
                 >
-                  <span
-                    className="text-[11px] transition-all duration-300"
+                  <div
                     style={{
                       opacity: isActive ? 1 : 0.25,
                       filter: isActive ? 'none' : 'grayscale(1)',
                       transform: isCurrent ? 'scale(1.3)' : 'scale(1)',
                     }}
                   >
-                    {n.icone}
-                  </span>
+                    <LevelIcon icone={n.icone} size={isCurrent ? 16 : 12} />
+                  </div>
                   {isCurrent && (
                     <div
                       className="w-1 h-1 rounded-full"
