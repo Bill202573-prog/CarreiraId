@@ -104,8 +104,8 @@ export function GamificacaoCard() {
               <div className="text-muted-foreground text-[10px]">Convites</div>
             </div>
             <div className="text-center">
-              <div className="text-white font-bold text-sm">{gamificacao.posts_criados}</div>
-              <div className="text-gray-500 text-[10px]">Posts</div>
+              <div className="text-foreground font-bold text-sm">{gamificacao.posts_criados}</div>
+              <div className="text-muted-foreground text-[10px]">Posts</div>
             </div>
             <div className="text-center">
               <div className="text-white font-bold text-sm">{gamificacao.conexoes_feitas}</div>
