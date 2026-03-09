@@ -304,8 +304,8 @@ export default function CarreiraCadastroPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'hsl(25 95% 55%)' }} />
       </div>
     );
   }
