@@ -7,6 +7,7 @@ import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { useQuery } from '@tanstack/react-query';
 
 export default function CarreiraGamerPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -27,6 +28,19 @@ export default function CarreiraGamerPage() {
     });
   }, []);
 
+  // Fetch accent color from user profile
+  const { data: perfilData } = useQuery({
+    queryKey: ['gamer-page-accent', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return null;
+      const { data: pa } = await supabase.from('perfil_atleta').select('cor_destaque').eq('user_id', currentUserId).maybeSingle();
+      return { accentColor: pa?.cor_destaque || '#3b82f6' };
+    },
+    enabled: !!currentUserId,
+  });
+
+  const accentColor = perfilData?.accentColor || '#3b82f6';
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" data-theme="dark-orange" style={{ background: 'hsl(0 0% 4%)' }}>
@@ -42,8 +56,8 @@ export default function CarreiraGamerPage() {
 
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
-      <div className="h-1 w-full bg-[hsl(25_95%_55%)]" />
-      <header className="sticky top-0 z-50 bg-[hsl(0_0%_0%/0.97)] border-b border-[hsl(25_95%_55%/0.4)]">
+      <div className="h-0.5 w-full" style={{ backgroundColor: accentColor }} />
+      <header className="sticky top-0 z-50 bg-[hsl(0_0%_0%/0.97)]" style={{ borderBottom: `2px solid ${accentColor}50` }}>
         <div className="container flex items-center h-14 px-4 max-w-2xl">
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
             <img src={logoCarreira} alt="Carreira" className="h-16 lg:h-20" />
