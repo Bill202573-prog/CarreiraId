@@ -283,7 +283,10 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
             <div key={n.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
               {editing?.id === n.id ? (
                 <>
-                  <Input className="w-12 text-center text-lg" value={editing.icone} onChange={e => setEditing({ ...editing, icone: e.target.value })} />
+                  <div className="flex flex-col items-center gap-1">
+                    <Input className="w-16 h-12 text-center text-2xl" value={editing.icone} onChange={e => setEditing({ ...editing, icone: e.target.value })} title="Cole um emoji ou texto curto" />
+                    <span className="text-[9px] text-muted-foreground">Emoji/ícone</span>
+                  </div>
                   <div className="flex-1 grid grid-cols-3 gap-2">
                     <Input placeholder="Nome" value={editing.nome} onChange={e => setEditing({ ...editing, nome: e.target.value })} />
                     <Input type="color" value={editing.cor} onChange={e => setEditing({ ...editing, cor: e.target.value })} className="w-full h-9" />
