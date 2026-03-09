@@ -117,21 +117,21 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
       {/* Background pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative animate-fade-in">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <img src={logoCarreiraId} alt="Carreira ID" className="h-32 w-auto mx-auto mb-4" />
-          <p className="text-muted-foreground">Carreira Esportiva</p>
+          <p className="text-gray-400">Carreira Esportiva</p>
         </div>
 
-        <Card variant="elevated" className="border border-border/50">
+        <Card variant="elevated" className="border border-orange-500/20" style={{ backgroundColor: 'hsl(220 12% 10%)' }}>
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl">
               {isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
