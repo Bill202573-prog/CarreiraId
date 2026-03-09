@@ -793,8 +793,9 @@ export default function CarreiraPerfilPage() {
           <aside className="hidden lg:block space-y-4">
             {/* Pending connection requests (own profile only) */}
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
-              <Card className={`p-4 ${isDarkTheme ? 'border border-[hsl(25_60%_25%/0.3)] bg-card' : ''}`}>
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
                 <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
                   <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                   Solicitações ({pendingRequests.length})
                 </h3>
