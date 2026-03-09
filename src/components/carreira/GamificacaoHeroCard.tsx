@@ -92,12 +92,23 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
 
   if (isLoading || !userId) return null;
 
+  // Compute display level from niveis table (source of truth) rather than DB-stored nivel
+  const computedNivel = niveis.length > 0
+    ? (() => {
+        let lvl = 1;
+        for (const n of [...niveis].sort((a, b) => a.nivel - b.nivel)) {
+          if (gamificacao.xp_atual >= n.xp_minimo) lvl = n.nivel;
+        }
+        return lvl;
+      })()
+    : gamificacao.nivel;
+
   const accentColor = propAccentColor || perfil?.cor_destaque || '#3b82f6';
-  const levelTitle = getLevelTitle(gamificacao.nivel, niveis);
-  const levelIcon = getLevelIcon(gamificacao.nivel, niveis);
-  const levelColor = getLevelColor(gamificacao.nivel, niveis);
-  const progress = getLevelProgress(gamificacao.xp_atual, gamificacao.nivel, niveis);
-  const xpNext = getNextLevelXp(gamificacao.nivel, niveis);
+  const levelTitle = getLevelTitle(computedNivel, niveis);
+  const levelIcon = getLevelIcon(computedNivel, niveis);
+  const levelColor = getLevelColor(computedNivel, niveis);
+  const progress = getLevelProgress(gamificacao.xp_atual, computedNivel, niveis);
+  const xpNext = getNextLevelXp(computedNivel, niveis);
 
   const inviteLink = perfil?.convite_codigo
     ? `${window.location.origin}${carreiraPath('/cadastro')}?convite=${perfil.convite_codigo}`
