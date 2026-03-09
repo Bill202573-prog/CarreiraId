@@ -682,6 +682,11 @@ export default function CarreiraPerfilPage() {
               </Card>
             )}
 
+            {/* Gamificação — desktop only */}
+            {isOwner && (
+              <GamificacaoHeroCard />
+            )}
+
           </aside>
 
           {/* Center — Profile Header (mobile only) + Timeline */}
