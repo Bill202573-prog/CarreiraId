@@ -47,7 +47,7 @@ export function GamificacaoCard() {
                   boxShadow: `0 0 20px ${levelColor}40, 0 4px 12px rgba(0,0,0,0.3)`,
                 }}
               >
-                {levelIcon}
+                <LevelIcon icone={levelIcon} size={32} />
               </div>
               <div 
                 className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2"
