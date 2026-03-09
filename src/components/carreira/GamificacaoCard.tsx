@@ -147,7 +147,7 @@ export function GamificacaoCard() {
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-lg">{desafio.icone}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-xs font-semibold truncate">{desafio.titulo}</p>
+                        <p className="text-foreground text-xs font-semibold truncate">{desafio.titulo}</p>
                         {desafio.descricao && (
                           <p className="text-gray-500 text-[10px] truncate">{desafio.descricao}</p>
                         )}
