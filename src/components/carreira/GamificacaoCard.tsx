@@ -68,7 +68,7 @@ export function GamificacaoCard() {
                 <Zap className="w-4 h-4" />
                 <span className="font-bold text-lg">{gamificacao.pontos_total.toLocaleString()}</span>
               </div>
-              <p className="text-gray-500 text-[10px]">pontos</p>
+              <p className="text-muted-foreground text-[10px]">pontos</p>
             </div>
           </div>
 
