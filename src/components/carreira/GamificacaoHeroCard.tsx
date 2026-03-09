@@ -231,19 +231,15 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
                   className="flex flex-col items-center gap-0.5 transition-all duration-300"
                   title={`${n.nome} - ${n.xp_minimo} XP`}
                 >
-                  <span
-                    className="text-[11px] transition-all duration-300"
+                  <div
                     style={{
                       opacity: isActive ? 1 : 0.25,
                       filter: isActive ? 'none' : 'grayscale(1)',
                       transform: isCurrent ? 'scale(1.3)' : 'scale(1)',
                     }}
                   >
-                  <LevelIcon
-                    icone={n.icone}
-                    size={isCurrent ? 16 : 12}
-                    className="transition-all duration-300"
-                  />
+                    <LevelIcon icone={n.icone} size={isCurrent ? 16 : 12} />
+                  </div>
                   {isCurrent && (
                     <div
                       className="w-1 h-1 rounded-full"
