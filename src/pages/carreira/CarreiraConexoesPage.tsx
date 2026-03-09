@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
+import { GamificacaoCard } from '@/components/carreira/GamificacaoCard';
 import { Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
@@ -51,7 +52,8 @@ export default function CarreiraConexoesPage() {
         </div>
       </header>
 
-      <main className="container max-w-2xl px-4 py-6 pb-24">
+      <main className="container max-w-2xl px-4 py-6 pb-24 space-y-6">
+        <GamificacaoCard />
         <ConnectionsSection userId={currentUserId} currentUserId={currentUserId} />
       </main>
 

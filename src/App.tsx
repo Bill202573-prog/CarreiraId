@@ -35,6 +35,7 @@ const CarreiraAdminPerfisPage = lazy(() => import("./pages/carreira/admin/Carrei
 const CarreiraAdminPostsPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPostsPage"));
 const CarreiraAdminAssinaturasPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAssinaturasPage"));
 const CarreiraAdminAtividadesPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminAtividadesPage"));
+const CarreiraAdminGamificacaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminGamificacaoPage"));
 const CarreiraAdminPerformancePage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerformancePage"));
 const CarreiraAdminModeracaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminModeracaoPage"));
 const ResetPasswordPage = lazy(() => import("./pages/carreira/ResetPasswordPage"));
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="/carreira/admin/posts" element={<CarreiraAdminPostsPage />} />
               <Route path="/carreira/admin/assinaturas" element={<CarreiraAdminAssinaturasPage />} />
               <Route path="/carreira/admin/atividades" element={<CarreiraAdminAtividadesPage />} />
+              <Route path="/carreira/admin/gamificacao" element={<CarreiraAdminGamificacaoPage />} />
               <Route path="/carreira/admin/performance" element={<CarreiraAdminPerformancePage />} />
               <Route path="/carreira/admin/moderacao" element={<CarreiraAdminModeracaoPage />} />
               <Route path="/perfil/:userId" element={<PerfilPage />} />

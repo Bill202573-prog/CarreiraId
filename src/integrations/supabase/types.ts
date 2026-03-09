@@ -583,6 +583,36 @@ export type Database = {
         }
         Relationships: []
       }
+      pontos_historico: {
+        Row: {
+          acao_tipo: string
+          created_at: string
+          descricao: string
+          id: string
+          pontos: number
+          referencia_id: string | null
+          user_id: string
+        }
+        Insert: {
+          acao_tipo: string
+          created_at?: string
+          descricao: string
+          id?: string
+          pontos: number
+          referencia_id?: string | null
+          user_id: string
+        }
+        Update: {
+          acao_tipo?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          pontos?: number
+          referencia_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comentarios: {
         Row: {
           created_at: string
@@ -793,6 +823,84 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_cor: string | null
+          badge_descricao: string
+          badge_icone: string | null
+          badge_nome: string
+          badge_tipo: string
+          conquistado_em: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_cor?: string | null
+          badge_descricao: string
+          badge_icone?: string | null
+          badge_nome: string
+          badge_tipo: string
+          conquistado_em?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_cor?: string | null
+          badge_descricao?: string
+          badge_icone?: string | null
+          badge_nome?: string
+          badge_tipo?: string
+          conquistado_em?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_gamificacao: {
+        Row: {
+          atividades_registradas: number
+          conexoes_feitas: number
+          convites_confirmados: number
+          convites_enviados: number
+          created_at: string
+          id: string
+          nivel: number
+          pontos_total: number
+          posts_criados: number
+          updated_at: string
+          user_id: string
+          xp_atual: number
+        }
+        Insert: {
+          atividades_registradas?: number
+          conexoes_feitas?: number
+          convites_confirmados?: number
+          convites_enviados?: number
+          created_at?: string
+          id?: string
+          nivel?: number
+          pontos_total?: number
+          posts_criados?: number
+          updated_at?: string
+          user_id: string
+          xp_atual?: number
+        }
+        Update: {
+          atividades_registradas?: number
+          conexoes_feitas?: number
+          convites_confirmados?: number
+          convites_enviados?: number
+          created_at?: string
+          id?: string
+          nivel?: number
+          pontos_total?: number
+          posts_criados?: number
+          updated_at?: string
+          user_id?: string
+          xp_atual?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -819,6 +927,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adicionar_pontos: {
+        Args: {
+          p_acao_tipo: string
+          p_descricao: string
+          p_pontos: number
+          p_referencia_id?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      calcular_nivel: { Args: { xp_atual: number }; Returns: number }
       check_carreira_atividade_limit: {
         Args: { p_crianca_id: string; p_user_id: string }
         Returns: Json
@@ -826,6 +945,17 @@ export type Database = {
       crianca_has_public_profile: {
         Args: { p_crianca_id: string; p_data_type?: string }
         Returns: boolean
+      }
+      dar_badge: {
+        Args: {
+          p_badge_cor?: string
+          p_badge_descricao: string
+          p_badge_icone?: string
+          p_badge_nome: string
+          p_badge_tipo: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       get_user_role: {
         Args: { _user_id: string }
@@ -851,6 +981,11 @@ export type Database = {
         Returns: boolean
       }
       unaccent: { Args: { "": string }; Returns: string }
+      verificar_badges_convites: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      xp_para_proximo_nivel: { Args: { nivel_atual: number }; Returns: number }
     }
     Enums: {
       atividade_credibilidade_status:
