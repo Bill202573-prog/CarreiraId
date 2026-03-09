@@ -46,7 +46,7 @@ export default function CarreiraAdminGamificacaoPage() {
       const [gamificacaoResult, pontosResult, badgesResult, profilesResult] = await Promise.all([
         supabase.from('user_gamificacao' as any).select('pontos_total, nivel'),
         supabase.from('pontos_historico' as any).select('pontos'),
-        supabase.from('user_badges' as any).select('user_id').distinct(),
+        supabase.from('user_badges' as any).select('user_id'),
         supabase.from('profiles').select('nome, email, user_id')
       ]);
 
