@@ -215,16 +215,16 @@ const Auth = () => {
               <PwaInstallButton />
             </div>
 
-            <div className="mt-6 pt-6 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                {isLogin ? 'Nao tem uma conta?' : 'Ja tem uma conta?'}
+            <div className="mt-6 pt-6 border-t border-gray-700 text-center">
+              <p className="text-sm text-gray-400">
+                {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
                 {' '}
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-primary hover:underline font-medium"
+                  className="text-orange-500 hover:underline font-medium"
                 >
-                  {isLogin ? 'Cadastre-se' : 'Faca login'}
+                  {isLogin ? 'Cadastre-se' : 'Faça login'}
                 </button>
               </p>
             </div>
