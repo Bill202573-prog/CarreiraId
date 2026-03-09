@@ -171,7 +171,7 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
                 boxShadow: `0 0 16px ${levelColor}30, 0 4px 10px rgba(0,0,0,0.3)`,
               }}
             >
-              {levelIcon}
+              <LevelIcon icone={levelIcon} size={28} />
             </div>
             <div
               className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
