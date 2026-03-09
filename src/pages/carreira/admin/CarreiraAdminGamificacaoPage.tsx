@@ -224,6 +224,11 @@ export default function CarreiraAdminGamificacaoPage() {
             </Card>
           </TabsContent>
 
+          {/* TAB: Convites */}
+          <TabsContent value="convites">
+            <ConvitesManager />
+          </TabsContent>
+
           {/* TAB: Níveis */}
           <TabsContent value="niveis">
             <NiveisManager niveis={niveis} onSave={() => { refetchNiveis(); queryClient.invalidateQueries({ queryKey: ['gamificacao-niveis'] }); }} />
