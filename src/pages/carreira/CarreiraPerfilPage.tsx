@@ -643,7 +643,7 @@ export default function CarreiraPerfilPage() {
               {/* Actions */}
               <div className="mt-3 space-y-2">
                 {!isOwner && currentUserId && (
-                  <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} />
+                  <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                 )}
                 <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
                 <ShareButton slug={perfil.slug} nome={perfil.nome} accentColor={accentColor} />
