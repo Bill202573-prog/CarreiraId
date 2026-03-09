@@ -117,26 +117,26 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
       {/* Background pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative animate-fade-in">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <img src={logoCarreiraId} alt="Carreira ID" className="h-32 w-auto mx-auto mb-4" />
-          <p className="text-muted-foreground">Carreira Esportiva</p>
+          <p className="text-gray-400">Carreira Esportiva</p>
         </div>
 
-        <Card variant="elevated" className="border border-border/50">
+        <Card variant="elevated" className="border border-orange-500/20" style={{ backgroundColor: 'hsl(220 12% 10%)' }}>
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-xl">
+            <CardTitle className="text-xl text-white">
               {isLogin ? 'Entrar no Sistema' : 'Criar Conta'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-400">
               {isLogin 
                 ? 'Use suas credenciais para acessar' 
                 : 'Preencha os dados para se cadastrar'}
@@ -146,16 +146,16 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo</Label>
+                  <Label htmlFor="nome" className="text-gray-300">Nome Completo</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       id="nome"
                       type="text"
                       placeholder="Seu nome completo"
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                       disabled={isLoading}
                     />
                   </div>
@@ -163,32 +163,32 @@ const Auth = () => {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email" className="text-gray-300">E-mail</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                     disabled={isLoading}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" className="text-gray-300">Senha</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                     disabled={isLoading}
                   />
                 </div>
@@ -196,7 +196,7 @@ const Auth = () => {
 
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
                 size="lg"
                 disabled={isLoading}
               >
@@ -215,16 +215,16 @@ const Auth = () => {
               <PwaInstallButton />
             </div>
 
-            <div className="mt-6 pt-6 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                {isLogin ? 'Nao tem uma conta?' : 'Ja tem uma conta?'}
+            <div className="mt-6 pt-6 border-t border-gray-700 text-center">
+              <p className="text-sm text-gray-400">
+                {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
                 {' '}
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-primary hover:underline font-medium"
+                  className="text-orange-500 hover:underline font-medium"
                 >
-                  {isLogin ? 'Cadastre-se' : 'Faca login'}
+                  {isLogin ? 'Cadastre-se' : 'Faça login'}
                 </button>
               </p>
             </div>
