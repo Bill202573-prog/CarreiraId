@@ -216,8 +216,8 @@ export function GamificacaoCard() {
               {historico.slice(0, 5).map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-gray-800/30">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-gray-400">{ACAO_ICONS[item.acao_tipo] || <Zap className="w-3.5 h-3.5" />}</span>
-                    <span className="text-gray-300 text-xs truncate">{item.descricao}</span>
+                    <span className="text-muted-foreground">{ACAO_ICONS[item.acao_tipo] || <Zap className="w-3.5 h-3.5" />}</span>
+                    <span className="text-muted-foreground text-xs truncate">{item.descricao}</span>
                   </div>
                   <span className="text-xs font-medium whitespace-nowrap ml-2" style={{ color: levelColor }}>+{item.pontos}</span>
                 </div>
