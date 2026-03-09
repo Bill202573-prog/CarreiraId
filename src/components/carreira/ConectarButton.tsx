@@ -109,7 +109,8 @@ export function ConectarButton({ targetUserId, currentUserId }: Props) {
 
   if (!conexao) {
     return (
-      <Button size="sm" onClick={handleConectar} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-sm">
+      <Button size="sm" onClick={handleConectar} className="text-white border-0 shadow-sm"
+        style={{ backgroundColor: accentColor }}>
         <UserPlus className="w-4 h-4 mr-1" /> Conectar
       </Button>
     );
