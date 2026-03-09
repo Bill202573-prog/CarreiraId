@@ -239,8 +239,11 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
                       transform: isCurrent ? 'scale(1.3)' : 'scale(1)',
                     }}
                   >
-                    {n.icone}
-                  </span>
+                  <LevelIcon
+                    icone={n.icone}
+                    size={isCurrent ? 16 : 12}
+                    className="transition-all duration-300"
+                  />
                   {isCurrent && (
                     <div
                       className="w-1 h-1 rounded-full"
