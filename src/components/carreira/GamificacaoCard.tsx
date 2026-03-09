@@ -123,7 +123,7 @@ export function GamificacaoCard() {
       {desafios.length > 0 && (
         <Card className="overflow-hidden" style={{ borderColor: `${levelColor}50`, borderWidth: 2, backgroundColor: 'hsl(0 0% 6%)' }}>
           <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-sm text-white flex items-center gap-2">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
               <Target className="w-4 h-4" style={{ color: levelColor }} />
               Desafios Ativos
             </CardTitle>
