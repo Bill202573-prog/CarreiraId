@@ -187,8 +187,9 @@ export default function CarreiraAdminGamificacaoPage() {
         </div>
 
         <Tabs defaultValue="ranking" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="ranking"><Crown className="w-4 h-4 mr-1" /> Ranking</TabsTrigger>
+            <TabsTrigger value="convites"><Send className="w-4 h-4 mr-1" /> Convites</TabsTrigger>
             <TabsTrigger value="niveis"><Settings className="w-4 h-4 mr-1" /> Níveis</TabsTrigger>
             <TabsTrigger value="pontos"><Target className="w-4 h-4 mr-1" /> Pontos por Tipo</TabsTrigger>
             <TabsTrigger value="desafios"><Swords className="w-4 h-4 mr-1" /> Desafios</TabsTrigger>
