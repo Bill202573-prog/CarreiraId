@@ -146,16 +146,16 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo</Label>
+                  <Label htmlFor="nome" className="text-gray-300">Nome Completo</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       id="nome"
                       type="text"
                       placeholder="Seu nome completo"
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                       disabled={isLoading}
                     />
                   </div>
