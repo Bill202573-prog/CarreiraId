@@ -92,12 +92,23 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
 
   if (isLoading || !userId) return null;
 
+  // Compute display level from niveis table (source of truth) rather than DB-stored nivel
+  const computedNivel = niveis.length > 0
+    ? (() => {
+        let lvl = 1;
+        for (const n of [...niveis].sort((a, b) => a.nivel - b.nivel)) {
+          if (gamificacao.xp_atual >= n.xp_minimo) lvl = n.nivel;
+        }
+        return lvl;
+      })()
+    : gamificacao.nivel;
+
   const accentColor = propAccentColor || perfil?.cor_destaque || '#3b82f6';
-  const levelTitle = getLevelTitle(gamificacao.nivel, niveis);
-  const levelIcon = getLevelIcon(gamificacao.nivel, niveis);
-  const levelColor = getLevelColor(gamificacao.nivel, niveis);
-  const progress = getLevelProgress(gamificacao.xp_atual, gamificacao.nivel, niveis);
-  const xpNext = getNextLevelXp(gamificacao.nivel, niveis);
+  const levelTitle = getLevelTitle(computedNivel, niveis);
+  const levelIcon = getLevelIcon(computedNivel, niveis);
+  const levelColor = getLevelColor(computedNivel, niveis);
+  const progress = getLevelProgress(gamificacao.xp_atual, computedNivel, niveis);
+  const xpNext = getNextLevelXp(computedNivel, niveis);
 
   const inviteLink = perfil?.convite_codigo
     ? `${window.location.origin}${carreiraPath('/cadastro')}?convite=${perfil.convite_codigo}`
@@ -173,7 +184,7 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
           <div className="flex-1 min-w-0">
             <p className="text-foreground font-bold text-sm leading-tight truncate">{levelTitle}</p>
             <p className="text-[11px] mt-0.5" style={{ color: accentColor }}>
-              Nível {gamificacao.nivel}
+              Nível {computedNivel}
             </p>
             <div className="flex items-center gap-1 mt-0.5">
               <Zap className="w-3 h-3 shrink-0" style={{ color: levelColor }} />
@@ -211,8 +222,8 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
         {niveis.length > 0 && (
           <div className="flex items-center justify-between px-0.5 mb-3">
             {niveis.slice(0, 10).map((n) => {
-              const isActive = gamificacao.nivel >= n.nivel;
-              const isCurrent = gamificacao.nivel === n.nivel;
+              const isActive = computedNivel >= n.nivel;
+              const isCurrent = computedNivel === n.nivel;
               return (
                 <div
                   key={n.nivel}

@@ -225,7 +225,31 @@ section {
 }
 
 [data-theme="dark-orange"] .bg-muted\/30 {
-  background-color: hsl(220 15% 6% / 0.3);
+  background-color: hsl(220 12% 10% / 0.6);
+}
+
+/* Ensure form labels and inputs have strong contrast on dark theme */
+[data-theme="dark-orange"] label,
+[data-theme="dark-orange"] .label {
+  color: hsl(0 0% 90%);
+}
+
+[data-theme="dark-orange"] input,
+[data-theme="dark-orange"] textarea,
+[data-theme="dark-orange"] select {
+  color: hsl(0 0% 95%);
+  background-color: hsl(220 12% 10%);
+  border-color: hsl(220 10% 22%);
+}
+
+[data-theme="dark-orange"] input::placeholder,
+[data-theme="dark-orange"] textarea::placeholder {
+  color: hsl(0 0% 40%);
+}
+
+[data-theme="dark-orange"] input[type="date"] {
+  color: hsl(0 0% 95%);
+  color-scheme: dark;
 }
 
 [data-theme="dark-orange"] .bg-muted\/50,

@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { NivelConfig, PontosTipoConfig, DesafioConvite } from '@/hooks/useGamificacaoData';
 import { getLevelTitle } from '@/hooks/useGamificacaoData';
+import { Send } from 'lucide-react';
 
 interface GamificacaoStats {
   total_usuarios: number;
@@ -186,8 +187,9 @@ export default function CarreiraAdminGamificacaoPage() {
         </div>
 
         <Tabs defaultValue="ranking" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="ranking"><Crown className="w-4 h-4 mr-1" /> Ranking</TabsTrigger>
+            <TabsTrigger value="convites"><Send className="w-4 h-4 mr-1" /> Convites</TabsTrigger>
             <TabsTrigger value="niveis"><Settings className="w-4 h-4 mr-1" /> Níveis</TabsTrigger>
             <TabsTrigger value="pontos"><Target className="w-4 h-4 mr-1" /> Pontos por Tipo</TabsTrigger>
             <TabsTrigger value="desafios"><Swords className="w-4 h-4 mr-1" /> Desafios</TabsTrigger>
@@ -220,6 +222,11 @@ export default function CarreiraAdminGamificacaoPage() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* TAB: Convites */}
+          <TabsContent value="convites">
+            <ConvitesManager />
           </TabsContent>
 
           {/* TAB: Níveis */}
@@ -276,7 +283,10 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
             <div key={n.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
               {editing?.id === n.id ? (
                 <>
-                  <Input className="w-12 text-center text-lg" value={editing.icone} onChange={e => setEditing({ ...editing, icone: e.target.value })} />
+                  <div className="flex flex-col items-center gap-1">
+                    <Input className="w-16 h-12 text-center text-2xl" value={editing.icone} onChange={e => setEditing({ ...editing, icone: e.target.value })} title="Cole um emoji ou texto curto" />
+                    <span className="text-[9px] text-muted-foreground">Emoji/ícone</span>
+                  </div>
                   <div className="flex-1 grid grid-cols-3 gap-2">
                     <Input placeholder="Nome" value={editing.nome} onChange={e => setEditing({ ...editing, nome: e.target.value })} />
                     <Input type="color" value={editing.cor} onChange={e => setEditing({ ...editing, cor: e.target.value })} className="w-full h-9" />
@@ -481,6 +491,158 @@ function DesafiosManager({ desafios, onSave }: { desafios: DesafioConvite[]; onS
               </div>
             ))}
           </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ===================== Convites Manager =====================
+function ConvitesManager() {
+  const { data: convites = [], isLoading } = useQuery({
+    queryKey: ['admin-convites'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rede_convites')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+
+      // Enrich with profile names
+      const enriched = await Promise.all(
+        (data || []).map(async (c: any) => {
+          // Get inviter info from perfis_rede
+          const { data: inviter } = await supabase
+            .from('perfis_rede')
+            .select('nome, tipo, slug, foto_url')
+            .eq('id', c.convidante_perfil_id)
+            .maybeSingle();
+
+          // Get invitee info
+          let inviteeName = 'Não cadastrado';
+          let inviteeType = c.tipo_convidado || null;
+          let inviteeSlug: string | null = null;
+
+          if (c.convidado_user_id) {
+            const { data: prInvitee } = await supabase
+              .from('perfis_rede')
+              .select('nome, tipo, slug')
+              .eq('user_id', c.convidado_user_id)
+              .maybeSingle();
+            if (prInvitee) {
+              inviteeName = prInvitee.nome;
+              inviteeType = prInvitee.tipo;
+              inviteeSlug = prInvitee.slug;
+            } else {
+              const { data: paInvitee } = await supabase
+                .from('perfil_atleta')
+                .select('nome, slug')
+                .eq('user_id', c.convidado_user_id)
+                .maybeSingle();
+              if (paInvitee) {
+                inviteeName = paInvitee.nome;
+                inviteeType = 'atleta_filho';
+                inviteeSlug = paInvitee.slug;
+              }
+            }
+          }
+
+          return {
+            ...c,
+            inviter_nome: inviter?.nome || 'Desconhecido',
+            inviter_tipo: inviter?.tipo || '',
+            inviter_slug: inviter?.slug || null,
+            invitee_nome: inviteeName,
+            invitee_tipo: inviteeType,
+            invitee_slug: inviteeSlug,
+          };
+        })
+      );
+
+      return enriched;
+    },
+  });
+
+  // Group by inviter
+  const byInviter = convites.reduce((acc: Record<string, any[]>, c: any) => {
+    const key = c.convidante_perfil_id;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(c);
+    return acc;
+  }, {});
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Send className="w-5 h-5 text-blue-600" /> Mapa de Convites
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-4">
+          Total: {convites.length} convite{convites.length !== 1 ? 's' : ''} registrado{convites.length !== 1 ? 's' : ''} 
+          {' '}de {Object.keys(byInviter).length} convidante{Object.keys(byInviter).length !== 1 ? 's' : ''}
+        </p>
+
+        {convites.length === 0 ? (
+          <p className="text-muted-foreground text-sm text-center py-8">Nenhum convite registrado ainda.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Convidante</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Convidado</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead className="text-center">Pontos</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {convites.map((c: any) => (
+                <TableRow key={c.id}>
+                  <TableCell>
+                    <div>
+                      <span className="font-medium text-sm">{c.inviter_nome}</span>
+                      <span className="text-xs text-muted-foreground ml-1">({c.inviter_tipo})</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {format(new Date(c.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-medium text-sm">{c.invitee_nome}</span>
+                  </TableCell>
+                  <TableCell>
+                    {c.invitee_tipo ? (
+                      <Badge variant="outline" className="text-[10px]">{c.invitee_tipo}</Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {c.pontos_concedidos ? (
+                      <Badge variant="secondary" className="bg-orange-500/20 text-orange-600">
+                        +{c.pontos_concedidos}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
