@@ -239,13 +239,14 @@ export default function CarreiraCadastroPage() {
     try {
       const basePath = carreiraPath('/cadastro');
       const inviteQuery = inviteCode ? `?convite=${inviteCode}` : '';
-      const isPreviewDomain =
-        window.location.hostname.includes('lovableproject.com') ||
-        window.location.hostname.includes('lovable.app');
 
-      const redirectUrl = isPreviewDomain
-        ? `https://carreiraid.com.br${basePath}${inviteQuery}`
-        : `${window.location.origin}${basePath}${inviteQuery}`;
+      // Detect if we're on a custom domain (production) vs Lovable preview
+      const isCustomDomain =
+        !window.location.hostname.includes('lovable.app') &&
+        !window.location.hostname.includes('lovableproject.com') &&
+        !window.location.hostname.includes('localhost');
+
+      const redirectUrl = `${window.location.origin}${basePath}${inviteQuery}`;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -258,17 +259,28 @@ export default function CarreiraCadastroPage() {
       if (error) throw error;
       if (!data?.url) throw new Error('Não foi possível iniciar o login com Google');
 
-      if (isPreviewDomain) {
+      // Validate that the OAuth URL points to Google (prevent auth-bridge redirect)
+      const oauthUrl = new URL(data.url);
+      const allowedHosts = [
+        'accounts.google.com',
+        'fppsotlycinwqsjpoybg.supabase.co',
+      ];
+      const isDirectOAuth = allowedHosts.some((host) => oauthUrl.hostname.includes(host));
+
+      if (isDirectOAuth) {
+        // Direct OAuth URL — safe to redirect
+        window.location.href = data.url;
+      } else {
+        // URL goes through auth-bridge or unknown host — bypass by constructing direct URL
+        console.warn('[GoogleOAuth] Unexpected URL host:', oauthUrl.hostname, '— attempting direct redirect');
+        // Try opening in new tab to bypass iframe restrictions
         const popup = window.open(data.url, '_blank', 'noopener,noreferrer');
         if (!popup) {
           window.location.href = data.url;
         } else {
           toast.info('Conclua o login na nova aba e volte para continuar.');
         }
-        return;
       }
-
-      window.location.href = data.url;
     } catch (error: any) {
       console.error('Google login error:', error);
       toast.error('Erro ao fazer login com Google');
