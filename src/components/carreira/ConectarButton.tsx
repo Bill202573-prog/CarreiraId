@@ -8,6 +8,7 @@ import { UserPlus, Check, Clock, Loader2, UserMinus } from 'lucide-react';
 interface Props {
   targetUserId: string;
   currentUserId?: string | null;
+  accentColor?: string;
 }
 
 export function ConectarButton({ targetUserId, currentUserId }: Props) {
