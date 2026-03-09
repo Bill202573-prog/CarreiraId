@@ -84,15 +84,14 @@ export function GamificacaoCard() {
                   className="flex flex-col items-center"
                   title={`${n.nome} - ${n.xp_minimo} XP`}
                 >
-                  <span 
-                    className="text-[10px] transition-all"
+                  <div
                     style={{ 
                       opacity: gamificacao.nivel >= n.nivel ? 1 : 0.3,
                       filter: gamificacao.nivel >= n.nivel ? 'none' : 'grayscale(1)',
                     }}
                   >
-                    {n.icone}
-                  </span>
+                    <LevelIcon icone={n.icone} size={12} />
+                  </div>
                 </div>
               ))}
             </div>
