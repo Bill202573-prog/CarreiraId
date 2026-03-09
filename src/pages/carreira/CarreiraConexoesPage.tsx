@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
-import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
-import { GamificacaoCard } from '@/components/carreira/GamificacaoCard';
 import { Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
