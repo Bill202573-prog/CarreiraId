@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Zap, Share2, Gift } from 'lucide-react';
+import { Check, Zap, Share2, Gift } from 'lucide-react';
 import { useGamificacao, getLevelProgress, getLevelTitle, getLevelIcon, getLevelColor, getNextLevelXp } from '@/hooks/useGamificacaoData';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 
 export function GamificacaoHeroCard() {
   const { user } = useAuth();
@@ -20,13 +19,11 @@ export function GamificacaoHeroCard() {
     queryKey: ['gamificacao-perfil', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      // Try perfil_atleta first
       const { data: pa } = await supabase
         .from('perfil_atleta')
         .select('cor_destaque, slug')
         .eq('user_id', user.id)
         .maybeSingle();
-      // Then perfis_rede for convite_codigo
       const { data: pr } = await supabase
         .from('perfis_rede')
         .select('convite_codigo')
@@ -50,7 +47,7 @@ export function GamificacaoHeroCard() {
   const xpNext = getNextLevelXp(gamificacao.nivel, niveis);
 
   const inviteLink = perfil?.convite_codigo
-    ? `${window.location.origin}/carreira/cadastro?ref=${perfil.convite_codigo}`
+    ? `${window.location.origin}${carreiraPath('/cadastro')}?convite=${perfil.convite_codigo}`
     : null;
 
   const handleCopyInvite = async () => {
@@ -81,15 +78,16 @@ export function GamificacaoHeroCard() {
 
   return (
     <Card
-      className="overflow-hidden border-2 relative"
+      className="overflow-hidden relative"
       style={{
-        borderColor: accentColor + '40',
+        borderColor: `${accentColor}50`,
+        borderWidth: 2,
         backgroundColor: 'hsl(0 0% 4%)',
       }}
     >
       {/* Top accent bar */}
       <div
-        className="h-1"
+        className="h-0.5"
         style={{ background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88, ${accentColor})` }}
       />
 
@@ -108,8 +106,8 @@ export function GamificacaoHeroCard() {
               {levelIcon}
             </div>
             <div
-              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold text-white border-[2.5px]"
-              style={{ backgroundColor: levelColor, borderColor: 'hsl(0 0% 4%)' }}
+              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold text-white"
+              style={{ backgroundColor: levelColor, borderWidth: 2, borderColor: 'hsl(0 0% 4%)' }}
             >
               {gamificacao.nivel}
             </div>
@@ -117,13 +115,13 @@ export function GamificacaoHeroCard() {
 
           {/* Level info */}
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-lg leading-tight">{levelTitle}</p>
+            <p className="text-foreground font-bold text-lg leading-tight">{levelTitle}</p>
             <p className="text-[13px] mt-0.5" style={{ color: accentColor }}>
               Nível {gamificacao.nivel}
             </p>
             <div className="flex items-center gap-1.5 mt-1">
               <Zap className="w-3.5 h-3.5" style={{ color: levelColor }} />
-              <span className="text-gray-400 text-xs">
+              <span className="text-muted-foreground text-xs">
                 {gamificacao.xp_atual.toLocaleString()} / {xpNext.toLocaleString()} XP
               </span>
             </div>
@@ -135,7 +133,7 @@ export function GamificacaoHeroCard() {
               <Zap className="w-4 h-4" />
               <span className="font-bold text-xl">{gamificacao.pontos_total.toLocaleString()}</span>
             </div>
-            <p className="text-gray-500 text-[10px] mt-0.5">pontos</p>
+            <p className="text-muted-foreground text-[10px] mt-0.5">pontos</p>
           </div>
         </div>
 
@@ -200,13 +198,13 @@ export function GamificacaoHeroCard() {
               className="text-center py-2 rounded-lg"
               style={{ backgroundColor: `${accentColor}08`, border: `1px solid ${accentColor}15` }}
             >
-              <div className="text-white font-bold text-sm">{stat.value}</div>
-              <div className="text-gray-500 text-[10px]">{stat.label}</div>
+              <div className="text-foreground font-bold text-sm">{stat.value}</div>
+              <div className="text-muted-foreground text-[10px]">{stat.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Invite CTA button - pulsating */}
+        {/* Invite CTA button */}
         <Button
           onClick={handleCopyInvite}
           className="w-full h-12 text-sm font-bold rounded-xl gap-2 border-0 text-white"
