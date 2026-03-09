@@ -222,8 +222,8 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
         {niveis.length > 0 && (
           <div className="flex items-center justify-between px-0.5 mb-3">
             {niveis.slice(0, 10).map((n) => {
-              const isActive = gamificacao.nivel >= n.nivel;
-              const isCurrent = gamificacao.nivel === n.nivel;
+              const isActive = computedNivel >= n.nivel;
+              const isCurrent = computedNivel === n.nivel;
               return (
                 <div
                   key={n.nivel}
