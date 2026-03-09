@@ -184,7 +184,7 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
           <div className="flex-1 min-w-0">
             <p className="text-foreground font-bold text-sm leading-tight truncate">{levelTitle}</p>
             <p className="text-[11px] mt-0.5" style={{ color: accentColor }}>
-              Nível {gamificacao.nivel}
+              Nível {computedNivel}
             </p>
             <div className="flex items-center gap-1 mt-0.5">
               <Zap className="w-3 h-3 shrink-0" style={{ color: levelColor }} />
