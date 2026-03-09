@@ -430,12 +430,7 @@ export default function CarreiraPerfilPage() {
           <div className="flex items-center gap-2">
             {currentUserId && (
               <>
-                {isOwner && (
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3.5 h-3.5 mr-1" />
-                    Editar Perfil
-                  </Button>
-                )}
+                
                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
                   if (mySlug) {
                     navigate(carreiraPath(`/${mySlug}`));
