@@ -70,7 +70,6 @@ export default function CarreiraGamerPage() {
 
       <main className="container max-w-2xl px-4 py-6 pb-24 space-y-4">
         <GamificacaoHeroCard accentColor={accentColor} />
-        <GamificacaoCard />
       </main>
 
       <CarreiraBottomNav currentUserId={currentUserId} profileSlug={mySlug} />
