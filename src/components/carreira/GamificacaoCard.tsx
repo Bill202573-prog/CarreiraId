@@ -149,7 +149,7 @@ export function GamificacaoCard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-foreground text-xs font-semibold truncate">{desafio.titulo}</p>
                         {desafio.descricao && (
-                          <p className="text-gray-500 text-[10px] truncate">{desafio.descricao}</p>
+                          <p className="text-muted-foreground text-[10px] truncate">{desafio.descricao}</p>
                         )}
                       </div>
                       <Badge 
