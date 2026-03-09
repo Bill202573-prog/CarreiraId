@@ -28,7 +28,6 @@ export default function CarreiraGamerPage() {
     });
   }, []);
 
-  // Fetch accent color from user profile
   const { data: perfilData } = useQuery({
     queryKey: ['gamer-page-accent', currentUserId],
     queryFn: async () => {
@@ -57,7 +56,10 @@ export default function CarreiraGamerPage() {
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
       <div className="h-0.5 w-full" style={{ backgroundColor: accentColor }} />
-      <header className="sticky top-0 z-50 bg-[hsl(0_0%_0%/0.97)]" style={{ borderBottom: `2px solid ${accentColor}50` }}>
+      <header
+        className="sticky top-0 z-50 bg-[hsl(0_0%_0%/0.97)]"
+        style={{ borderBottom: `2px solid ${accentColor}50` }}
+      >
         <div className="container flex items-center h-14 px-4 max-w-2xl">
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
             <img src={logoCarreira} alt="Carreira" className="h-16 lg:h-20" />
@@ -66,7 +68,7 @@ export default function CarreiraGamerPage() {
         </div>
       </header>
 
-      <main className="container max-w-2xl px-4 py-6 pb-24 space-y-6">
+      <main className="container max-w-2xl px-4 py-6 pb-24 space-y-4">
         <GamificacaoHeroCard />
         <GamificacaoCard />
       </main>
