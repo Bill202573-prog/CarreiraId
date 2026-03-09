@@ -55,7 +55,7 @@ export default function CarreiraGamerPage() {
 
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
-      <div className="h-0.5 w-full" style={{ backgroundColor: accentColor }} />
+      <div className="h-[2px] w-full" style={{ backgroundColor: accentColor }} />
       <header
         className="sticky top-0 z-50 bg-[hsl(0_0%_0%/0.97)]"
         style={{ borderBottom: `2px solid ${accentColor}50` }}
@@ -69,7 +69,7 @@ export default function CarreiraGamerPage() {
       </header>
 
       <main className="container max-w-2xl px-4 py-6 pb-24 space-y-4">
-        <GamificacaoHeroCard />
+        <GamificacaoHeroCard accentColor={accentColor} />
         <GamificacaoCard />
       </main>
 

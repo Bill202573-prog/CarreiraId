@@ -265,17 +265,32 @@ export function useRanking(limit = 20) {
   });
 }
 
-export function useGamificacao() {
-  const { user } = useAuth();
+export function useGamificacao(overrideUserId?: string) {
+  // Support both AuthContext users (dashboard) and direct Supabase session (Carreira)
+  const authContext = useAuth();
+  const authUserId = authContext?.user?.id;
+
+  // Use direct session as fallback when AuthContext has no user
+  const { data: sessionUserId } = useQuery({
+    queryKey: ['gamificacao-session-uid'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.user?.id || null;
+    },
+    enabled: !authUserId && !overrideUserId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const userId = overrideUserId || authUserId || sessionUserId || null;
 
   const { data: gamificacao, isLoading } = useQuery({
-    queryKey: ['user-gamificacao', user?.id],
+    queryKey: ['user-gamificacao', userId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!userId) return null;
       const { data, error } = await supabase
         .from('user_gamificacao' as any)
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
       if (error) throw error;
       return (data as any as GamificacaoData) || {
@@ -289,43 +304,43 @@ export function useGamificacao() {
         atividades_registradas: 0,
       };
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
   });
 
   const { data: badges } = useQuery({
-    queryKey: ['user-badges', user?.id],
+    queryKey: ['user-badges', userId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('user_badges' as any)
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('conquistado_em', { ascending: false });
       if (error) throw error;
       return (data as any as Badge[]) || [];
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
   });
 
   const { data: historico } = useQuery({
-    queryKey: ['pontos-historico', user?.id],
+    queryKey: ['pontos-historico', userId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!userId) return [];
       const { data, error } = await supabase
         .from('pontos_historico' as any)
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
       if (error) throw error;
       return (data as any as PontosHistorico[]) || [];
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
   });
 
   const { data: niveis } = useNiveisConfig();
   const { data: desafios } = useDesafiosAtivos();
-  const { data: progresso } = useDesafioProgresso(user?.id);
+  const { data: progresso } = useDesafioProgresso(userId || undefined);
 
   return {
     gamificacao: gamificacao || {
@@ -344,5 +359,6 @@ export function useGamificacao() {
     desafios: desafios || [],
     progresso: progresso || [],
     isLoading,
+    userId,
   };
 }

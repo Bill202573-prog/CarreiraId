@@ -681,7 +681,7 @@ export default function CarreiraPerfilPage() {
 
             {/* Gamificação — desktop only */}
             {isOwner && (
-              <GamificacaoHeroCard />
+              <GamificacaoHeroCard accentColor={accentColor} />
             )}
 
           </aside>

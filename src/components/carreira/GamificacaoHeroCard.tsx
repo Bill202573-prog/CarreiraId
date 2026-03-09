@@ -3,41 +3,73 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Zap, Share2, Gift } from 'lucide-react';
 import { useGamificacao, getLevelProgress, getLevelTitle, getLevelIcon, getLevelColor, getNextLevelXp } from '@/hooks/useGamificacaoData';
-import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 
-export function GamificacaoHeroCard() {
-  const { user } = useAuth();
-  const { gamificacao, niveis, isLoading } = useGamificacao();
+interface GamificacaoHeroCardProps {
+  accentColor?: string;
+}
+
+// Reliable clipboard fallback for iframe/preview contexts
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Fallback: textarea method
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return true;
+    } catch {
+      document.body.removeChild(textarea);
+      return false;
+    }
+  }
+}
+
+export function GamificacaoHeroCard({ accentColor: propAccentColor }: GamificacaoHeroCardProps) {
+  const { gamificacao, niveis, isLoading, userId } = useGamificacao();
   const [copied, setCopied] = useState(false);
 
   const { data: perfil } = useQuery({
-    queryKey: ['gamificacao-perfil', user?.id],
+    queryKey: ['gamificacao-perfil', userId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!userId) return null;
       const { data: pa } = await supabase
         .from('perfil_atleta')
         .select('cor_destaque, slug')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
       const { data: pr } = await supabase
         .from('perfis_rede')
         .select('convite_codigo, slug')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
       
       let conviteCodigo = pr?.convite_codigo || null;
       
-      // If no convite_codigo exists but user has a perfis_rede record, generate one
-      if (!conviteCodigo && pr) {
+      // If no convite_codigo exists, generate one
+      if (!conviteCodigo) {
         const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        await supabase
-          .from('perfis_rede')
-          .update({ convite_codigo: newCode } as any)
-          .eq('user_id', user.id);
+        if (pr) {
+          // User has perfis_rede — update it
+          await supabase
+            .from('perfis_rede')
+            .update({ convite_codigo: newCode } as any)
+            .eq('user_id', userId);
+        }
+        // Even if no perfis_rede record, we can use the generated code
         conviteCodigo = newCode;
       }
       
@@ -47,12 +79,12 @@ export function GamificacaoHeroCard() {
         slug: pa?.slug || pr?.slug || null,
       };
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
   });
 
-  if (isLoading) return null;
+  if (isLoading || !userId) return null;
 
-  const accentColor = perfil?.cor_destaque || '#3b82f6';
+  const accentColor = propAccentColor || perfil?.cor_destaque || '#3b82f6';
   const levelTitle = getLevelTitle(gamificacao.nivel, niveis);
   const levelIcon = getLevelIcon(gamificacao.nivel, niveis);
   const levelColor = getLevelColor(gamificacao.nivel, niveis);
@@ -69,27 +101,26 @@ export function GamificacaoHeroCard() {
       return;
     }
     try {
+      // Try native share first (mobile)
       if (navigator.share) {
         await navigator.share({
           title: 'Junte-se ao Carreira ID!',
           text: 'Crie seu perfil esportivo e conecte-se com a comunidade!',
           url: inviteLink,
         });
-      } else {
-        await navigator.clipboard.writeText(inviteLink);
-        setCopied(true);
-        toast.success('Link copiado!');
-        setTimeout(() => setCopied(false), 2000);
+        return;
       }
     } catch {
-      try {
-        await navigator.clipboard.writeText(inviteLink);
-        setCopied(true);
-        toast.success('Link copiado!');
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        toast.error('Não foi possível copiar o link');
-      }
+      // Share cancelled or failed — fall through to copy
+    }
+    
+    const success = await copyToClipboard(inviteLink);
+    if (success) {
+      setCopied(true);
+      toast.success('Link copiado!');
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      toast.error('Não foi possível copiar o link');
     }
   };
 
@@ -102,28 +133,28 @@ export function GamificacaoHeroCard() {
         backgroundColor: 'hsl(0 0% 4%)',
       }}
     >
-      {/* Top accent bar */}
+      {/* Top accent bar — same 2px as page borders */}
       <div
-        className="h-0.5"
-        style={{ background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88, ${accentColor})` }}
+        className="h-[2px]"
+        style={{ backgroundColor: accentColor }}
       />
 
-      <CardContent className="pt-4 pb-4 px-4">
+      <CardContent className="pt-3 pb-3 px-3">
         {/* Level display */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-3">
           {/* Level avatar */}
           <div className="relative shrink-0">
             <div
-              className="flex items-center justify-center w-16 h-16 rounded-2xl text-[28px] shadow-lg"
+              className="flex items-center justify-center w-14 h-14 rounded-2xl text-[24px] shadow-lg"
               style={{
                 background: `linear-gradient(145deg, ${levelColor}, ${levelColor}cc)`,
-                boxShadow: `0 0 20px ${levelColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
+                boxShadow: `0 0 16px ${levelColor}30, 0 4px 10px rgba(0,0,0,0.3)`,
               }}
             >
               {levelIcon}
             </div>
             <div
-              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
               style={{ backgroundColor: levelColor, borderWidth: 2, borderColor: 'hsl(0 0% 4%)' }}
             >
               {gamificacao.nivel}
@@ -132,13 +163,13 @@ export function GamificacaoHeroCard() {
 
           {/* Level info */}
           <div className="flex-1 min-w-0">
-            <p className="text-foreground font-bold text-base leading-tight truncate">{levelTitle}</p>
-            <p className="text-xs mt-0.5" style={{ color: accentColor }}>
+            <p className="text-foreground font-bold text-sm leading-tight truncate">{levelTitle}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: accentColor }}>
               Nível {gamificacao.nivel}
             </p>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex items-center gap-1 mt-0.5">
               <Zap className="w-3 h-3 shrink-0" style={{ color: levelColor }} />
-              <span className="text-muted-foreground text-[11px]">
+              <span className="text-muted-foreground text-[10px]">
                 {gamificacao.xp_atual.toLocaleString()} / {xpNext.toLocaleString()} XP
               </span>
             </div>
@@ -148,15 +179,15 @@ export function GamificacaoHeroCard() {
           <div className="text-right shrink-0">
             <div className="flex items-center gap-1" style={{ color: accentColor }}>
               <Zap className="w-3.5 h-3.5" />
-              <span className="font-bold text-lg">{gamificacao.pontos_total.toLocaleString()}</span>
+              <span className="font-bold text-base">{gamificacao.pontos_total.toLocaleString()}</span>
             </div>
-            <p className="text-muted-foreground text-[10px] mt-0.5">pontos</p>
+            <p className="text-muted-foreground text-[9px] mt-0.5">pontos</p>
           </div>
         </div>
 
         {/* Progress bar */}
         <div className="relative mb-2">
-          <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: `${levelColor}15` }}>
+          <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${levelColor}15` }}>
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
               style={{
@@ -170,7 +201,7 @@ export function GamificacaoHeroCard() {
 
         {/* Level progression icons */}
         {niveis.length > 0 && (
-          <div className="flex items-center justify-between px-0.5 mb-4">
+          <div className="flex items-center justify-between px-0.5 mb-3">
             {niveis.slice(0, 10).map((n) => {
               const isActive = gamificacao.nivel >= n.nivel;
               const isCurrent = gamificacao.nivel === n.nivel;
@@ -181,7 +212,7 @@ export function GamificacaoHeroCard() {
                   title={`${n.nome} - ${n.xp_minimo} XP`}
                 >
                   <span
-                    className="text-xs transition-all duration-300"
+                    className="text-[11px] transition-all duration-300"
                     style={{
                       opacity: isActive ? 1 : 0.25,
                       filter: isActive ? 'none' : 'grayscale(1)',
@@ -203,7 +234,7 @@ export function GamificacaoHeroCard() {
         )}
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-1.5 mb-4">
+        <div className="grid grid-cols-4 gap-1 mb-3">
           {[
             { value: gamificacao.convites_confirmados, label: 'Convites' },
             { value: gamificacao.posts_criados, label: 'Posts' },
@@ -212,11 +243,11 @@ export function GamificacaoHeroCard() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="text-center py-1.5 rounded-lg"
+              className="text-center py-1 rounded-lg"
               style={{ backgroundColor: `${accentColor}08`, border: `1px solid ${accentColor}15` }}
             >
-              <div className="text-foreground font-bold text-xs">{stat.value}</div>
-              <div className="text-muted-foreground text-[9px]">{stat.label}</div>
+              <div className="text-foreground font-bold text-[11px]">{stat.value}</div>
+              <div className="text-muted-foreground text-[8px] leading-tight">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -224,7 +255,7 @@ export function GamificacaoHeroCard() {
         {/* Invite CTA button */}
         <Button
           onClick={handleCopyInvite}
-          className="w-full h-10 text-xs font-bold rounded-xl gap-2 border-0 text-white"
+          className="w-full h-9 text-[11px] font-bold rounded-xl gap-1.5 border-0 text-white"
           style={{
             background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
             boxShadow: `0 4px 12px ${accentColor}25`,
@@ -232,14 +263,14 @@ export function GamificacaoHeroCard() {
         >
           {copied ? (
             <>
-              <Check className="w-4 h-4" />
+              <Check className="w-3.5 h-3.5" />
               Link Copiado!
             </>
           ) : (
             <>
-              <Gift className="w-4 h-4" />
+              <Gift className="w-3.5 h-3.5" />
               Convidar e Ganhar XP
-              <Share2 className="w-3.5 h-3.5 ml-1 opacity-70" />
+              <Share2 className="w-3 h-3 ml-0.5 opacity-70" />
             </>
           )}
         </Button>
