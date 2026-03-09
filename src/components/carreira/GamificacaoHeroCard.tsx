@@ -207,13 +207,13 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
 
         {/* Progress bar */}
         <div className="relative mb-2">
-          <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${levelColor}15` }}>
+          <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${accentColor}15` }}>
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
               style={{
                 width: `${progress}%`,
-                background: `linear-gradient(90deg, ${levelColor}99, ${levelColor})`,
-                boxShadow: `0 0 8px ${levelColor}50`,
+                background: `linear-gradient(90deg, ${accentColor}99, ${accentColor})`,
+                boxShadow: `0 0 8px ${accentColor}50`,
               }}
             />
           </div>
