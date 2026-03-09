@@ -853,7 +853,7 @@ export default function CarreiraPerfilPage() {
                         </p>
                         <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
                       </div>
-                      <ConectarButton targetUserId={person.user_id} currentUserId={currentUserId} />
+                      <ConectarButton targetUserId={person.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                     </div>
                   ))}
                 </div>
