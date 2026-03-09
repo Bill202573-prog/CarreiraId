@@ -13,6 +13,7 @@ import { EditPerfilDialog } from '@/components/carreira/EditPerfilDialog';
 // EditContaDialog removed — unified into EditPerfilRedeDialog
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
+import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
