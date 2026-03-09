@@ -54,6 +54,7 @@ export default function CarreiraConexoesPage() {
       </header>
 
       <main className="container max-w-2xl px-4 py-6 pb-24 space-y-6">
+        <GamificacaoHeroCard />
         <GamificacaoCard />
         <ConnectionsSection userId={currentUserId} currentUserId={currentUserId} />
       </main>
