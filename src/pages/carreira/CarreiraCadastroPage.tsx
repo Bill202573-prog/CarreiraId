@@ -525,11 +525,11 @@ export default function CarreiraCadastroPage() {
         )}
 
         {step === 'auth' && (
-          <div className="mt-6 text-center text-xs text-muted-foreground">
+          <div className="mt-6 text-center text-xs" style={{ color: 'hsl(0 0% 40%)' }}>
             Ao criar uma conta, você concorda com os{' '}
-            <button onClick={() => navigate(carreiraPath('/termos'))} className="text-primary hover:underline">Termos de Uso</button>
+            <button onClick={() => navigate(carreiraPath('/termos'))} className="hover:underline" style={{ color: 'hsl(200 90% 60%)' }}>Termos de Uso</button>
             {' '}e a{' '}
-            <button onClick={() => navigate(carreiraPath('/privacidade'))} className="text-primary hover:underline">Política de Privacidade</button>.
+            <button onClick={() => navigate(carreiraPath('/privacidade'))} className="hover:underline" style={{ color: 'hsl(200 90% 60%)' }}>Política de Privacidade</button>.
           </div>
         )}
       </main>
