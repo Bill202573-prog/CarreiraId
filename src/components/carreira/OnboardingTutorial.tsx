@@ -66,8 +66,8 @@ export function OnboardingTutorial({ onStart, brandName }: Props) {
   return (
     <div className="animate-fade-in">
       <div className="text-center mb-6">
-        <h1 className="text-xl font-bold text-foreground">Como funciona o {brandName}?</h1>
-        <p className="text-sm text-muted-foreground mt-1">Veja o passo a passo antes de começar</p>
+        <h1 className="text-xl font-bold" style={{ color: 'hsl(0 0% 95%)' }}>Como funciona o {brandName}?</h1>
+        <p className="text-sm mt-1" style={{ color: 'hsl(0 0% 55%)' }}>Veja o passo a passo antes de começar</p>
       </div>
 
       {/* Step indicator */}
@@ -76,35 +76,49 @@ export function OnboardingTutorial({ onStart, brandName }: Props) {
           <button
             key={i}
             onClick={() => setCurrentStep(i)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              i === currentStep
-                ? 'w-8 bg-primary'
+            className="h-2 rounded-full transition-all duration-300"
+            style={{
+              width: i === currentStep ? '2rem' : '0.5rem',
+              backgroundColor: i === currentStep
+                ? 'hsl(25 95% 55%)'
                 : i < currentStep
-                  ? 'w-2 bg-primary/50'
-                  : 'w-2 bg-muted-foreground/30'
-            }`}
+                  ? 'hsl(25 95% 55% / 0.4)'
+                  : 'hsl(0 0% 30%)',
+            }}
           />
         ))}
       </div>
 
       {/* Step content */}
-      <div className="rounded-xl border border-border bg-card p-6 mb-6 min-h-[280px] flex flex-col">
+      <div
+        className="rounded-xl p-6 mb-6 min-h-[280px] flex flex-col"
+        style={{
+          backgroundColor: 'hsl(220 12% 10%)',
+          border: '1px solid hsl(25 95% 55% / 0.15)',
+        }}
+      >
         <div className="text-center mb-4">
           <span className="text-4xl mb-2 block">{step.emoji}</span>
-          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full mb-2">
+          <div
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full mb-2"
+            style={{ backgroundColor: 'hsl(25 95% 55% / 0.12)', color: 'hsl(25 95% 60%)' }}
+          >
             Passo {currentStep + 1} de {STEPS.length}
           </div>
-          <h2 className="text-lg font-bold text-foreground">{step.title}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+          <h2 className="text-lg font-bold" style={{ color: 'hsl(0 0% 95%)' }}>{step.title}</h2>
+          <p className="text-sm mt-1" style={{ color: 'hsl(0 0% 55%)' }}>{step.description}</p>
         </div>
 
         <ul className="space-y-2.5 flex-1">
           {step.details.map((detail, i) => (
             <li key={i} className="flex items-start gap-2.5 text-sm">
-              <span className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
+              <span
+                className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                style={{ backgroundColor: 'hsl(200 100% 50% / 0.15)', color: 'hsl(200 90% 60%)' }}
+              >
                 {i + 1}
               </span>
-              <span className="text-foreground">{detail}</span>
+              <span style={{ color: 'hsl(0 0% 85%)' }}>{detail}</span>
             </li>
           ))}
         </ul>
@@ -117,6 +131,7 @@ export function OnboardingTutorial({ onStart, brandName }: Props) {
             variant="outline"
             size="lg"
             className="gap-1"
+            style={{ borderColor: 'hsl(220 10% 25%)', backgroundColor: 'transparent', color: 'hsl(0 0% 80%)' }}
             onClick={() => setCurrentStep(currentStep - 1)}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -125,12 +140,16 @@ export function OnboardingTutorial({ onStart, brandName }: Props) {
         )}
         
         {isLast ? (
-          <Button size="lg" className="flex-1 gap-2" onClick={onStart}>
+          <Button size="lg" className="flex-1 gap-2" onClick={onStart}
+            style={{ backgroundColor: 'hsl(25 95% 55%)', color: 'hsl(0 0% 100%)' }}
+          >
             Começar Cadastro
             <ChevronRight className="w-4 h-4" />
           </Button>
         ) : (
-          <Button size="lg" className="flex-1 gap-2" onClick={() => setCurrentStep(currentStep + 1)}>
+          <Button size="lg" className="flex-1 gap-2" onClick={() => setCurrentStep(currentStep + 1)}
+            style={{ backgroundColor: 'hsl(25 95% 55%)', color: 'hsl(0 0% 100%)' }}
+          >
             Próximo
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -139,7 +158,8 @@ export function OnboardingTutorial({ onStart, brandName }: Props) {
 
       <button
         onClick={onStart}
-        className="w-full mt-3 text-center text-sm text-muted-foreground hover:text-primary transition-colors"
+        className="w-full mt-3 text-center text-sm transition-colors hover:underline"
+        style={{ color: 'hsl(0 0% 45%)' }}
       >
         Pular tutorial →
       </button>
