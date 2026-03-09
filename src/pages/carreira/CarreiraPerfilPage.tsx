@@ -768,7 +768,7 @@ export default function CarreiraPerfilPage() {
                           <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
                         </div>
                         <div className="flex gap-1">
-                          <Button size="sm" className="h-7 text-[10px] px-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0" onClick={() => person.connectionId && handleAcceptRequest(person.connectionId)}>
+                          <Button size="sm" className="h-7 text-[10px] px-2 text-white border-0" style={{ backgroundColor: accentColor }} onClick={() => person.connectionId && handleAcceptRequest(person.connectionId)}>
                             <Check className="w-3 h-3 mr-0.5" /> Aceitar
                           </Button>
                           <Button size="sm" variant="ghost" className="h-7 text-[10px] px-1.5" onClick={() => person.connectionId && handleRejectRequest(person.connectionId)}>
