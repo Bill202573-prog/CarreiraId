@@ -55,6 +55,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
 
   const feedPath = carreiraPath('/feed');
   const conexoesPath = carreiraPath('/conexoes');
+  const gamerPath = carreiraPath('/gamer');
 
   const items = [
     {
@@ -70,6 +71,13 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       onClick: () => navigate(conexoesPath),
       active: location.pathname === conexoesPath,
       badge: (pendingCount || 0),
+    },
+    {
+      icon: Gamepad2,
+      label: 'Gamer',
+      onClick: () => navigate(gamerPath),
+      active: location.pathname === gamerPath,
+      badge: 0,
     },
     {
       icon: User,
