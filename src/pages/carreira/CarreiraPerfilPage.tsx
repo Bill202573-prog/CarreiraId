@@ -796,7 +796,7 @@ export default function CarreiraPerfilPage() {
               <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
                 <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
-                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                  Solicitações ({pendingRequests.length})
                   Solicitações ({pendingRequests.length})
                 </h3>
                 <div className="space-y-3">
