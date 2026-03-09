@@ -32,9 +32,9 @@ export function GamificacaoCard() {
   return (
     <div className="space-y-4">
       {/* Card principal - PlayStation Trophy Style */}
-      <Card className="overflow-hidden border-2" style={{ borderColor: levelColor + '40', backgroundColor: 'hsl(220 12% 8%)' }}>
+      <Card className="overflow-hidden" style={{ borderColor: levelColor + '50', borderWidth: 2, backgroundColor: 'hsl(0 0% 4%)' }}>
         {/* Top bar with gradient */}
-        <div className="h-1.5" style={{ background: trophyGradient }} />
+        <div className="h-0.5" style={{ background: trophyGradient }} />
         <CardContent className="pt-5 pb-4">
           <div className="flex items-center gap-4 mb-4">
             {/* Level badge - PlayStation style */}
@@ -57,9 +57,9 @@ export function GamificacaoCard() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-white font-bold text-lg">{levelTitle}</span>
+                <span className="text-foreground font-bold text-lg">{levelTitle}</span>
               </div>
-              <p className="text-gray-400 text-xs">
+              <p className="text-muted-foreground text-xs">
                 {gamificacao.xp_atual.toLocaleString()} / {xpNext.toLocaleString()} XP
               </p>
             </div>
@@ -68,7 +68,7 @@ export function GamificacaoCard() {
                 <Zap className="w-4 h-4" />
                 <span className="font-bold text-lg">{gamificacao.pontos_total.toLocaleString()}</span>
               </div>
-              <p className="text-gray-500 text-[10px]">pontos</p>
+              <p className="text-muted-foreground text-[10px]">pontos</p>
             </div>
           </div>
 
@@ -100,20 +100,20 @@ export function GamificacaoCard() {
           {/* Stats rápidos */}
           <div className="grid grid-cols-4 gap-2 mt-4">
             <div className="text-center">
-              <div className="text-white font-bold text-sm">{gamificacao.convites_confirmados}</div>
-              <div className="text-gray-500 text-[10px]">Convites</div>
+              <div className="text-foreground font-bold text-sm">{gamificacao.convites_confirmados}</div>
+              <div className="text-muted-foreground text-[10px]">Convites</div>
             </div>
             <div className="text-center">
-              <div className="text-white font-bold text-sm">{gamificacao.posts_criados}</div>
-              <div className="text-gray-500 text-[10px]">Posts</div>
+              <div className="text-foreground font-bold text-sm">{gamificacao.posts_criados}</div>
+              <div className="text-muted-foreground text-[10px]">Posts</div>
             </div>
             <div className="text-center">
-              <div className="text-white font-bold text-sm">{gamificacao.conexoes_feitas}</div>
-              <div className="text-gray-500 text-[10px]">Conexões</div>
+              <div className="text-foreground font-bold text-sm">{gamificacao.conexoes_feitas}</div>
+              <div className="text-muted-foreground text-[10px]">Conexões</div>
             </div>
             <div className="text-center">
-              <div className="text-white font-bold text-sm">{gamificacao.atividades_registradas}</div>
-              <div className="text-gray-500 text-[10px]">Atividades</div>
+              <div className="text-foreground font-bold text-sm">{gamificacao.atividades_registradas}</div>
+              <div className="text-muted-foreground text-[10px]">Atividades</div>
             </div>
           </div>
         </CardContent>
@@ -121,9 +121,9 @@ export function GamificacaoCard() {
 
       {/* Desafios ativos */}
       {desafios.length > 0 && (
-        <Card className="border border-gray-800" style={{ backgroundColor: 'hsl(220 12% 10%)' }}>
+        <Card className="overflow-hidden" style={{ borderColor: `${levelColor}50`, borderWidth: 2, backgroundColor: 'hsl(0 0% 6%)' }}>
           <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-sm text-white flex items-center gap-2">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
               <Target className="w-4 h-4" style={{ color: levelColor }} />
               Desafios Ativos
             </CardTitle>
@@ -147,9 +147,9 @@ export function GamificacaoCard() {
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-lg">{desafio.icone}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-xs font-semibold truncate">{desafio.titulo}</p>
+                        <p className="text-foreground text-xs font-semibold truncate">{desafio.titulo}</p>
                         {desafio.descricao && (
-                          <p className="text-gray-500 text-[10px] truncate">{desafio.descricao}</p>
+                          <p className="text-muted-foreground text-[10px] truncate">{desafio.descricao}</p>
                         )}
                       </div>
                       <Badge 
@@ -164,7 +164,7 @@ export function GamificacaoCard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Progress value={pct} className="h-1.5 bg-gray-800 flex-1" />
-                      <span className="text-gray-400 text-[10px] whitespace-nowrap">
+                      <span className="text-muted-foreground text-[10px] whitespace-nowrap">
                         {prog?.progresso_atual || 0}/{desafio.quantidade_meta}
                       </span>
                     </div>
@@ -178,9 +178,9 @@ export function GamificacaoCard() {
 
       {/* Badges conquistados */}
       {badges.length > 0 && (
-        <Card className="border border-gray-800" style={{ backgroundColor: 'hsl(220 12% 10%)' }}>
+        <Card className="overflow-hidden" style={{ borderColor: `${levelColor}50`, borderWidth: 2, backgroundColor: 'hsl(0 0% 6%)' }}>
           <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-sm text-white flex items-center gap-2">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
               <Medal className="w-4 h-4" style={{ color: levelColor }} />
               Conquistas ({badges.length})
             </CardTitle>
@@ -194,7 +194,7 @@ export function GamificacaoCard() {
                   style={{ backgroundColor: badge.badge_cor + '10', border: `1px solid ${badge.badge_cor}30` }}
                 >
                   <span className="text-2xl mb-1">{badge.badge_icone}</span>
-                  <span className="text-white text-[10px] font-medium leading-tight">{badge.badge_nome}</span>
+                  <span className="text-foreground text-[10px] font-medium leading-tight">{badge.badge_nome}</span>
                 </div>
               ))}
             </div>
@@ -204,9 +204,9 @@ export function GamificacaoCard() {
 
       {/* Histórico recente */}
       {historico.length > 0 && (
-        <Card className="border border-gray-800" style={{ backgroundColor: 'hsl(220 12% 10%)' }}>
+        <Card className="overflow-hidden" style={{ borderColor: `${levelColor}50`, borderWidth: 2, backgroundColor: 'hsl(0 0% 6%)' }}>
           <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-sm text-white flex items-center gap-2">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
               <Star className="w-4 h-4" style={{ color: levelColor }} />
               Atividade Recente
             </CardTitle>
@@ -216,8 +216,8 @@ export function GamificacaoCard() {
               {historico.slice(0, 5).map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-gray-800/30">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-gray-400">{ACAO_ICONS[item.acao_tipo] || <Zap className="w-3.5 h-3.5" />}</span>
-                    <span className="text-gray-300 text-xs truncate">{item.descricao}</span>
+                    <span className="text-muted-foreground">{ACAO_ICONS[item.acao_tipo] || <Zap className="w-3.5 h-3.5" />}</span>
+                    <span className="text-muted-foreground text-xs truncate">{item.descricao}</span>
                   </div>
                   <span className="text-xs font-medium whitespace-nowrap ml-2" style={{ color: levelColor }}>+{item.pontos}</span>
                 </div>
