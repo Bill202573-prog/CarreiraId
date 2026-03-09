@@ -187,14 +187,11 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               {/* Actions */}
               <div className="flex gap-1.5 mt-2 flex-wrap">
                 {isOwner && (
-                  <>
-                    <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditDialogOpen(true)}>
-                      <Pencil className="w-3 h-3 mr-1" />Editar Perfil
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => setEditContaOpen(true)}>
-                      <User className="w-3 h-3 mr-1" />Minha Conta
-                    </Button>
-                  </>
+                  <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
+                    style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}
+                    onClick={() => setEditDialogOpen(true)}>
+                    <Pencil className="w-3 h-3 mr-1" />Editar Perfil
+                  </Button>
                 )}
                 {!isOwner && user && (
                   <>
@@ -206,7 +203,8 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                     </Button>
                   </>
                 )}
-                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={handleShare}>
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={handleShare}
+                  style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}>
                   <Share2 className="w-3 h-3 mr-1" />Compartilhar
                 </Button>
               </div>
