@@ -194,7 +194,7 @@ export function GamificacaoCard() {
                   style={{ backgroundColor: badge.badge_cor + '10', border: `1px solid ${badge.badge_cor}30` }}
                 >
                   <span className="text-2xl mb-1">{badge.badge_icone}</span>
-                  <span className="text-white text-[10px] font-medium leading-tight">{badge.badge_nome}</span>
+                  <span className="text-foreground text-[10px] font-medium leading-tight">{badge.badge_nome}</span>
                 </div>
               ))}
             </div>
