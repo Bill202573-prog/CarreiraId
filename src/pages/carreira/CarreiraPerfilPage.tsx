@@ -635,17 +635,11 @@ export default function CarreiraPerfilPage() {
 
               {/* Actions */}
               <div className="mt-3 space-y-2">
-                {isOwner && (
-                  <Button variant="outline" size="sm" className="w-full gap-1 text-xs" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3 h-3" />
-                    Editar Perfil
-                  </Button>
-                )}
                 {!isOwner && currentUserId && (
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} />
                 )}
                 <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
-                <ShareButton slug={perfil.slug} nome={perfil.nome} />
+                <ShareButton slug={perfil.slug} nome={perfil.nome} accentColor={accentColor} />
               </div>
               </div>
             </Card>
