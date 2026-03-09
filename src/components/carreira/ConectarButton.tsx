@@ -11,7 +11,7 @@ interface Props {
   accentColor?: string;
 }
 
-export function ConectarButton({ targetUserId, currentUserId }: Props) {
+export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6' }: Props) {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
