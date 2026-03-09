@@ -165,13 +165,13 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
           {/* Level avatar */}
           <div className="relative shrink-0">
             <div
-              className="flex items-center justify-center w-14 h-14 rounded-2xl text-[24px] shadow-lg"
+              className="flex items-center justify-center w-14 h-14 rounded-2xl text-[24px] shadow-lg overflow-hidden"
               style={{
                 background: `linear-gradient(145deg, ${levelColor}, ${levelColor}cc)`,
                 boxShadow: `0 0 16px ${levelColor}30, 0 4px 10px rgba(0,0,0,0.3)`,
               }}
             >
-              <LevelIcon icone={levelIcon} size={28} />
+              <LevelIcon icone={levelIcon} size={56} fill />
             </div>
             <div
               className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"

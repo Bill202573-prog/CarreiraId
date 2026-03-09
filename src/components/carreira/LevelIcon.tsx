@@ -2,10 +2,12 @@ interface LevelIconProps {
   icone: string;
   size?: number;
   className?: string;
+  /** When true, image fills entire container with object-cover */
+  fill?: boolean;
 }
 
 /** Renders a level icon — either an image (if URL) or emoji text */
-export function LevelIcon({ icone, size = 24, className = '' }: LevelIconProps) {
+export function LevelIcon({ icone, size = 24, className = '', fill = false }: LevelIconProps) {
   const isUrl = icone.startsWith('http') || icone.startsWith('blob:') || icone.startsWith('/');
 
   if (isUrl) {
@@ -13,8 +15,8 @@ export function LevelIcon({ icone, size = 24, className = '' }: LevelIconProps) 
       <img
         src={icone}
         alt="Nível"
-        className={`object-contain ${className}`}
-        style={{ width: size, height: size }}
+        className={`${fill ? 'object-cover w-full h-full' : 'object-contain'} ${className}`}
+        style={fill ? undefined : { width: size, height: size }}
         draggable={false}
       />
     );
