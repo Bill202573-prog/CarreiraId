@@ -373,6 +373,164 @@ export type Database = {
         }
         Relationships: []
       }
+      desafio_progresso: {
+        Row: {
+          completado: boolean
+          completado_em: string | null
+          created_at: string
+          desafio_id: string
+          id: string
+          progresso_atual: number
+          user_id: string
+        }
+        Insert: {
+          completado?: boolean
+          completado_em?: string | null
+          created_at?: string
+          desafio_id: string
+          id?: string
+          progresso_atual?: number
+          user_id: string
+        }
+        Update: {
+          completado?: boolean
+          completado_em?: string | null
+          created_at?: string
+          desafio_id?: string
+          id?: string
+          progresso_atual?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desafio_progresso_desafio_id_fkey"
+            columns: ["desafio_id"]
+            isOneToOne: false
+            referencedRelation: "desafios_convite"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      desafios_convite: {
+        Row: {
+          ativo: boolean
+          badge_premio_cor: string | null
+          badge_premio_icone: string | null
+          badge_premio_nome: string | null
+          badge_premio_tipo: string | null
+          cor: string | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          icone: string | null
+          id: string
+          pontos_bonus: number
+          quantidade_meta: number
+          tipo_perfil_alvo: string[] | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          badge_premio_cor?: string | null
+          badge_premio_icone?: string | null
+          badge_premio_nome?: string | null
+          badge_premio_tipo?: string | null
+          cor?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          pontos_bonus?: number
+          quantidade_meta?: number
+          tipo_perfil_alvo?: string[] | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          badge_premio_cor?: string | null
+          badge_premio_icone?: string | null
+          badge_premio_nome?: string | null
+          badge_premio_tipo?: string | null
+          cor?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          pontos_bonus?: number
+          quantidade_meta?: number
+          tipo_perfil_alvo?: string[] | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gamificacao_niveis: {
+        Row: {
+          cor: string
+          created_at: string
+          icone: string
+          id: string
+          nivel: number
+          nome: string
+          updated_at: string
+          xp_minimo: number
+        }
+        Insert: {
+          cor?: string
+          created_at?: string
+          icone?: string
+          id?: string
+          nivel: number
+          nome: string
+          updated_at?: string
+          xp_minimo?: number
+        }
+        Update: {
+          cor?: string
+          created_at?: string
+          icone?: string
+          id?: string
+          nivel?: number
+          nome?: string
+          updated_at?: string
+          xp_minimo?: number
+        }
+        Relationships: []
+      }
+      gamificacao_pontos_tipo: {
+        Row: {
+          created_at: string
+          icone: string | null
+          id: string
+          label: string
+          pontos: number
+          tipo_perfil: string
+        }
+        Insert: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          label: string
+          pontos?: number
+          tipo_perfil: string
+        }
+        Update: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          label?: string
+          pontos?: number
+          tipo_perfil?: string
+        }
+        Relationships: []
+      }
       moderation_logs: {
         Row: {
           content: string
@@ -786,21 +944,38 @@ export type Database = {
           convidado_user_id: string
           convidante_perfil_id: string
           created_at: string
+          desafio_id: string | null
           id: string
+          pontos_concedidos: number | null
+          tipo_convidado: string | null
         }
         Insert: {
           convidado_user_id: string
           convidante_perfil_id: string
           created_at?: string
+          desafio_id?: string | null
           id?: string
+          pontos_concedidos?: number | null
+          tipo_convidado?: string | null
         }
         Update: {
           convidado_user_id?: string
           convidante_perfil_id?: string
           created_at?: string
+          desafio_id?: string | null
           id?: string
+          pontos_concedidos?: number | null
+          tipo_convidado?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rede_convites_desafio_id_fkey"
+            columns: ["desafio_id"]
+            isOneToOne: false
+            referencedRelation: "desafios_convite"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saas_config: {
         Row: {
