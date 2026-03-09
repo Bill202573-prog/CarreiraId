@@ -59,7 +59,7 @@ export function GamificacaoCard() {
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-foreground font-bold text-lg">{levelTitle}</span>
               </div>
-              <p className="text-gray-400 text-xs">
+              <p className="text-muted-foreground text-xs">
                 {gamificacao.xp_atual.toLocaleString()} / {xpNext.toLocaleString()} XP
               </p>
             </div>
