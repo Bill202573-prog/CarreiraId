@@ -32,9 +32,9 @@ export function GamificacaoCard() {
   return (
     <div className="space-y-4">
       {/* Card principal - PlayStation Trophy Style */}
-      <Card className="overflow-hidden border-2" style={{ borderColor: levelColor + '40', backgroundColor: 'hsl(220 12% 8%)' }}>
+      <Card className="overflow-hidden" style={{ borderColor: levelColor + '50', borderWidth: 2, backgroundColor: 'hsl(0 0% 4%)' }}>
         {/* Top bar with gradient */}
-        <div className="h-1.5" style={{ background: trophyGradient }} />
+        <div className="h-0.5" style={{ background: trophyGradient }} />
         <CardContent className="pt-5 pb-4">
           <div className="flex items-center gap-4 mb-4">
             {/* Level badge - PlayStation style */}
