@@ -315,24 +315,36 @@ export default function CarreiraCadastroPage() {
   const brandName = isCarreira ? 'CARREIRA ID' : 'Atleta ID';
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+    <div className="min-h-screen" data-theme="dark-orange" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
+      {/* Background glow effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl" style={{ backgroundColor: 'hsl(25 95% 55% / 0.08)' }} />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl" style={{ backgroundColor: 'hsl(200 100% 50% / 0.06)' }} />
+      </div>
+
+      <header className="sticky top-0 z-50 backdrop-blur border-b" style={{ backgroundColor: 'hsl(220 15% 6% / 0.95)', borderColor: 'hsl(220 10% 18%)' }}>
         <div className="container flex items-center justify-between h-14 px-4">
-          <button onClick={() => navigate(carreiraPath('/'))} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => navigate(carreiraPath('/'))} className="flex items-center gap-2 transition-colors" style={{ color: 'hsl(0 0% 60%)' }}>
             <ArrowLeft className="w-4 h-4" />
             <img src={currentLogo} alt={brandName} className="h-7" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'hsl(0 0% 50%)' }}>
               {['Tutorial', 'Conta', 'Perfil', 'Rede'].map((label, i) => (
                 <span key={label} className="flex items-center gap-1.5">
-                  {i > 0 && <span className="text-border">›</span>}
+                  {i > 0 && <span style={{ color: 'hsl(220 10% 25%)' }}>›</span>}
                   <span className={
                     (i === 0 && step === 'tutorial') ||
                     (i === 1 && step === 'auth') || 
                     (i === 2 && (step === 'profile-type' || step === 'profile-form')) || 
                     (i === 3 && step === 'invites')
-                      ? 'text-primary font-semibold' : ''
+                      ? 'font-semibold' : ''
+                  } style={
+                    (i === 0 && step === 'tutorial') ||
+                    (i === 1 && step === 'auth') || 
+                    (i === 2 && (step === 'profile-type' || step === 'profile-form')) || 
+                    (i === 3 && step === 'invites')
+                      ? { color: 'hsl(25 95% 55%)' } : undefined
                   }>
                     {label}
                   </span>
@@ -343,7 +355,8 @@ export default function CarreiraCadastroPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                className="h-7 px-2 text-xs hover:text-destructive"
+                style={{ color: 'hsl(0 0% 50%)' }}
                 onClick={async () => {
                   await supabase.auth.signOut();
                   setUserId(null);
@@ -363,7 +376,7 @@ export default function CarreiraCadastroPage() {
         </div>
       </header>
 
-      <main className="container max-w-lg px-4 py-4">
+      <main className="container max-w-lg px-4 py-4 relative z-10">
         {step === 'tutorial' && (
           <OnboardingTutorial
             brandName={brandName}
