@@ -939,7 +939,7 @@ function FollowButton({ perfil, currentUserId, isOwner }: { perfil: any; current
   );
 }
 
-function ShareButton({ slug, nome }: { slug: string; nome: string }) {
+function ShareButton({ slug, nome, accentColor }: { slug: string; nome: string; accentColor?: string }) {
   const handleShare = async () => {
     const url = `${window.location.origin}${carreiraPath(`/${slug}`)}`;
     if (navigator.share) {
@@ -951,7 +951,8 @@ function ShareButton({ slug, nome }: { slug: string; nome: string }) {
   };
 
   return (
-    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={handleShare}>
+    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={handleShare}
+      style={accentColor ? { borderColor: `${accentColor}50`, color: accentColor } : undefined}>
       <Share2 className="w-3.5 h-3.5 mr-1" />Compartilhar
     </Button>
   );
