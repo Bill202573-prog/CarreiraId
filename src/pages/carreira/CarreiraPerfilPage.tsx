@@ -436,7 +436,9 @@ export default function CarreiraPerfilPage() {
                     Editar Perfil
                   </Button>
                 )}
-                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
+                <Button variant="outline" size="sm" className="h-8 text-xs"
+                  style={{ borderColor: `${accentColor}50`, color: accentColor }}
+                  onClick={async () => {
                   if (mySlug) {
                     navigate(carreiraPath(`/${mySlug}`));
                   } else {
