@@ -88,13 +88,32 @@ export default function CarreiraAdminGamificacaoPage() {
 
       const topUsersWithDetails = await Promise.all(
         (topUsers || []).map(async (user: any) => {
+          // Try profiles first
           const { data: profile } = await supabase
             .from('profiles').select('nome, email').eq('user_id', user.user_id).maybeSingle();
+          
+          let nome = profile?.nome || '';
+          let email = profile?.email || '';
+
+          // Fallback: perfis_rede
+          if (!nome || nome === 'Usuario') {
+            const { data: pr } = await supabase
+              .from('perfis_rede').select('nome').eq('user_id', user.user_id).maybeSingle();
+            if (pr?.nome) nome = pr.nome;
+          }
+
+          // Fallback: perfil_atleta
+          if (!nome || nome === 'Usuario') {
+            const { data: pa } = await supabase
+              .from('perfil_atleta').select('nome').eq('user_id', user.user_id).maybeSingle();
+            if (pa?.nome) nome = pa.nome;
+          }
+
           const { data: badges } = await supabase
             .from('user_badges' as any).select('id').eq('user_id', user.user_id);
           return {
-            nome: profile?.nome || 'Usuário sem nome',
-            email: profile?.email || '',
+            nome: nome || 'Usuário sem nome',
+            email,
             pontos_total: user.pontos_total,
             nivel: user.nivel,
             badges_count: badges?.length || 0,
