@@ -54,15 +54,27 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         .select('id, user_id, nome, foto_url, slug')
         .eq('is_public', true)
         .in('user_id', connectedUserIds);
-      const seen = new Set<string>();
-      const merged: any[] = [];
+      // Build a map keyed by user_id, preferring perfil_atleta data (has photo & correct type)
+      const userMap = new Map<string, any>();
       for (const p of (redeProfiles || [])) {
-        if (!seen.has(p.user_id)) { seen.add(p.user_id); merged.push(p); }
+        userMap.set(p.user_id, p);
       }
       for (const p of (atletaProfiles || [])) {
-        if (!seen.has(p.user_id)) { seen.add(p.user_id); merged.push({ ...p, tipo: 'Atleta' }); }
+        const existing = userMap.get(p.user_id);
+        if (!existing) {
+          userMap.set(p.user_id, { ...p, tipo: 'Atleta' });
+        } else {
+          // Merge: prefer atleta photo and type, keep rede data as fallback
+          userMap.set(p.user_id, {
+            ...existing,
+            foto_url: p.foto_url || existing.foto_url,
+            tipo: 'Atleta',
+            nome: p.nome || existing.nome,
+            slug: p.slug,
+          });
+        }
       }
-      return merged;
+      return Array.from(userMap.values());
     },
   });
 
