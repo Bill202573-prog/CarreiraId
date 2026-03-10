@@ -294,11 +294,11 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
     if (!file || !editing) return;
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
       const path = `niveis/${editing.id}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from('carreira-assets')
-        .upload(path, file, { upsert: true });
+        .upload(path, file, { upsert: true, contentType: file.type || `image/${ext}` });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from('carreira-assets').getPublicUrl(path);
       // Append cache-buster so browser shows the new image
@@ -339,7 +339,7 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
                     </div>
                     <label className="cursor-pointer text-[10px] text-primary hover:underline">
                       {uploading ? 'Enviando...' : 'Trocar imagem'}
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                     </label>
                   </div>
                   <div className="flex-1 grid grid-cols-3 gap-2">
