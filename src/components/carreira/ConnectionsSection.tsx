@@ -109,10 +109,7 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         } else {
           senderMap.set(p.user_id, {
             ...existing,
-            foto_url: p.foto_url || existing.foto_url,
-            tipo: 'Atleta',
-            nome: p.nome || existing.nome,
-            slug: p.slug,
+            foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
