@@ -330,7 +330,7 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
                 <>
                   <div className="flex flex-col items-center gap-1">
                     {/* Image preview */}
-                    <div className="w-14 h-14 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden bg-muted/50 relative">
+                    <div className="w-14 h-14 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden relative">
                       {isUrl(editing.icone) ? (
                         <img src={editing.icone} alt="Ícone" className="w-full h-full object-contain" />
                       ) : (
