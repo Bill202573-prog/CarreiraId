@@ -149,12 +149,24 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         .limit(30);
       const redeProfiles = (redeData || []).filter(p => !connectedIds.has(p.user_id)).map(p => ({ ...p, source: 'rede' as const }));
       const atletaProfiles = (atletaData || []).filter(p => !connectedIds.has(p.user_id)).map(p => ({ ...p, tipo: 'Atleta', source: 'atleta' as const }));
-      const seen = new Set<string>();
-      const merged: any[] = [];
-      for (const p of [...redeProfiles, ...atletaProfiles]) {
-        if (!seen.has(p.user_id)) { seen.add(p.user_id); merged.push(p); }
+      const suggestMap = new Map<string, any>();
+      for (const p of redeProfiles) {
+        suggestMap.set(p.user_id, p);
       }
-      return merged.slice(0, 8);
+      for (const p of atletaProfiles) {
+        const existing = suggestMap.get(p.user_id);
+        if (!existing) {
+          suggestMap.set(p.user_id, p);
+        } else {
+          suggestMap.set(p.user_id, {
+            ...existing,
+            foto_url: p.foto_url || existing.foto_url,
+            tipo: 'Atleta',
+            nome: p.nome || existing.nome,
+          });
+        }
+      }
+      return Array.from(suggestMap.values()).slice(0, 8);
     },
     enabled: isOwnProfile,
   });
