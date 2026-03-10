@@ -186,9 +186,10 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
             convidante_perfil_id: inviterProfile.id,
             convidado_user_id: userId,
           });
+          // userId = current user must be solicitante for RLS
           await supabase.from('rede_conexoes').insert({
-            solicitante_id: inviterProfile.user_id,
-            destinatario_id: userId,
+            solicitante_id: userId,
+            destinatario_id: inviterProfile.user_id,
             status: 'aceita',
           });
         }
