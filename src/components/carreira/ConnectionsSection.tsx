@@ -99,14 +99,25 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         .select('id, user_id, nome, foto_url, slug')
         .eq('is_public', true)
         .in('user_id', senderIds);
-      const seen2 = new Set<string>();
-      const allSenders: any[] = [];
+      const senderMap = new Map<string, any>();
       for (const p of (redeProfiles2 || [])) {
-        if (!seen2.has(p.user_id)) { seen2.add(p.user_id); allSenders.push(p); }
+        senderMap.set(p.user_id, p);
       }
       for (const p of (atletaProfiles2 || [])) {
-        if (!seen2.has(p.user_id)) { seen2.add(p.user_id); allSenders.push({ ...p, tipo: 'Atleta' }); }
+        const existing = senderMap.get(p.user_id);
+        if (!existing) {
+          senderMap.set(p.user_id, { ...p, tipo: 'Atleta' });
+        } else {
+          senderMap.set(p.user_id, {
+            ...existing,
+            foto_url: p.foto_url || existing.foto_url,
+            tipo: 'Atleta',
+            nome: p.nome || existing.nome,
+            slug: p.slug,
+          });
+        }
       }
+      const allSenders = Array.from(senderMap.values());
       return allSenders.map(p => ({
         ...p,
         connectionId: data.find(r => r.solicitante_id === p.user_id)?.id,
