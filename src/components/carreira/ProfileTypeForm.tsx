@@ -316,10 +316,10 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
             convidado_user_id: userId,
           });
 
-          // Auto-create mutual connection
+          // Auto-create mutual connection (userId = current user must be solicitante for RLS)
           await supabase.from('rede_conexoes').insert({
-            solicitante_id: inviterProfile.user_id,
-            destinatario_id: userId,
+            solicitante_id: userId,
+            destinatario_id: inviterProfile.user_id,
             status: 'aceita',
           });
         }
