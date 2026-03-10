@@ -54,7 +54,8 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         .select('id, user_id, nome, foto_url, slug')
         .eq('is_public', true)
         .in('user_id', connectedUserIds);
-      // Build a map keyed by user_id, preferring perfil_atleta data (has photo & correct type)
+      // Build a map keyed by user_id, using perfis_rede as primary identity
+      // and perfil_atleta foto_url as fallback for photo only
       const userMap = new Map<string, any>();
       for (const p of (redeProfiles || [])) {
         userMap.set(p.user_id, p);
@@ -62,15 +63,13 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
       for (const p of (atletaProfiles || [])) {
         const existing = userMap.get(p.user_id);
         if (!existing) {
+          // User only has perfil_atleta (no perfis_rede) — show as Atleta
           userMap.set(p.user_id, { ...p, tipo: 'Atleta' });
         } else {
-          // Merge: prefer atleta photo and type, keep rede data as fallback
+          // User has both — keep perfis_rede identity, use atleta photo as fallback
           userMap.set(p.user_id, {
             ...existing,
-            foto_url: p.foto_url || existing.foto_url,
-            tipo: 'Atleta',
-            nome: p.nome || existing.nome,
-            slug: p.slug,
+            foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
@@ -110,10 +109,7 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         } else {
           senderMap.set(p.user_id, {
             ...existing,
-            foto_url: p.foto_url || existing.foto_url,
-            tipo: 'Atleta',
-            nome: p.nome || existing.nome,
-            slug: p.slug,
+            foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
@@ -160,9 +156,7 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         } else {
           suggestMap.set(p.user_id, {
             ...existing,
-            foto_url: p.foto_url || existing.foto_url,
-            tipo: 'Atleta',
-            nome: p.nome || existing.nome,
+            foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
