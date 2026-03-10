@@ -1,3 +1,5 @@
+import { VideoEmbedCard, isVideoUrl } from './VideoEmbedCard';
+
 interface LinkPreview {
   url: string;
   title?: string | null;
@@ -12,6 +14,11 @@ interface LinkPreviewCardProps {
 
 export function LinkPreviewCard({ preview }: LinkPreviewCardProps) {
   if (!preview.title && !preview.description && !preview.image) return null;
+
+  // Render embed for video URLs
+  if (isVideoUrl(preview.url)) {
+    return <VideoEmbedCard url={preview.url} title={preview.title} />;
+  }
 
   const domain = (() => {
     try { return new URL(preview.url).hostname.replace('www.', ''); } catch { return ''; }
