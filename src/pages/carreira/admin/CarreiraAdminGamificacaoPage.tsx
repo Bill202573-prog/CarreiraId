@@ -339,7 +339,7 @@ function NiveisManager({ niveis, onSave }: { niveis: NivelConfig[]; onSave: () =
                     </div>
                     <label className="cursor-pointer text-[10px] text-primary hover:underline">
                       {uploading ? 'Enviando...' : 'Trocar imagem'}
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                     </label>
                   </div>
                   <div className="flex-1 grid grid-cols-3 gap-2">
