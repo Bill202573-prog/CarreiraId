@@ -156,9 +156,7 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         } else {
           suggestMap.set(p.user_id, {
             ...existing,
-            foto_url: p.foto_url || existing.foto_url,
-            tipo: 'Atleta',
-            nome: p.nome || existing.nome,
+            foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
