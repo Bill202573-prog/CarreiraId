@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -29,13 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, X, Eye, Instagram, Palette, Lock, Trash2 } from 'lucide-react';
+import { Loader2, X, Eye, Instagram, Palette, Lock, Trash2, UserCircle, Save } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PerfilAtleta, useUpdatePerfilAtleta } from '@/hooks/useCarreiraData';
 import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { toast } from 'sonner';
 
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
 const PES_DOMINANTES = [
@@ -54,25 +56,15 @@ const formSchema = z.object({
   pe_dominante: z.string().optional(),
   posicao_principal: z.string().optional(),
   posicao_secundaria: z.string().optional(),
+  data_nascimento: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 const MODALIDADES = [
-  'Futebol',
-  'Futsal',
-  'Beach Soccer',
-  'Futebol Society',
-  'Futebol Americano',
-  'Basquete',
-  'Vôlei',
-  'Handebol',
-  'Natação',
-  'Atletismo',
-  'Judô',
-  'Jiu-Jitsu',
-  'Tênis',
-  'Outro',
+  'Futebol', 'Futsal', 'Beach Soccer', 'Futebol Society',
+  'Futebol Americano', 'Basquete', 'Vôlei', 'Handebol',
+  'Natação', 'Atletismo', 'Judô', 'Jiu-Jitsu', 'Tênis', 'Outro',
 ];
 
 const ESTADOS = [
@@ -95,17 +87,11 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
   const [corDestaque, setCorDestaque] = useState(perfil.cor_destaque || '#3b82f6');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [dadosPublicos, setDadosPublicos] = useState({
-    gols: true,
-    campeonatos: true,
-    amistosos: true,
-    premiacoes: true,
-    conquistas: true,
+    gols: true, campeonatos: true, amistosos: true, premiacoes: true, conquistas: true,
   });
 
-  // Detect if this is a platform/admin profile (no athlete-specific data needed)
   const isPlatformProfile = perfil.modalidade === 'Plataforma' || !perfil.crianca_id;
 
-  // Check if athlete has active school link (Atleta ID)
   const { data: hasActiveSchoolLink } = useQuery({
     queryKey: ['has-school-link', perfil.crianca_id],
     queryFn: async () => {
@@ -117,6 +103,21 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         .eq('ativo', true)
         .limit(1);
       return (data?.length || 0) > 0;
+    },
+    enabled: !!perfil.crianca_id && open,
+  });
+
+  // Fetch crianca data for birth date
+  const { data: criancaData } = useQuery({
+    queryKey: ['crianca-data', perfil.crianca_id],
+    queryFn: async () => {
+      if (!perfil.crianca_id) return null;
+      const { data } = await supabase
+        .from('criancas')
+        .select('data_nascimento')
+        .eq('id', perfil.crianca_id)
+        .maybeSingle();
+      return data;
     },
     enabled: !!perfil.crianca_id && open,
   });
@@ -147,26 +148,23 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         pe_dominante: perfil.pe_dominante || '',
         posicao_principal: perfil.posicao_principal || '',
         posicao_secundaria: perfil.posicao_secundaria || '',
+        data_nascimento: criancaData?.data_nascimento || '',
       });
       setPhotoUrl(perfil.foto_url || '');
       setBannerUrl(perfil.banner_url || '');
       setCorDestaque(perfil.cor_destaque || '#3b82f6');
-      // Initialize modalidades from perfil
       const initialModalidades = perfil.modalidades || [perfil.modalidade];
       setSelectedModalidades(initialModalidades.filter(Boolean));
-      // Initialize dados_publicos
       const dp = (perfil as any).dados_publicos;
       if (dp) {
         setDadosPublicos({
-          gols: dp.gols !== false,
-          campeonatos: dp.campeonatos !== false,
-          amistosos: dp.amistosos !== false,
-          premiacoes: dp.premiacoes !== false,
+          gols: dp.gols !== false, campeonatos: dp.campeonatos !== false,
+          amistosos: dp.amistosos !== false, premiacoes: dp.premiacoes !== false,
           conquistas: dp.conquistas !== false,
         });
       }
     }
-  }, [open, perfil, form]);
+  }, [open, perfil, form, criancaData]);
 
   const handleModalidadeChange = (modalidade: string, checked: boolean) => {
     if (checked) {
@@ -177,8 +175,14 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
   };
 
   const onSubmit = async (data: FormData) => {
-    if (!isPlatformProfile && selectedModalidades.length === 0) {
-      return;
+    if (!isPlatformProfile && selectedModalidades.length === 0) return;
+
+    // Update crianca birth date if changed
+    if (perfil.crianca_id && data.data_nascimento) {
+      await supabase
+        .from('criancas')
+        .update({ data_nascimento: data.data_nascimento })
+        .eq('id', perfil.crianca_id);
     }
 
     const updateData: any = {
@@ -214,351 +218,247 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
           <DialogTitle>Editar Perfil</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Photo and Banner Upload */}
-            <ProfilePhotoUpload
-              currentPhotoUrl={photoUrl}
-              currentBannerUrl={bannerUrl}
-              onPhotoChange={setPhotoUrl}
-              onBannerChange={setBannerUrl}
-            />
+        <Tabs defaultValue="perfil" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="perfil">Dados do Atleta</TabsTrigger>
+            <TabsTrigger value="responsavel" className="flex items-center gap-1.5">
+              <UserCircle className="w-3.5 h-3.5" />
+              Responsável
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Name */}
-            <FormField
-              control={form.control}
-              name="nome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome completo *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Seu nome" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <TabsContent value="perfil" className="mt-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <ProfilePhotoUpload
+                  currentPhotoUrl={photoUrl}
+                  currentBannerUrl={bannerUrl}
+                  onPhotoChange={setPhotoUrl}
+                  onBannerChange={setBannerUrl}
+                />
 
-            {/* Modalidades Multi-Select - only for athlete profiles */}
-            {!isPlatformProfile && (
-            <>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Modalidades *</label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Selecione todas as modalidades que pratica
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {MODALIDADES.map((mod) => (
-                  <div key={mod} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`mod-${mod}`}
-                      checked={selectedModalidades.includes(mod)}
-                      onCheckedChange={(checked) => handleModalidadeChange(mod, !!checked)}
-                    />
-                    <label
-                      htmlFor={`mod-${mod}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {mod}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              {selectedModalidades.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {selectedModalidades.map((mod) => (
-                    <Badge key={mod} variant="secondary" className="gap-1">
-                      {mod}
-                      <button
-                        type="button"
-                        onClick={() => handleModalidadeChange(mod, false)}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              {selectedModalidades.length === 0 && (
-                <p className="text-sm text-destructive">Selecione pelo menos uma modalidade</p>
-              )}
-            </div>
-
-            {/* Categoria */}
-            <FormField
-              control={form.control}
-              name="categoria"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Sub-11, Profissional, Master" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Dados Técnicos */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="posicao_principal"
-                render={({ field }) => (
+                {/* Name */}
+                <FormField control={form.control} name="nome" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Posição principal</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {POSICOES.map((pos) => (
-                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Nome completo *</FormLabel>
+                    <FormControl><Input placeholder="Seu nome" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
+                )} />
+
+                {/* Birth date */}
+                {!isPlatformProfile && (
+                  <FormField control={form.control} name="data_nascimento" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Nascimento</FormLabel>
+                      <FormControl><Input type="date" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="posicao_secundaria"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Posição secundária</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Opcional" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {POSICOES.map((pos) => (
-                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="pe_dominante"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pé dominante</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PES_DOMINANTES.map((pe) => (
-                        <SelectItem key={pe.value} value={pe.value}>{pe.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            </>
-            )}
-
-            {/* City and State */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="cidade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Sua cidade" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="estado"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="UF" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ESTADOS.map((uf) => (
-                          <SelectItem key={uf} value={uf}>
-                            {uf}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Bio */}
-            <FormField
-              control={form.control}
-              name="bio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bio</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Conte um pouco sobre você e sua trajetória esportiva"
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Instagram */}
-            <FormField
-              control={form.control}
-              name="instagram_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-1.5">
-                    <Instagram className="w-4 h-4" />
-                    Instagram
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="@usuario ou link do perfil" {...field} />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    Ex: @joaoatleta ou https://instagram.com/joaoatleta
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Cor de Destaque */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-1.5">
-                <Palette className="w-4 h-4" />
-                Cor de destaque
-              </label>
-              <p className="text-xs text-muted-foreground">
-                Escolha a cor que personaliza o perfil público do atleta
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  '#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6',
-                  '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#000000',
-                ].map((cor) => (
-                  <button
-                    key={cor}
-                    type="button"
-                    onClick={() => setCorDestaque(cor)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${corDestaque === cor ? 'border-foreground scale-110 ring-2 ring-offset-2 ring-offset-background' : 'border-transparent hover:scale-105'}`}
-                    style={{ backgroundColor: cor }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Dados Públicos - only for athlete profiles */}
-            {!isPlatformProfile && (
-            <>
-            <Separator />
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-primary" />
-                <label className="text-sm font-medium">Dados visíveis no perfil público</label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Escolha quais informações da jornada esportiva serão exibidas na página pública do atleta.
-              </p>
-              {isCarreiraOnly && (
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 border border-border">
-                  <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <p className="text-xs text-muted-foreground">
-                    Recurso disponível ao vincular-se a uma escolinha no Atleta ID
-                  </p>
-                </div>
-              )}
-              {[
-                { key: 'gols' as const, label: 'Gols marcados' },
-                { key: 'amistosos' as const, label: 'Amistosos disputados' },
-                { key: 'campeonatos' as const, label: 'Campeonatos' },
-                { key: 'premiacoes' as const, label: 'Premiações individuais' },
-                { key: 'conquistas' as const, label: 'Conquistas coletivas' },
-              ].map(({ key, label }) => (
-                <div key={key} className="flex items-center justify-between">
-                  <span className={`text-sm ${isCarreiraOnly ? 'text-muted-foreground' : ''}`}>{label}</span>
-                  <Switch
-                    checked={isCarreiraOnly ? false : dadosPublicos[key]}
-                    disabled={isCarreiraOnly}
-                    onCheckedChange={(checked) =>
-                      setDadosPublicos((prev) => ({ ...prev, [key]: checked }))
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-            </>
-            )}
-
-            {/* Buttons */}
-            <div className="flex gap-2 justify-end pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={updatePerfil.isPending || (!isPlatformProfile && selectedModalidades.length === 0)}
-              >
-                {updatePerfil.isPending ? (
+                {/* Modalidades */}
+                {!isPlatformProfile && (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  'Salvar Alterações'
-                )}
-              </Button>
-            </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Modalidades *</label>
+                      <p className="text-xs text-muted-foreground mb-2">Selecione todas as modalidades que pratica</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {MODALIDADES.map((mod) => (
+                          <div key={mod} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`mod-${mod}`}
+                              checked={selectedModalidades.includes(mod)}
+                              onCheckedChange={(checked) => handleModalidadeChange(mod, !!checked)}
+                            />
+                            <label htmlFor={`mod-${mod}`} className="text-sm cursor-pointer">{mod}</label>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedModalidades.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {selectedModalidades.map((mod) => (
+                            <Badge key={mod} variant="secondary" className="gap-1">
+                              {mod}
+                              <button type="button" onClick={() => handleModalidadeChange(mod, false)}><X className="w-3 h-3" /></button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      {selectedModalidades.length === 0 && (
+                        <p className="text-sm text-destructive">Selecione pelo menos uma modalidade</p>
+                      )}
+                    </div>
 
-            <Separator className="my-4" />
-            <div className="pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Apagar minha conta
-              </Button>
-            </div>
-          </form>
-        </Form>
+                    {/* Categoria */}
+                    <FormField control={form.control} name="categoria" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria</FormLabel>
+                        <FormControl><Input placeholder="Ex: Sub-11, Profissional, Master" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* Dados Técnicos */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField control={form.control} name="posicao_principal" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Posição principal</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {POSICOES.map((pos) => (<SelectItem key={pos} value={pos}>{pos}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="posicao_secundaria" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Posição secundária</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {POSICOES.map((pos) => (<SelectItem key={pos} value={pos}>{pos}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+
+                    <FormField control={form.control} name="pe_dominante" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pé dominante</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            {PES_DOMINANTES.map((pe) => (<SelectItem key={pe.value} value={pe.value}>{pe.label}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </>
+                )}
+
+                {/* City and State */}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="cidade" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade</FormLabel>
+                      <FormControl><Input placeholder="Sua cidade" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="estado" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {ESTADOS.map((uf) => (<SelectItem key={uf} value={uf}>{uf}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                {/* Bio */}
+                <FormField control={form.control} name="bio" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Conte um pouco sobre você e sua trajetória esportiva" rows={3} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {/* Instagram */}
+                <FormField control={form.control} name="instagram_url" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1.5"><Instagram className="w-4 h-4" />Instagram</FormLabel>
+                    <FormControl><Input placeholder="@usuario ou link do perfil" {...field} /></FormControl>
+                    <p className="text-xs text-muted-foreground">Ex: @joaoatleta ou https://instagram.com/joaoatleta</p>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {/* Cor de Destaque */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1.5"><Palette className="w-4 h-4" />Cor de destaque</label>
+                  <p className="text-xs text-muted-foreground">Escolha a cor que personaliza o perfil público do atleta</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#f97316','#14b8a6','#000000'].map((cor) => (
+                      <button
+                        key={cor} type="button" onClick={() => setCorDestaque(cor)}
+                        className={`w-8 h-8 rounded-full border-2 transition-all ${corDestaque === cor ? 'border-foreground scale-110 ring-2 ring-offset-2 ring-offset-background' : 'border-transparent hover:scale-105'}`}
+                        style={{ backgroundColor: cor }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dados Públicos */}
+                {!isPlatformProfile && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-primary" />
+                        <label className="text-sm font-medium">Dados visíveis no perfil público</label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Escolha quais informações da jornada esportiva serão exibidas na página pública do atleta.</p>
+                      {isCarreiraOnly && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 border border-border">
+                          <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <p className="text-xs text-muted-foreground">Recurso disponível ao vincular-se a uma escolinha no Atleta ID</p>
+                        </div>
+                      )}
+                      {([
+                        { key: 'gols' as const, label: 'Gols marcados' },
+                        { key: 'amistosos' as const, label: 'Amistosos disputados' },
+                        { key: 'campeonatos' as const, label: 'Campeonatos' },
+                        { key: 'premiacoes' as const, label: 'Premiações individuais' },
+                        { key: 'conquistas' as const, label: 'Conquistas coletivas' },
+                      ]).map(({ key, label }) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <span className={`text-sm ${isCarreiraOnly ? 'text-muted-foreground' : ''}`}>{label}</span>
+                          <Switch
+                            checked={isCarreiraOnly ? false : dadosPublicos[key]}
+                            disabled={isCarreiraOnly}
+                            onCheckedChange={(checked) => setDadosPublicos((prev) => ({ ...prev, [key]: checked }))}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Buttons */}
+                <div className="flex gap-2 justify-end pt-4">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                  <Button type="submit" disabled={updatePerfil.isPending || (!isPlatformProfile && selectedModalidades.length === 0)}>
+                    {updatePerfil.isPending ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</>) : 'Salvar Alterações'}
+                  </Button>
+                </div>
+
+                <Separator className="my-4" />
+                <div className="pt-2">
+                  <Button type="button" variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteDialogOpen(true)}>
+                    <Trash2 className="w-4 h-4 mr-2" />Apagar minha conta
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </TabsContent>
+
+          <TabsContent value="responsavel" className="mt-4">
+            <ResponsavelTab userId={perfil.user_id} />
+          </TabsContent>
+        </Tabs>
 
         <DeleteAccountDialog
           open={deleteDialogOpen}
@@ -568,5 +468,99 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         />
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* --- Responsável Tab inside EditPerfilDialog --- */
+function ResponsavelTab({ userId }: { userId: string }) {
+  const queryClient = useQueryClient();
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [dirty, setDirty] = useState(false);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['responsavel-profile', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('nome, email, telefone')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { nome: string; email: string; telefone: string | null } | null;
+    },
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setNome(profile.nome || '');
+      setEmail(profile.email || '');
+      setTelefone(profile.telefone || '');
+      setDirty(false);
+    }
+  }, [profile]);
+
+  const updateProfile = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ nome, telefone: telefone || null })
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['responsavel-profile', userId] });
+      toast.success('Dados do responsável atualizados!');
+      setDirty(false);
+    },
+    onError: () => toast.error('Erro ao atualizar dados'),
+  });
+
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  if (!profile) return <p className="text-sm text-muted-foreground text-center py-8">Dados do responsável não encontrados.</p>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 border border-border">
+        <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+        <p className="text-xs text-muted-foreground">Dados do responsável não são exibidos publicamente</p>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <label className="text-sm font-medium mb-1 block">Nome do Responsável *</label>
+          <Input value={nome} onChange={(e) => { setNome(e.target.value); setDirty(true); }} placeholder="Nome completo" />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-1 block">E-mail</label>
+          <Input value={email} disabled className="opacity-60" />
+          <p className="text-[10px] text-muted-foreground mt-1">O e-mail não pode ser alterado por aqui.</p>
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Celular / WhatsApp</label>
+          <Input
+            value={telefone}
+            onChange={(e) => { setTelefone(formatPhone(e.target.value)); setDirty(true); }}
+            placeholder="(11) 99999-9999"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-2">
+        <Button onClick={() => updateProfile.mutate()} disabled={updateProfile.isPending || !dirty || !nome.trim()}>
+          {updateProfile.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+          Salvar Responsável
+        </Button>
+      </div>
+    </div>
   );
 }
