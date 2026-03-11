@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut, Gamepad2 } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,8 @@ interface CarreiraBottomNavProps {
   currentUserId?: string | null;
   profileSlug?: string | null;
 }
+
+const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
 
 export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottomNavProps) {
   const navigate = useNavigate();
@@ -30,10 +32,26 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     enabled: !!currentUserId,
   });
 
+  // Check if user has a scouting profile type
+  const { data: perfilRede } = useQuery({
+    queryKey: ['nav-perfil-rede-tipo', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return null;
+      const { data } = await supabase
+        .from('perfis_rede')
+        .select('tipo')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!currentUserId,
+  });
+
+  const isScoutingProfile = perfilRede ? SCOUTING_TYPES.includes(perfilRede.tipo) : false;
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success('Você saiu da sua conta');
-    // If on carreira domain, go to carreira landing; otherwise go back to AtletaID login
     if (isCarreiraDomain()) {
       navigate(carreiraPath('/'), { replace: true });
     } else {
@@ -56,8 +74,9 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   const feedPath = carreiraPath('/feed');
   const conexoesPath = carreiraPath('/conexoes');
   const gamerPath = carreiraPath('/gamer');
+  const descobrirPath = carreiraPath('/descobrir');
 
-  const items = [
+  const baseItems = [
     {
       icon: Home,
       label: 'Feed',
@@ -72,13 +91,28 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       active: location.pathname === conexoesPath,
       badge: (pendingCount || 0),
     },
-    {
-      icon: Gamepad2,
-      label: 'Gamer',
-      onClick: () => navigate(gamerPath),
-      active: location.pathname === gamerPath,
-      badge: 0,
-    },
+  ];
+
+  // Conditionally show Gamer OR Descobrir based on profile type
+  const middleItem = isScoutingProfile
+    ? {
+        icon: Search,
+        label: 'Descobrir',
+        onClick: () => navigate(descobrirPath),
+        active: location.pathname === descobrirPath,
+        badge: 0,
+      }
+    : {
+        icon: Gamepad2,
+        label: 'Gamer',
+        onClick: () => navigate(gamerPath),
+        active: location.pathname === gamerPath,
+        badge: 0,
+      };
+
+  const items = [
+    ...baseItems,
+    middleItem,
     {
       icon: User,
       label: 'Meu Perfil',
