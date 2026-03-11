@@ -168,7 +168,15 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                 </div>
               )}
 
+              {/* Status automático + badges técnicos */}
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {atletaStatus && (
+                  <Badge variant="outline" className="gap-1 text-xs font-semibold"
+                    style={{ borderColor: perfil.cor_destaque || '#3b82f6', color: perfil.cor_destaque || '#3b82f6' }}>
+                    <ShieldCheck className="w-3 h-3" />
+                    {atletaStatus}
+                  </Badge>
+                )}
                 {modalidades.map((mod, idx) => (
                   <Badge key={idx} variant="secondary" className="gap-1 text-xs"
                     style={{ backgroundColor: `${perfil.cor_destaque || '#3b82f6'}18`, color: perfil.cor_destaque || '#3b82f6', borderColor: `${perfil.cor_destaque || '#3b82f6'}30` }}>
@@ -176,6 +184,22 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                   </Badge>
                 ))}
               </div>
+
+              {/* Technical data: position + dominant foot */}
+              {(perfil.posicao_principal || perfil.pe_dominante) && (
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
+                  {perfil.posicao_principal && (
+                    <span className="flex items-center gap-1">
+                      <Footprints className="w-3 h-3" />
+                      {perfil.posicao_principal}
+                      {perfil.posicao_secundaria && ` / ${perfil.posicao_secundaria}`}
+                    </span>
+                  )}
+                  {perfil.pe_dominante && (
+                    <span>• {PE_LABELS[perfil.pe_dominante] || perfil.pe_dominante}</span>
+                  )}
+                </div>
+              )}
 
               {(perfil.cidade || perfil.estado) && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5">
