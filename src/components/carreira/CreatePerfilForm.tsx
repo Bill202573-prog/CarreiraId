@@ -73,12 +73,9 @@ export function CreatePerfilForm() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nome: '',
-      modalidade: '',
-      categoria: '',
-      cidade: '',
-      estado: '',
-      bio: '',
+      nome: '', modalidade: '', categoria: '',
+      cidade: '', estado: '', bio: '',
+      pe_dominante: '', posicao_principal: '', posicao_secundaria: '',
     },
   });
 
