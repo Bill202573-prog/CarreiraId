@@ -144,6 +144,9 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         estado: perfil.estado || '',
         bio: perfil.bio || '',
         instagram_url: (perfil as any).instagram_url || '',
+        pe_dominante: perfil.pe_dominante || '',
+        posicao_principal: perfil.posicao_principal || '',
+        posicao_secundaria: perfil.posicao_secundaria || '',
       });
       setPhotoUrl(perfil.foto_url || '');
       setBannerUrl(perfil.banner_url || '');
