@@ -294,8 +294,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             accentColor={accentColor}
           />
         );
-      case 'responsavel':
-        return <ResponsavelSection userId={perfil.user_id} isOwner={isOwner} accentColor={accentColor} />;
+      default:
       default:
         return null;
     }
