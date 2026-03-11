@@ -46,6 +46,7 @@ const INSTITUTIONAL_TABS = [
 const CARREIRA_TABS = [
   { value: 'carreira-experiencia', label: 'Experiência', icon: Building2 },
   { value: 'carreira-atividades', label: 'Atividades', icon: Dumbbell },
+  { value: 'responsavel', label: 'Responsável', icon: UserCircle },
 ];
 
 export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelineProps) {
