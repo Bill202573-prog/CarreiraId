@@ -781,7 +781,11 @@ export default function CarreiraPerfilPage() {
               </div>
             )}
 
-            {/* Mobile-only: Pending connection requests */}
+            {/* Quem viu este perfil — public, below profile header */}
+            {perfil.type === 'atleta' && profileViews && profileViews.length > 0 && (
+              <ProfileViewsSection views={profileViews} accentColor={accentColor} navigate={navigate} />
+            )}
+
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
               <div className="lg:hidden">
                 <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
