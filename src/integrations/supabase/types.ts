@@ -693,6 +693,47 @@ export type Database = {
         }
         Relationships: []
       }
+      perfil_visualizacoes: {
+        Row: {
+          created_at: string
+          id: string
+          perfil_atleta_id: string
+          viewed_date: string
+          viewer_foto_url: string | null
+          viewer_nome: string | null
+          viewer_tipo: string | null
+          viewer_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          perfil_atleta_id: string
+          viewed_date?: string
+          viewer_foto_url?: string | null
+          viewer_nome?: string | null
+          viewer_tipo?: string | null
+          viewer_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          perfil_atleta_id?: string
+          viewed_date?: string
+          viewer_foto_url?: string | null
+          viewer_nome?: string | null
+          viewer_tipo?: string | null
+          viewer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfil_visualizacoes_perfil_atleta_id_fkey"
+            columns: ["perfil_atleta_id"]
+            isOneToOne: false
+            referencedRelation: "perfil_atleta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfis_rede: {
         Row: {
           bio: string | null

@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone } from 'lucide-react';
+import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -254,7 +254,29 @@ export default function CarreiraPerfilPage() {
   const { data: escolinhas } = useEscolinhasCarreira(perfil?.type === 'atleta' ? perfil?.crianca_id : undefined);
   const { data: searchResults } = useSearchPeople(searchQuery);
 
-  // Dynamic category from birth date
+  // Track profile view (like LinkedIn) — only for non-owner visits on atleta profiles
+  useEffect(() => {
+    if (!currentUserId || !perfil || isOwner || perfil.type !== 'atleta') return;
+    const trackView = async () => {
+      // Get viewer info
+      const { data: viewerRede } = await supabase
+        .from('perfis_rede')
+        .select('tipo, nome, foto_url')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+      
+      await supabase.from('perfil_visualizacoes').upsert({
+        perfil_atleta_id: perfil.id,
+        viewer_user_id: currentUserId,
+        viewer_tipo: viewerRede?.tipo || null,
+        viewer_nome: viewerRede?.nome || null,
+        viewer_foto_url: viewerRede?.foto_url || null,
+        viewed_date: new Date().toISOString().split('T')[0],
+      }, { onConflict: 'perfil_atleta_id,viewer_user_id,viewed_date' });
+    };
+    trackView();
+  }, [currentUserId, perfil?.id, isOwner]);
+
   const { data: criancaSidebar } = useQuery({
     queryKey: ['crianca-nascimento', perfil?.crianca_id],
     queryFn: async () => {
@@ -286,6 +308,22 @@ export default function CarreiraPerfilPage() {
       return merged.map(p => ({ ...p, connectionId: data.find(r => r.solicitante_id === p.user_id)?.id }));
     },
     enabled: !!currentUserId && isOwner,
+  });
+
+  // Profile views (who viewed my profile - like LinkedIn)
+  const { data: profileViews } = useQuery({
+    queryKey: ['profile-views', perfil?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('perfil_visualizacoes')
+        .select('*')
+        .eq('perfil_atleta_id', perfil!.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!perfil?.id && isOwner && perfil?.type === 'atleta',
   });
 
   const handleAcceptRequest = async (connectionId: string) => {
@@ -823,6 +861,34 @@ export default function CarreiraPerfilPage() {
                         <Button size="sm" variant="ghost" className="h-7 text-[10px] px-1" onClick={() => person.connectionId && handleRejectRequest(person.connectionId)}>
                           <X className="w-3 h-3" />
                         </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Quem viu seu perfil - only for profile owner */}
+            {isOwner && profileViews && profileViews.length > 0 && (
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+                <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" />
+                  Quem viu seu perfil ({profileViews.length})
+                </h3>
+                <div className="space-y-2">
+                  {profileViews.slice(0, 5).map((view) => (
+                    <div key={view.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded p-1 -mx-1 transition-colors"
+                      onClick={() => navigate(carreiraPath(`/perfil/${view.viewer_user_id}`))}>
+                      {view.viewer_foto_url ? (
+                        <img src={view.viewer_foto_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                          {view.viewer_nome?.[0] || '?'}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{view.viewer_nome || 'Usuário'}</p>
+                        <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[view.viewer_tipo || ''] || view.viewer_tipo || ''}</p>
                       </div>
                     </div>
                   ))}

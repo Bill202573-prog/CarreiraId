@@ -19,6 +19,7 @@ interface Filters {
   modalidade: string;
   estado: string;
   cidade: string;
+  status_atleta: string;
 }
 
 const CATEGORIAS = ['Sub-7', 'Sub-8', 'Sub-9', 'Sub-10', 'Sub-11', 'Sub-12', 'Sub-13', 'Sub-14', 'Sub-15', 'Sub-16', 'Sub-17', 'Sub-18', 'Sub-19', 'Sub-20'];
@@ -55,6 +56,7 @@ const emptyFilters: Filters = {
   modalidade: '',
   estado: '',
   cidade: '',
+  status_atleta: '',
 };
 
 function calcularCategoria(dataNascimento: string): string {
@@ -141,17 +143,31 @@ export function DescobrirAtletasSection() {
       }
 
       // Fetch current experiences for status
-      const atletaUserIds = atletas.map(a => a.crianca_id).filter(Boolean) as string[];
+      const atletaCriancaIds = atletas.map(a => a.crianca_id).filter(Boolean) as string[];
       let expMap = new Map<string, { tipo_instituicao: string; nome_escola: string }>();
-      if (atletaUserIds.length > 0) {
+      if (atletaCriancaIds.length > 0) {
         const { data: exps } = await supabase
           .from('carreira_experiencias')
           .select('crianca_id, tipo_instituicao, nome_escola')
-          .in('crianca_id', atletaUserIds)
+          .in('crianca_id', atletaCriancaIds)
           .eq('atual', true);
         for (const exp of exps || []) {
           if (exp.crianca_id) expMap.set(exp.crianca_id, { tipo_instituicao: exp.tipo_instituicao || '', nome_escola: exp.nome_escola });
         }
+      }
+
+      // Filter by status if set
+      if (appliedFilters.status_atleta) {
+        atletas = atletas.filter(a => {
+          if (!a.crianca_id) return false;
+          const exp = expMap.get(a.crianca_id);
+          if (appliedFilters.status_atleta === 'federado') {
+            return exp?.tipo_instituicao === 'clube_federado';
+          } else if (appliedFilters.status_atleta === 'formacao') {
+            return !exp || exp.tipo_instituicao !== 'clube_federado';
+          }
+          return true;
+        });
       }
 
       return atletas.map(a => ({
@@ -254,7 +270,21 @@ export function DescobrirAtletasSection() {
               </Select>
             </div>
 
-            {/* Row 3: Estado + Cidade */}
+            {/* Row 3: Status do Atleta */}
+            <div className="grid grid-cols-1 gap-2">
+              <Select value={filters.status_atleta} onValueChange={v => updateFilter('status_atleta', v === 'all' ? '' : v)}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Status do Atleta" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="federado">⚽ Atleta Federado</SelectItem>
+                  <SelectItem value="formacao">🏫 Atleta em Formação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Row 4: Estado + Cidade */}
             <div className="grid grid-cols-2 gap-2">
               <Select value={filters.estado} onValueChange={v => updateFilter('estado', v === 'all' ? '' : v)}>
                 <SelectTrigger className="h-9 text-xs">
