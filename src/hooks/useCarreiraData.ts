@@ -28,6 +28,9 @@ export interface PerfilAtleta {
   atleta_app_id: string | null;
   atleta_id_vinculado: boolean;
   atleta_id_sync_at: string | null;
+  pe_dominante: string | null;
+  posicao_principal: string | null;
+  posicao_secundaria: string | null;
   created_at: string;
   updated_at: string;
 }
