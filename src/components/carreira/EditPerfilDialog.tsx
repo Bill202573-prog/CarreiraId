@@ -191,6 +191,9 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
       banner_url: bannerUrl || null,
       instagram_url: data.instagram_url || null,
       cor_destaque: corDestaque,
+      pe_dominante: data.pe_dominante || null,
+      posicao_principal: data.posicao_principal || null,
+      posicao_secundaria: data.posicao_secundaria || null,
     };
 
     if (!isPlatformProfile) {
