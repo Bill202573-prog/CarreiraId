@@ -458,6 +458,16 @@ export default function CarreiraExplorarPage() {
                 </Button>
               </Card>
             )}
+
+            {/* Descobrir Atletas — for scouting profiles on desktop */}
+            {meuPerfilRede && ['tecnico', 'scout', 'agente_clube'].includes(meuPerfilRede.tipo) && (
+              <Card className="p-4">
+                <Button size="sm" className="w-full text-xs" onClick={() => navigate(carreiraPath('/descobrir'))}>
+                  <Search className="w-3.5 h-3.5 mr-1" />
+                  Descobrir Atletas
+                </Button>
+              </Card>
+            )}
           </aside>
 
           {/* Center — Feed */}
