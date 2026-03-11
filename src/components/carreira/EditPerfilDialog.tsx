@@ -37,6 +37,13 @@ import { PerfilAtleta, useUpdatePerfilAtleta } from '@/hooks/useCarreiraData';
 import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
+const PES_DOMINANTES = [
+  { value: 'direito', label: 'Direito' },
+  { value: 'esquerdo', label: 'Esquerdo' },
+  { value: 'ambidestro', label: 'Ambidestro' },
+];
+
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   categoria: z.string().optional(),
@@ -44,6 +51,9 @@ const formSchema = z.object({
   estado: z.string().optional(),
   bio: z.string().max(280, 'Máximo de 280 caracteres').optional(),
   instagram_url: z.string().max(200, 'Máximo de 200 caracteres').optional(),
+  pe_dominante: z.string().optional(),
+  posicao_principal: z.string().optional(),
+  posicao_secundaria: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
