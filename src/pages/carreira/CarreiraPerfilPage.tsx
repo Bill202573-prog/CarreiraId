@@ -323,7 +323,7 @@ export default function CarreiraPerfilPage() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!perfil?.id && isOwner && perfil?.type === 'atleta',
+    enabled: !!perfil?.id && perfil?.type === 'atleta',
   });
 
   const handleAcceptRequest = async (connectionId: string) => {
