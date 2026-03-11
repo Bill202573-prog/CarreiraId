@@ -13,6 +13,7 @@ import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { CreatePostForm } from '@/components/carreira/CreatePostForm';
 import { PostCard } from '@/components/carreira/PostCard';
+import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { usePostsRede } from '@/hooks/useCarreiraData';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useEffect, useState } from 'react';
@@ -152,28 +153,42 @@ export default function PerfilPage() {
           currentUserId={currentUserId}
           onEditProfile={isOwnProfile ? () => setEditDialogOpen(true) : undefined}
         >
-          <Tabs defaultValue="publicacoes" className="mt-4">
-            <TabsList className="w-full">
-              <TabsTrigger value="publicacoes" className="flex-1">Publicações</TabsTrigger>
-              <TabsTrigger value="sobre" className="flex-1">Sobre</TabsTrigger>
-              <TabsTrigger value="conexoes" className="flex-1">Conexões</TabsTrigger>
-            </TabsList>
-            <TabsContent value="publicacoes">
-              <RedePostsFeed perfilId={redeProfile.id} isOwnProfile={isOwnProfile} perfilNome={redeProfile.nome} perfilFoto={redeProfile.foto_url} />
-            </TabsContent>
-            <TabsContent value="sobre">
-              <DadosEspecificos
-                tipo={redeProfile.tipo as any}
-                dados={redeProfile.dados_perfil as Record<string, any> | null}
-              />
-            </TabsContent>
-            <TabsContent value="conexoes">
-              <ConnectionsSection
-                userId={redeProfile.user_id}
-                currentUserId={currentUserId}
-              />
-            </TabsContent>
-          </Tabs>
+          {(() => {
+            const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
+            const showDescobrir = SCOUTING_TYPES.includes(redeProfile.tipo);
+            return (
+              <Tabs defaultValue="publicacoes" className="mt-4">
+                <TabsList className={`w-full ${showDescobrir ? 'grid grid-cols-4' : ''}`}>
+                  <TabsTrigger value="publicacoes" className="flex-1">Publicações</TabsTrigger>
+                  <TabsTrigger value="sobre" className="flex-1">Sobre</TabsTrigger>
+                  <TabsTrigger value="conexoes" className="flex-1">Conexões</TabsTrigger>
+                  {showDescobrir && (
+                    <TabsTrigger value="descobrir" className="flex-1">Descobrir</TabsTrigger>
+                  )}
+                </TabsList>
+                <TabsContent value="publicacoes">
+                  <RedePostsFeed perfilId={redeProfile.id} isOwnProfile={isOwnProfile} perfilNome={redeProfile.nome} perfilFoto={redeProfile.foto_url} />
+                </TabsContent>
+                <TabsContent value="sobre">
+                  <DadosEspecificos
+                    tipo={redeProfile.tipo as any}
+                    dados={redeProfile.dados_perfil as Record<string, any> | null}
+                  />
+                </TabsContent>
+                <TabsContent value="conexoes">
+                  <ConnectionsSection
+                    userId={redeProfile.user_id}
+                    currentUserId={currentUserId}
+                  />
+                </TabsContent>
+                {showDescobrir && (
+                  <TabsContent value="descobrir">
+                    <DescobrirAtletasSection />
+                  </TabsContent>
+                )}
+              </Tabs>
+            );
+          })()}
         </PerfilLayout>
       </main>
 
