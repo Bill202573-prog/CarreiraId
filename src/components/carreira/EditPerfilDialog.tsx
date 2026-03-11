@@ -482,12 +482,42 @@ function ResponsavelTab({ userId }: { userId: string }) {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['responsavel-profile', userId],
     queryFn: async () => {
+      // Try to fetch existing profile row
       const { data, error } = await supabase
         .from('profiles')
         .select('nome, email, telefone')
         .eq('user_id', userId)
         .maybeSingle();
       if (error) throw error;
+
+      // If no profiles row exists, create one from auth user metadata
+      if (!data) {
+        const { data: authData } = await supabase.auth.getUser();
+        const authUser = authData?.user;
+        if (authUser) {
+          const fallbackNome = authUser.user_metadata?.nome || authUser.user_metadata?.full_name || '';
+          const fallbackEmail = authUser.email || '';
+          const fallbackTelefone = authUser.user_metadata?.telefone || null;
+
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: userId,
+              nome: fallbackNome,
+              email: fallbackEmail,
+              telefone: fallbackTelefone,
+            });
+
+          if (insertError) {
+            console.warn('Could not auto-create profile row:', insertError.message);
+            // Return fallback data even if insert fails
+            return { nome: fallbackNome, email: fallbackEmail, telefone: fallbackTelefone };
+          }
+
+          return { nome: fallbackNome, email: fallbackEmail, telefone: fallbackTelefone };
+        }
+      }
+
       return data as { nome: string; email: string; telefone: string | null } | null;
     },
     enabled: !!userId,
