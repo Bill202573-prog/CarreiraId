@@ -270,7 +270,21 @@ export function DescobrirAtletasSection() {
               </Select>
             </div>
 
-            {/* Row 3: Estado + Cidade */}
+            {/* Row 3: Status do Atleta */}
+            <div className="grid grid-cols-1 gap-2">
+              <Select value={filters.status_atleta} onValueChange={v => updateFilter('status_atleta', v === 'all' ? '' : v)}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Status do Atleta" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="federado">⚽ Atleta Federado</SelectItem>
+                  <SelectItem value="formacao">🏫 Atleta em Formação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Row 4: Estado + Cidade */}
             <div className="grid grid-cols-2 gap-2">
               <Select value={filters.estado} onValueChange={v => updateFilter('estado', v === 'all' ? '' : v)}>
                 <SelectTrigger className="h-9 text-xs">
