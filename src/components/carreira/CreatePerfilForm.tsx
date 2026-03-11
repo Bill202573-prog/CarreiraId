@@ -24,6 +24,13 @@ import {
 import { Loader2, Trophy } from 'lucide-react';
 import { useCreatePerfilAtleta } from '@/hooks/useCarreiraData';
 
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
+const PES_DOMINANTES = [
+  { value: 'direito', label: 'Direito' },
+  { value: 'esquerdo', label: 'Esquerdo' },
+  { value: 'ambidestro', label: 'Ambidestro' },
+];
+
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   modalidade: z.string().min(1, 'Selecione uma modalidade'),
@@ -31,6 +38,9 @@ const formSchema = z.object({
   cidade: z.string().optional(),
   estado: z.string().optional(),
   bio: z.string().max(280, 'Máximo de 280 caracteres').optional(),
+  pe_dominante: z.string().optional(),
+  posicao_principal: z.string().optional(),
+  posicao_secundaria: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
