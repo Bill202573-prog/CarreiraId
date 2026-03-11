@@ -155,7 +155,7 @@ export default function PerfilPage() {
         >
           {(() => {
             const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
-            const showDescobrir = SCOUTING_TYPES.includes(redeProfile.tipo);
+            const showDescobrir = isOwnProfile && SCOUTING_TYPES.includes(redeProfile.tipo);
             return (
               <Tabs defaultValue="publicacoes" className="mt-4">
                 <TabsList className={`w-full ${showDescobrir ? 'grid grid-cols-4' : ''}`}>
