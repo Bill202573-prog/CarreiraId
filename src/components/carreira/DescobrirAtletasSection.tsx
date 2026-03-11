@@ -143,17 +143,31 @@ export function DescobrirAtletasSection() {
       }
 
       // Fetch current experiences for status
-      const atletaUserIds = atletas.map(a => a.crianca_id).filter(Boolean) as string[];
+      const atletaCriancaIds = atletas.map(a => a.crianca_id).filter(Boolean) as string[];
       let expMap = new Map<string, { tipo_instituicao: string; nome_escola: string }>();
-      if (atletaUserIds.length > 0) {
+      if (atletaCriancaIds.length > 0) {
         const { data: exps } = await supabase
           .from('carreira_experiencias')
           .select('crianca_id, tipo_instituicao, nome_escola')
-          .in('crianca_id', atletaUserIds)
+          .in('crianca_id', atletaCriancaIds)
           .eq('atual', true);
         for (const exp of exps || []) {
           if (exp.crianca_id) expMap.set(exp.crianca_id, { tipo_instituicao: exp.tipo_instituicao || '', nome_escola: exp.nome_escola });
         }
+      }
+
+      // Filter by status if set
+      if (appliedFilters.status_atleta) {
+        atletas = atletas.filter(a => {
+          if (!a.crianca_id) return false;
+          const exp = expMap.get(a.crianca_id);
+          if (appliedFilters.status_atleta === 'federado') {
+            return exp?.tipo_instituicao === 'clube_federado';
+          } else if (appliedFilters.status_atleta === 'formacao') {
+            return !exp || exp.tipo_instituicao !== 'clube_federado';
+          }
+          return true;
+        });
       }
 
       return atletas.map(a => ({
