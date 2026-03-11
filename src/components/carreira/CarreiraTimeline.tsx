@@ -41,6 +41,7 @@ const INSTITUTIONAL_TABS = [
   { value: 'atividades', label: 'Atividades Extras', icon: Dumbbell },
   { value: 'jornada', label: 'Jornada Esportiva', icon: Swords },
   { value: 'premiacoes', label: 'Premiações', icon: Medal },
+  { value: 'responsavel', label: 'Responsável', icon: UserCircle },
 ];
 
 const CARREIRA_TABS = [
