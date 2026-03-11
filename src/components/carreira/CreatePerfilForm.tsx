@@ -87,6 +87,9 @@ export function CreatePerfilForm() {
       cidade: data.cidade || undefined,
       estado: data.estado || undefined,
       bio: data.bio || undefined,
+      pe_dominante: data.pe_dominante || undefined,
+      posicao_principal: data.posicao_principal || undefined,
+      posicao_secundaria: data.posicao_secundaria || undefined,
     });
   };
 
