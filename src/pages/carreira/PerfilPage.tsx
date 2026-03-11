@@ -104,7 +104,7 @@ export default function PerfilPage() {
     <div className="min-h-screen bg-background" data-theme="dark-orange">
       <header className={`sticky top-0 z-50 backdrop-blur border-b ${isDarkTheme ? 'bg-[hsl(220_12%_10%/0.95)] border-[hsl(220_10%_18%)]' : 'bg-background/95'}`}>
         <div className="container flex items-center justify-between h-20 px-4">
-          <button onClick={() => navigate(carreiraPath('/'))} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+          <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate(carreiraPath('/'))} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" />
             <img src={logoCarreira} alt="Carreira" className="h-24" />
           </button>
