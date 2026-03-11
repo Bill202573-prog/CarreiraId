@@ -56,6 +56,7 @@ const emptyFilters: Filters = {
   modalidade: '',
   estado: '',
   cidade: '',
+  status_atleta: '',
 };
 
 function calcularCategoria(dataNascimento: string): string {
