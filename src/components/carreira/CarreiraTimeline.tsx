@@ -41,13 +41,11 @@ const INSTITUTIONAL_TABS = [
   { value: 'atividades', label: 'Atividades Extras', icon: Dumbbell },
   { value: 'jornada', label: 'Jornada Esportiva', icon: Swords },
   { value: 'premiacoes', label: 'Premiações', icon: Medal },
-  { value: 'responsavel', label: 'Responsável', icon: UserCircle },
 ];
 
 const CARREIRA_TABS = [
   { value: 'carreira-experiencia', label: 'Experiência', icon: Building2 },
   { value: 'carreira-atividades', label: 'Atividades', icon: Dumbbell },
-  { value: 'responsavel', label: 'Responsável', icon: UserCircle },
 ];
 
 export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelineProps) {
