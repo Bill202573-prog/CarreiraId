@@ -310,7 +310,23 @@ export default function CarreiraPerfilPage() {
     enabled: !!currentUserId && isOwner,
   });
 
-  const handleAcceptRequest = async (connectionId: string) => {
+  // Profile views (who viewed my profile - like LinkedIn)
+  const { data: profileViews } = useQuery({
+    queryKey: ['profile-views', perfil?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('perfil_visualizacoes')
+        .select('*')
+        .eq('perfil_atleta_id', perfil!.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!perfil?.id && isOwner && perfil?.type === 'atleta',
+  });
+
+
     const { error } = await supabase.from('rede_conexoes').update({ status: 'aceita' } as any).eq('id', connectionId);
     if (error) toast.error('Erro ao aceitar');
     else {
