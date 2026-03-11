@@ -12,8 +12,10 @@ import { CarreiraAtividadeFormDialog } from './CarreiraAtividadeFormDialog';
 import { ExperienciaFormDialog } from './ExperienciaFormDialog';
 import { useCarreiraAtividadeLimit } from '@/hooks/useCarreiraFreemium';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileText, Building2, BarChart3, Dumbbell, Swords, Medal, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, FileText, Building2, BarChart3, Dumbbell, Swords, Medal, Plus, Pencil, Trash2, UserCircle, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -39,11 +41,13 @@ const INSTITUTIONAL_TABS = [
   { value: 'atividades', label: 'Atividades Extras', icon: Dumbbell },
   { value: 'jornada', label: 'Jornada Esportiva', icon: Swords },
   { value: 'premiacoes', label: 'Premiações', icon: Medal },
+  { value: 'responsavel', label: 'Responsável', icon: UserCircle },
 ];
 
 const CARREIRA_TABS = [
   { value: 'carreira-experiencia', label: 'Experiência', icon: Building2 },
   { value: 'carreira-atividades', label: 'Atividades', icon: Dumbbell },
+  { value: 'responsavel', label: 'Responsável', icon: UserCircle },
 ];
 
 export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelineProps) {
@@ -292,6 +296,8 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             accentColor={accentColor}
           />
         );
+      case 'responsavel':
+        return <ResponsavelSection userId={perfil.user_id} isOwner={isOwner} accentColor={accentColor} />;
       default:
         return null;
     }
@@ -394,6 +400,132 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+/* --- Responsável Section --- */
+function ResponsavelSection({ userId, isOwner, accentColor }: { userId: string; isOwner: boolean; accentColor: string }) {
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['responsavel-profile', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('nome, email, telefone')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { nome: string; email: string; telefone: string | null } | null;
+    },
+    enabled: !!userId,
+  });
+
+  const updateProfile = useMutation({
+    mutationFn: async (updates: { nome: string; email: string; telefone: string }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ nome: updates.nome, telefone: updates.telefone || null })
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['responsavel-profile', userId] });
+      toast.success('Dados do responsável atualizados!');
+      setEditing(false);
+    },
+    onError: () => toast.error('Erro ao atualizar dados'),
+  });
+
+  const startEdit = () => {
+    if (!profile) return;
+    setNome(profile.nome || '');
+    setEmail(profile.email || '');
+    setTelefone(profile.telefone || '');
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    if (!nome.trim()) { toast.error('Nome é obrigatório'); return; }
+    updateProfile.mutate({ nome: nome.trim(), email: email.trim(), telefone: telefone.trim() });
+  };
+
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  if (!profile) return <p className="text-sm text-muted-foreground text-center py-8">Dados do responsável não encontrados.</p>;
+
+  if (editing) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: accentColor }}>
+          <UserCircle className="w-4 h-4" /> Editar dados do Responsável
+        </h3>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome completo *</label>
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome do responsável" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">E-mail</label>
+            <Input value={email} disabled className="opacity-60" />
+            <p className="text-[10px] text-muted-foreground mt-1">O e-mail não pode ser alterado por aqui.</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Celular / WhatsApp</label>
+            <Input
+              value={telefone}
+              onChange={(e) => setTelefone(formatPhone(e.target.value))}
+              placeholder="(11) 99999-9999"
+            />
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>
+          <Button size="sm" onClick={handleSave} disabled={updateProfile.isPending} style={{ backgroundColor: accentColor }}>
+            {updateProfile.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-3.5 h-3.5 mr-1" />Salvar</>}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: accentColor }}>
+          <UserCircle className="w-4 h-4" /> Dados do Responsável
+        </h3>
+        {isOwner && (
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={startEdit} style={{ borderColor: `${accentColor}40`, color: accentColor }}>
+            <Pencil className="w-3 h-3 mr-1" /> Editar
+          </Button>
+        )}
+      </div>
+      <div className="space-y-2 p-3 rounded-lg" style={{ backgroundColor: `${accentColor}08`, borderLeft: `3px solid ${accentColor}50` }}>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Nome</span>
+          <p className="text-sm font-medium">{profile.nome}</p>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">E-mail</span>
+          <p className="text-sm">{profile.email}</p>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Celular / WhatsApp</span>
+          <p className="text-sm">{profile.telefone || '—'}</p>
+        </div>
+      </div>
     </div>
   );
 }

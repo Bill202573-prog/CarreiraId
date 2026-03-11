@@ -41,12 +41,14 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const { data: experiencias } = useCarreiraExperiencias(perfil.crianca_id);
 
   // Auto-calculate athlete status from current experience
-  const atletaStatus = (() => {
+  const atletaStatusInfo = (() => {
     if (!experiencias?.length) return null;
     const currentExp = experiencias.find(exp => exp.atual);
     if (!currentExp || !currentExp.tipo_instituicao) return null;
-    if (currentExp.tipo_instituicao === 'clube_federado') return 'Atleta federado';
-    if (currentExp.tipo_instituicao === 'escolinha') return 'Atleta em formação';
+    if (currentExp.tipo_instituicao === 'clube_federado') {
+      return { label: 'Atleta federado', clubName: currentExp.nome_escola };
+    }
+    if (currentExp.tipo_instituicao === 'escolinha') return { label: 'Atleta em formação', clubName: null };
     return null;
   })();
 
@@ -170,11 +172,12 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
               {/* Status automático + badges técnicos */}
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                {atletaStatus && (
+                {atletaStatusInfo && (
                   <Badge variant="outline" className="gap-1 text-xs font-semibold"
                     style={{ borderColor: perfil.cor_destaque || '#3b82f6', color: perfil.cor_destaque || '#3b82f6' }}>
                     <ShieldCheck className="w-3 h-3" />
-                    {atletaStatus}
+                    {atletaStatusInfo.label}
+                    {atletaStatusInfo.clubName && ` • ${atletaStatusInfo.clubName}`}
                   </Badge>
                 )}
                 {modalidades.map((mod, idx) => (
