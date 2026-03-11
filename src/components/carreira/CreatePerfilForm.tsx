@@ -24,6 +24,13 @@ import {
 import { Loader2, Trophy } from 'lucide-react';
 import { useCreatePerfilAtleta } from '@/hooks/useCarreiraData';
 
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
+const PES_DOMINANTES = [
+  { value: 'direito', label: 'Direito' },
+  { value: 'esquerdo', label: 'Esquerdo' },
+  { value: 'ambidestro', label: 'Ambidestro' },
+];
+
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   modalidade: z.string().min(1, 'Selecione uma modalidade'),
@@ -31,6 +38,9 @@ const formSchema = z.object({
   cidade: z.string().optional(),
   estado: z.string().optional(),
   bio: z.string().max(280, 'Máximo de 280 caracteres').optional(),
+  pe_dominante: z.string().optional(),
+  posicao_principal: z.string().optional(),
+  posicao_secundaria: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -63,12 +73,9 @@ export function CreatePerfilForm() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nome: '',
-      modalidade: '',
-      categoria: '',
-      cidade: '',
-      estado: '',
-      bio: '',
+      nome: '', modalidade: '', categoria: '',
+      cidade: '', estado: '', bio: '',
+      pe_dominante: '', posicao_principal: '', posicao_secundaria: '',
     },
   });
 
@@ -80,6 +87,9 @@ export function CreatePerfilForm() {
       cidade: data.cidade || undefined,
       estado: data.estado || undefined,
       bio: data.bio || undefined,
+      pe_dominante: data.pe_dominante || undefined,
+      posicao_principal: data.posicao_principal || undefined,
+      posicao_secundaria: data.posicao_secundaria || undefined,
     });
   };
 
@@ -145,6 +155,77 @@ export function CreatePerfilForm() {
                   <FormControl>
                     <Input placeholder="Ex: Sub-11, Profissional, Master" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Dados Técnicos */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="posicao_principal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posição principal</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {POSICOES.map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="posicao_secundaria"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posição secundária</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Opcional" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {POSICOES.map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="pe_dominante"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pé dominante</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PES_DOMINANTES.map((pe) => (
+                        <SelectItem key={pe.value} value={pe.value}>{pe.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

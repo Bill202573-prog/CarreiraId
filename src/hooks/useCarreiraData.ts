@@ -28,6 +28,9 @@ export interface PerfilAtleta {
   atleta_app_id: string | null;
   atleta_id_vinculado: boolean;
   atleta_id_sync_at: string | null;
+  pe_dominante: string | null;
+  posicao_principal: string | null;
+  posicao_secundaria: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -229,6 +232,9 @@ export function useCreatePerfilAtleta() {
       bio?: string;
       foto_url?: string;
       crianca_id?: string;
+      pe_dominante?: string;
+      posicao_principal?: string;
+      posicao_secundaria?: string;
     }) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
       const slug = generateSlug(data.nome);
@@ -240,8 +246,11 @@ export function useCreatePerfilAtleta() {
           modalidade: data.modalidade || 'Futebol',
           categoria: data.categoria, cidade: data.cidade, estado: data.estado,
           bio: data.bio, foto_url: data.foto_url, crianca_id: data.crianca_id,
+          pe_dominante: data.pe_dominante || null,
+          posicao_principal: data.posicao_principal || null,
+          posicao_secundaria: data.posicao_secundaria || null,
           origem: 'carreira',
-        })
+        } as any)
         .select()
         .single();
 

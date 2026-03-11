@@ -3,8 +3,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Loader2, MapPin, Share2, Trophy, User, Pencil, Instagram, UserPlus, UserCheck, ShieldCheck } from 'lucide-react';
+import { Camera, Loader2, MapPin, Share2, Trophy, User, Pencil, Instagram, UserPlus, UserCheck, ShieldCheck, Footprints } from 'lucide-react';
 import { PerfilAtleta, useUpdatePerfilAtleta, uploadProfilePhoto, useIsFollowing, useToggleFollow } from '@/hooks/useCarreiraData';
+import { useCarreiraExperiencias } from '@/hooks/useCarreiraExperienciasData';
 import { ConectarButton } from './ConectarButton';
 import { ConexoesCount } from './ConexoesCount';
 import { useQueryClient } from '@tanstack/react-query';
@@ -37,6 +38,23 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const [editContaOpen, setEditContaOpen] = useState(false);
   const { data: isFollowing } = useIsFollowing(perfil.id);
   const toggleFollow = useToggleFollow();
+  const { data: experiencias } = useCarreiraExperiencias(perfil.crianca_id);
+
+  // Auto-calculate athlete status from current experience
+  const atletaStatus = (() => {
+    if (!experiencias?.length) return null;
+    const currentExp = experiencias.find(exp => exp.atual);
+    if (!currentExp || !currentExp.tipo_instituicao) return null;
+    if (currentExp.tipo_instituicao === 'clube_federado') return 'Atleta federado';
+    if (currentExp.tipo_instituicao === 'escolinha') return 'Atleta em formação';
+    return null;
+  })();
+
+  const PE_LABELS: Record<string, string> = {
+    direito: 'Pé direito',
+    esquerdo: 'Pé esquerdo',
+    ambidestro: 'Ambidestro',
+  };
 
   // Fetch child's birth date to calculate category dynamically
   const { data: criancaData } = useQuery({
@@ -150,7 +168,15 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                 </div>
               )}
 
+              {/* Status automático + badges técnicos */}
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {atletaStatus && (
+                  <Badge variant="outline" className="gap-1 text-xs font-semibold"
+                    style={{ borderColor: perfil.cor_destaque || '#3b82f6', color: perfil.cor_destaque || '#3b82f6' }}>
+                    <ShieldCheck className="w-3 h-3" />
+                    {atletaStatus}
+                  </Badge>
+                )}
                 {modalidades.map((mod, idx) => (
                   <Badge key={idx} variant="secondary" className="gap-1 text-xs"
                     style={{ backgroundColor: `${perfil.cor_destaque || '#3b82f6'}18`, color: perfil.cor_destaque || '#3b82f6', borderColor: `${perfil.cor_destaque || '#3b82f6'}30` }}>
@@ -158,6 +184,22 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                   </Badge>
                 ))}
               </div>
+
+              {/* Technical data: position + dominant foot */}
+              {(perfil.posicao_principal || perfil.pe_dominante) && (
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
+                  {perfil.posicao_principal && (
+                    <span className="flex items-center gap-1">
+                      <Footprints className="w-3 h-3" />
+                      {perfil.posicao_principal}
+                      {perfil.posicao_secundaria && ` / ${perfil.posicao_secundaria}`}
+                    </span>
+                  )}
+                  {perfil.pe_dominante && (
+                    <span>• {PE_LABELS[perfil.pe_dominante] || perfil.pe_dominante}</span>
+                  )}
+                </div>
+              )}
 
               {(perfil.cidade || perfil.estado) && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5">

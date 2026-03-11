@@ -266,6 +266,7 @@ export type Database = {
         Row: {
           atual: boolean
           bairro: string | null
+          categoria_instituicao: string | null
           cidade: string | null
           created_at: string
           crianca_id: string
@@ -276,12 +277,15 @@ export type Database = {
           id: string
           nome_escola: string
           observacoes: string | null
+          posicao_jogada: string | null
+          tipo_instituicao: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           atual?: boolean
           bairro?: string | null
+          categoria_instituicao?: string | null
           cidade?: string | null
           created_at?: string
           crianca_id: string
@@ -292,12 +296,15 @@ export type Database = {
           id?: string
           nome_escola: string
           observacoes?: string | null
+          posicao_jogada?: string | null
+          tipo_instituicao?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           atual?: boolean
           bairro?: string | null
+          categoria_instituicao?: string | null
           cidade?: string | null
           created_at?: string
           crianca_id?: string
@@ -308,6 +315,8 @@ export type Database = {
           id?: string
           nome_escola?: string
           observacoes?: string | null
+          posicao_jogada?: string | null
+          tipo_instituicao?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -601,6 +610,9 @@ export type Database = {
           modalidades: string[] | null
           nome: string
           origem: string
+          pe_dominante: string | null
+          posicao_principal: string | null
+          posicao_secundaria: string | null
           slug: string
           status_conta: string | null
           telefone_whatsapp: string | null
@@ -633,6 +645,9 @@ export type Database = {
           modalidades?: string[] | null
           nome: string
           origem?: string
+          pe_dominante?: string | null
+          posicao_principal?: string | null
+          posicao_secundaria?: string | null
           slug: string
           status_conta?: string | null
           telefone_whatsapp?: string | null
@@ -665,6 +680,9 @@ export type Database = {
           modalidades?: string[] | null
           nome?: string
           origem?: string
+          pe_dominante?: string | null
+          posicao_principal?: string | null
+          posicao_secundaria?: string | null
           slug?: string
           status_conta?: string | null
           telefone_whatsapp?: string | null

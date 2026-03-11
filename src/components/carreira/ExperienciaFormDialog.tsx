@@ -20,8 +20,16 @@ import { Calendar, Loader2, School } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCreateCarreiraExperiencia, useUpdateCarreiraExperiencia, useEscolinhasAutocomplete, CarreiraExperiencia } from '@/hooks/useCarreiraExperienciasData';
 
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
+const CATEGORIAS_INSTITUICAO = ['Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+const TIPOS_INSTITUICAO = [
+  { value: 'escolinha', label: 'Escolinha / Academia' },
+  { value: 'clube_federado', label: 'Clube federado' },
+];
+
 const formSchema = z.object({
   nome_escola: z.string().min(2, 'Informe o nome da escola/clube'),
+  tipo_instituicao: z.string().min(1, 'Informe o tipo de instituição'),
   data_inicio: z.string().min(1, 'Informe a data de início'),
   data_fim: z.string().optional(),
   atual: z.boolean().default(false),
@@ -29,6 +37,8 @@ const formSchema = z.object({
   cidade: z.string().optional(),
   estado: z.string().optional(),
   observacoes: z.string().optional(),
+  categoria_instituicao: z.string().optional(),
+  posicao_jogada: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -70,8 +80,9 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nome_escola: '', data_inicio: '', data_fim: '', atual: false,
+      nome_escola: '', tipo_instituicao: '', data_inicio: '', data_fim: '', atual: false,
       bairro: '', cidade: '', estado: '', observacoes: '',
+      categoria_instituicao: '', posicao_jogada: '',
     },
   });
 
@@ -80,6 +91,7 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
     if (editingExperiencia && open) {
       form.reset({
         nome_escola: editingExperiencia.nome_escola,
+        tipo_instituicao: editingExperiencia.tipo_instituicao || '',
         data_inicio: editingExperiencia.data_inicio,
         data_fim: editingExperiencia.data_fim || '',
         atual: editingExperiencia.atual,
@@ -87,6 +99,8 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
         cidade: editingExperiencia.cidade || '',
         estado: editingExperiencia.estado || '',
         observacoes: editingExperiencia.observacoes || '',
+        categoria_instituicao: editingExperiencia.categoria_instituicao || '',
+        posicao_jogada: editingExperiencia.posicao_jogada || '',
       });
       setSearchTerm(editingExperiencia.nome_escola);
       setSelectedEscolinhaId(editingExperiencia.escolinha_id);
@@ -126,6 +140,9 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
         cidade: data.cidade || null,
         estado: data.estado || null,
         observacoes: data.observacoes || null,
+        tipo_instituicao: data.tipo_instituicao || null,
+        categoria_instituicao: data.categoria_instituicao || null,
+        posicao_jogada: data.posicao_jogada || null,
       };
 
       if (isEditing && editingExperiencia) {
@@ -215,6 +232,26 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
               </FormItem>
             )} />
 
+            {/* Tipo de Instituição */}
+            <FormField control={form.control} name="tipo_instituicao" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de instituição *</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {TIPOS_INSTITUICAO.map((tipo) => (
+                      <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+
             {/* Datas */}
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="data_inicio" render={({ field }) => (
@@ -253,6 +290,44 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
               </FormItem>
             )} />
 
+            {/* Categoria na instituição e Posição */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="categoria_instituicao" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria na instituição</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Ex: Sub-11" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {CATEGORIAS_INSTITUICAO.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="posicao_jogada" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Posição jogada</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Posição" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {POSICOES.map((pos) => (
+                        <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )} />
+            </div>
+
             {/* Localização */}
             <FormField control={form.control} name="bairro" render={({ field }) => (
               <FormItem>
@@ -290,7 +365,7 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
               <FormItem>
                 <FormLabel>Observações</FormLabel>
                 <FormControl>
-                  <Textarea {...field} placeholder="Posição, conquistas, detalhes..." rows={2} />
+                  <Textarea {...field} placeholder="Conquistas, detalhes..." rows={2} />
                 </FormControl>
               </FormItem>
             )} />

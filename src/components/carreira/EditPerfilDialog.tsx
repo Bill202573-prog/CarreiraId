@@ -37,6 +37,13 @@ import { PerfilAtleta, useUpdatePerfilAtleta } from '@/hooks/useCarreiraData';
 import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
+const PES_DOMINANTES = [
+  { value: 'direito', label: 'Direito' },
+  { value: 'esquerdo', label: 'Esquerdo' },
+  { value: 'ambidestro', label: 'Ambidestro' },
+];
+
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   categoria: z.string().optional(),
@@ -44,6 +51,9 @@ const formSchema = z.object({
   estado: z.string().optional(),
   bio: z.string().max(280, 'Máximo de 280 caracteres').optional(),
   instagram_url: z.string().max(200, 'Máximo de 200 caracteres').optional(),
+  pe_dominante: z.string().optional(),
+  posicao_principal: z.string().optional(),
+  posicao_secundaria: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -134,6 +144,9 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         estado: perfil.estado || '',
         bio: perfil.bio || '',
         instagram_url: (perfil as any).instagram_url || '',
+        pe_dominante: perfil.pe_dominante || '',
+        posicao_principal: perfil.posicao_principal || '',
+        posicao_secundaria: perfil.posicao_secundaria || '',
       });
       setPhotoUrl(perfil.foto_url || '');
       setBannerUrl(perfil.banner_url || '');
@@ -178,6 +191,9 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
       banner_url: bannerUrl || null,
       instagram_url: data.instagram_url || null,
       cor_destaque: corDestaque,
+      pe_dominante: data.pe_dominante || null,
+      posicao_principal: data.posicao_principal || null,
+      posicao_secundaria: data.posicao_secundaria || null,
     };
 
     if (!isPlatformProfile) {
@@ -278,6 +294,77 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
                   <FormControl>
                     <Input placeholder="Ex: Sub-11, Profissional, Master" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Dados Técnicos */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="posicao_principal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posição principal</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {POSICOES.map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="posicao_secundaria"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posição secundária</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Opcional" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {POSICOES.map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="pe_dominante"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pé dominante</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PES_DOMINANTES.map((pe) => (
+                        <SelectItem key={pe.value} value={pe.value}>{pe.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
