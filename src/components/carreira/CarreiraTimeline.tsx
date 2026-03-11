@@ -295,7 +295,6 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
           />
         );
       default:
-      default:
         return null;
     }
   };
