@@ -298,6 +298,77 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
                 </FormItem>
               )}
             />
+
+            {/* Dados Técnicos */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="posicao_principal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posição principal</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {POSICOES.map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="posicao_secundaria"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posição secundária</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Opcional" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {POSICOES.map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="pe_dominante"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pé dominante</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PES_DOMINANTES.map((pe) => (
+                        <SelectItem key={pe.value} value={pe.value}>{pe.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             </>
             )}
 
