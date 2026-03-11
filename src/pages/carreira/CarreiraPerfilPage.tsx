@@ -868,6 +868,34 @@ export default function CarreiraPerfilPage() {
               </Card>
             )}
 
+            {/* Quem viu seu perfil - only for profile owner */}
+            {isOwner && profileViews && profileViews.length > 0 && (
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+                <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" />
+                  Quem viu seu perfil ({profileViews.length})
+                </h3>
+                <div className="space-y-2">
+                  {profileViews.slice(0, 5).map((view) => (
+                    <div key={view.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded p-1 -mx-1 transition-colors"
+                      onClick={() => navigate(carreiraPath(`/perfil/${view.viewer_user_id}`))}>
+                      {view.viewer_foto_url ? (
+                        <img src={view.viewer_foto_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                          {view.viewer_nome?.[0] || '?'}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{view.viewer_nome || 'Usuário'}</p>
+                        <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[view.viewer_tipo || ''] || view.viewer_tipo || ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
             {currentUserId && suggestions && suggestions.length > 0 && (
               <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
                 <h3 className="text-sm font-semibold text-foreground mb-3">Sugestões para conectar</h3>
