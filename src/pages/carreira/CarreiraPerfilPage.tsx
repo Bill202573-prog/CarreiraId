@@ -254,7 +254,29 @@ export default function CarreiraPerfilPage() {
   const { data: escolinhas } = useEscolinhasCarreira(perfil?.type === 'atleta' ? perfil?.crianca_id : undefined);
   const { data: searchResults } = useSearchPeople(searchQuery);
 
-  // Dynamic category from birth date
+  // Track profile view (like LinkedIn) — only for non-owner visits on atleta profiles
+  useEffect(() => {
+    if (!currentUserId || !perfil || isOwner || perfil.type !== 'atleta') return;
+    const trackView = async () => {
+      // Get viewer info
+      const { data: viewerRede } = await supabase
+        .from('perfis_rede')
+        .select('tipo, nome, foto_url')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+      
+      await supabase.from('perfil_visualizacoes').upsert({
+        perfil_atleta_id: perfil.id,
+        viewer_user_id: currentUserId,
+        viewer_tipo: viewerRede?.tipo || null,
+        viewer_nome: viewerRede?.nome || null,
+        viewer_foto_url: viewerRede?.foto_url || null,
+        viewed_date: new Date().toISOString().split('T')[0],
+      }, { onConflict: 'perfil_atleta_id,viewer_user_id,viewed_date' });
+    };
+    trackView();
+  }, [currentUserId, perfil?.id, isOwner]);
+
   const { data: criancaSidebar } = useQuery({
     queryKey: ['crianca-nascimento', perfil?.crianca_id],
     queryFn: async () => {
