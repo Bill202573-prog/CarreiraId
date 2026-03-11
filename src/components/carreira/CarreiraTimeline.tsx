@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, FileText, Building2, BarChart3, Dumbbell, Swords, Medal, Plus, Pencil, Trash2, UserCircle, Save } from 'lucide-react';
+import { Loader2, FileText, Building2, BarChart3, Dumbbell, Swords, Medal, Plus, Pencil, Trash2, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
