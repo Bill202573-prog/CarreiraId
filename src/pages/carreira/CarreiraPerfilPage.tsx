@@ -326,7 +326,7 @@ export default function CarreiraPerfilPage() {
     enabled: !!perfil?.id && isOwner && perfil?.type === 'atleta',
   });
 
-
+  const handleAcceptRequest = async (connectionId: string) => {
     const { error } = await supabase.from('rede_conexoes').update({ status: 'aceita' } as any).eq('id', connectionId);
     if (error) toast.error('Erro ao aceitar');
     else {
