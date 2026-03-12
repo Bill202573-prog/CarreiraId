@@ -28,7 +28,9 @@ export default function PerfilPage() {
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  
+  const [historicoDialogOpen, setHistoricoDialogOpen] = useState(false);
+  const [editingHistorico, setEditingHistorico] = useState<HistoricoProfissional | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
