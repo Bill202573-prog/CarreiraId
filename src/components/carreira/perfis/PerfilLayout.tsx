@@ -39,6 +39,7 @@ interface Props {
   isOwnProfile: boolean;
   currentUserId?: string | null;
   onEditProfile?: () => void;
+  accentColor?: string;
   children?: ReactNode;
 }
 
