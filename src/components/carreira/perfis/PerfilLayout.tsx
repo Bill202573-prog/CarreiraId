@@ -93,10 +93,17 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
               <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start">
                 <span className="text-sm text-muted-foreground">Torcedor do</span>
                 {perfil.dados_perfil?.brasao_url && (
-                  <img src={perfil.dados_perfil.brasao_url} alt="Brasão" className="w-6 h-6 object-contain" />
+                  <img src={perfil.dados_perfil.brasao_url} alt="Brasão" className="w-8 h-8 object-contain" />
                 )}
                 <span className="text-sm font-semibold text-foreground">{perfil.dados_perfil.time_torcida}</span>
               </div>
+            )}
+
+            {/* Cidade/Estado for torcedor */}
+            {perfil.tipo === 'torcedor' && (perfil.dados_perfil?.cidade || perfil.dados_perfil?.estado) && (
+              <p className="text-xs text-muted-foreground mt-1">
+                📍 {[perfil.dados_perfil?.cidade, perfil.dados_perfil?.estado].filter(Boolean).join(', ')}
+              </p>
             )}
 
             {perfil.bio && (

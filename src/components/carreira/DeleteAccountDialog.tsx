@@ -32,10 +32,15 @@ export function DeleteAccountDialog({ open, onOpenChange, perfilId, perfilTable 
     setDeleting(true);
 
     try {
-      // Mark profile as inactive instead of hard delete
+      // Mark profile as inactive — use only columns that exist on the table
+      const updateData: Record<string, any> = { status_conta: 'inativo' };
+      if (perfilTable === 'perfil_atleta') {
+        updateData.is_public = false;
+      }
+
       const { error } = await supabase
         .from(perfilTable)
-        .update({ status_conta: 'inativo', is_public: false } as any)
+        .update(updateData as any)
         .eq('id', perfilId);
 
       if (error) throw error;

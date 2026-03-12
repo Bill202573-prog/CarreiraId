@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Instagram, Trash2, Globe, Phone, Mail, User, Plus, Lock } from 'lucide-react';
+import { Loader2, Instagram, Trash2, Globe, Phone, Mail, User, Plus, Lock, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -36,6 +36,9 @@ const formSchema = z.object({
   categorias: z.string().optional(),
   experiencia_anos: z.string().optional(),
   certificacoes: z.string().optional(),
+  cidade: z.string().optional(),
+  estado: z.string().optional(),
+  time_torcida: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -76,8 +79,14 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const [contaTelefone, setContaTelefone] = useState('');
   const [loadingConta, setLoadingConta] = useState(false);
 
+  // Brasão for torcedor
+  const [brasaoUrl, setBrasaoUrl] = useState('');
+  const [brasaoUploading, setBrasaoUploading] = useState(false);
+
   // Unidades (filiais) for dono_escola
   const [unidades, setUnidades] = useState<Unidade[]>([]);
+
+  const isTorcedor = perfil?.tipo === 'torcedor';
   const isDono = perfil?.tipo === 'dono_escola';
 
   const dados = (perfil?.dados_perfil || {}) as Record<string, any>;
@@ -99,6 +108,9 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       categorias: Array.isArray(dados.categorias) ? dados.categorias.join(', ') : (dados.categorias || ''),
       experiencia_anos: dados.experiencia_anos?.toString() || '',
       certificacoes: dados.certificacoes || '',
+      cidade: dados.cidade || '',
+      estado: dados.estado || '',
+      time_torcida: dados.time_torcida || '',
     },
   });
 
@@ -124,9 +136,13 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         categorias: Array.isArray(d.categorias) ? d.categorias.join(', ') : (d.categorias || ''),
         experiencia_anos: d.experiencia_anos?.toString() || '',
         certificacoes: d.certificacoes || '',
+        cidade: d.cidade || '',
+        estado: d.estado || '',
+        time_torcida: d.time_torcida || '',
       });
       setPhotoUrl(perfil.foto_url || '');
       setCorDestaque(d.cor_destaque || '#3b82f6');
+      setBrasaoUrl(d.brasao_url || '');
       setUnidades(Array.isArray(d.unidades) ? d.unidades : []);
 
       // Load account data
@@ -160,23 +176,56 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
     setUnidades(prev => prev.map((u, i) => i === idx ? { ...u, [field]: value } : u));
   }, []);
 
+  const handleBrasaoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    setBrasaoUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `perfis-rede/brasao-${user.id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('atleta-fotos')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
+      setBrasaoUrl(`${urlData.publicUrl}?t=${Date.now()}`);
+      toast.success('Brasão enviado!');
+    } catch (err: any) {
+      toast.error('Erro ao enviar brasão: ' + err.message);
+    } finally {
+      setBrasaoUploading(false);
+    }
+  };
+
   const onSubmit = async (data: FormData) => {
     setSaving(true);
     try {
       const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
       const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
 
-      const newDados = {
+      const newDados: Record<string, any> = {
         ...dados,
-        nome_escola: data.nome_escola || null,
-        localizacao: data.localizacao || null,
-        modalidades: data.modalidades ? data.modalidades.split(',').map(s => s.trim()).filter(Boolean) : [],
-        categorias: data.categorias ? data.categorias.split(',').map(s => s.trim()).filter(Boolean) : [],
-        experiencia_anos: data.experiencia_anos ? parseInt(data.experiencia_anos) : null,
-        certificacoes: data.certificacoes || null,
-        unidades: isDono ? unidades.filter(u => u.nome.trim() || u.bairro.trim()) : (dados.unidades || null),
         cor_destaque: corDestaque,
+        cidade: data.cidade || null,
+        estado: data.estado || null,
       };
+
+      // Only include professional fields for non-torcedor types
+      if (!isTorcedor) {
+        newDados.nome_escola = data.nome_escola || null;
+        newDados.localizacao = data.localizacao || null;
+        newDados.modalidades = data.modalidades ? data.modalidades.split(',').map(s => s.trim()).filter(Boolean) : [];
+        newDados.categorias = data.categorias ? data.categorias.split(',').map(s => s.trim()).filter(Boolean) : [];
+        newDados.experiencia_anos = data.experiencia_anos ? parseInt(data.experiencia_anos) : null;
+        newDados.certificacoes = data.certificacoes || null;
+        newDados.unidades = isDono ? unidades.filter(u => u.nome.trim() || u.bairro.trim()) : (dados.unidades || null);
+      }
+
+      // Torcedor-specific fields
+      if (isTorcedor) {
+        newDados.time_torcida = data.time_torcida || null;
+        newDados.brasao_url = brasaoUrl || null;
+      }
 
       const { error } = await supabase
         .from('perfis_rede')
@@ -273,56 +322,106 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </FormItem>
             )} />
 
-            {/* Contact & Social */}
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground">Redes e contato</p>
-              <FormField control={form.control} name="instagram" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-1.5"><Instagram className="w-4 h-4" /> Instagram</FormLabel>
-                  <FormControl><Input placeholder="@usuario" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+            {/* Torcedor-specific: time and brasão */}
+            {isTorcedor && (
+              <>
+                <FormField control={form.control} name="time_torcida" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Time do Coração *</FormLabel>
+                    <FormControl><Input placeholder="Ex: Flamengo" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
 
-              <FormField control={form.control} name="site" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-1.5"><Globe className="w-4 h-4" /> Site</FormLabel>
-                  <FormControl><Input placeholder="https://seusite.com.br" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+                <div className="space-y-2">
+                  <Label>Brasão do Time</Label>
+                  <div className="flex items-center gap-3">
+                    {brasaoUrl ? (
+                      <img src={brasaoUrl} alt="Brasão" className="w-16 h-16 object-contain rounded border border-border bg-white p-0.5" />
+                    ) : (
+                      <div className="w-16 h-16 rounded border border-dashed border-border bg-muted flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer">
+                      <span className="text-sm text-primary hover:underline">
+                        {brasaoUploading ? 'Enviando...' : brasaoUrl ? 'Trocar brasão' : 'Enviar brasão'}
+                      </span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleBrasaoUpload} disabled={brasaoUploading} />
+                    </label>
+                  </div>
+                </div>
 
-              <FormField control={form.control} name="telefone_whatsapp" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> WhatsApp</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="(11) 99999-9999"
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(formatPhone(e.target.value))}
-                      maxLength={15}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+                {/* Cidade / Estado for torcedor */}
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={form.control} name="cidade" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade</FormLabel>
+                      <FormControl><Input placeholder="Ex: Rio de Janeiro" {...field} /></FormControl>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="estado" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <FormControl><Input placeholder="Ex: RJ" {...field} /></FormControl>
+                    </FormItem>
+                  )} />
+                </div>
+              </>
+            )}
 
-              <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <input
-                      type="checkbox"
-                      checked={field.value ?? false}
-                      onChange={field.onChange}
-                      className="rounded border-border"
-                    />
-                  </FormControl>
-                  <FormLabel className="font-normal cursor-pointer text-sm">
-                    Exibir WhatsApp publicamente
-                  </FormLabel>
-                </FormItem>
-              )} />
-            </div>
+            {/* Contact & Social - show for all but simplified for torcedor */}
+            {!isTorcedor && (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">Redes e contato</p>
+                <FormField control={form.control} name="instagram" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1.5"><Instagram className="w-4 h-4" /> Instagram</FormLabel>
+                    <FormControl><Input placeholder="@usuario" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="site" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1.5"><Globe className="w-4 h-4" /> Site</FormLabel>
+                    <FormControl><Input placeholder="https://seusite.com.br" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="telefone_whatsapp" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> WhatsApp</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="(11) 99999-9999"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                        maxLength={15}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="whatsapp_publico" render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value ?? false}
+                        onChange={field.onChange}
+                        className="rounded border-border"
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer text-sm">
+                      Exibir WhatsApp publicamente
+                    </FormLabel>
+                  </FormItem>
+                )} />
+              </div>
+            )}
 
             {/* Dados Privados */}
             <div className="rounded-lg border border-border p-4 space-y-3 bg-muted/30">
@@ -388,52 +487,56 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               )} />
             </div>
 
-            {/* Profile-specific fields */}
-            <FormField control={form.control} name="nome_escola" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome da Escola / Instituição</FormLabel>
-                <FormControl><Input placeholder="Ex: Escola do Flamengo" {...field} /></FormControl>
-              </FormItem>
-            )} />
+            {/* Profile-specific fields - NOT shown for torcedor */}
+            {!isTorcedor && (
+              <>
+                <FormField control={form.control} name="nome_escola" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome da Escola / Instituição</FormLabel>
+                    <FormControl><Input placeholder="Ex: Escola do Flamengo" {...field} /></FormControl>
+                  </FormItem>
+                )} />
 
-            <FormField control={form.control} name="localizacao" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Localização</FormLabel>
-                <FormControl><Input placeholder="Ex: Rio de Janeiro" {...field} /></FormControl>
-              </FormItem>
-            )} />
+                <FormField control={form.control} name="localizacao" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Localização</FormLabel>
+                    <FormControl><Input placeholder="Ex: Rio de Janeiro" {...field} /></FormControl>
+                  </FormItem>
+                )} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <FormField control={form.control} name="modalidades" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Modalidades</FormLabel>
-                  <FormControl><Input placeholder="Futebol, Futsal" {...field} /></FormControl>
-                </FormItem>
-              )} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField control={form.control} name="modalidades" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Modalidades</FormLabel>
+                      <FormControl><Input placeholder="Futebol, Futsal" {...field} /></FormControl>
+                    </FormItem>
+                  )} />
 
-              <FormField control={form.control} name="categorias" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categorias</FormLabel>
-                  <FormControl><Input placeholder="Sub-7, Sub-9" {...field} /></FormControl>
-                </FormItem>
-              )} />
-            </div>
+                  <FormField control={form.control} name="categorias" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categorias</FormLabel>
+                      <FormControl><Input placeholder="Sub-7, Sub-9" {...field} /></FormControl>
+                    </FormItem>
+                  )} />
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <FormField control={form.control} name="experiencia_anos" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Anos de Experiência</FormLabel>
-                  <FormControl><Input type="number" placeholder="5" {...field} /></FormControl>
-                </FormItem>
-              )} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FormField control={form.control} name="experiencia_anos" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Anos de Experiência</FormLabel>
+                      <FormControl><Input type="number" placeholder="5" {...field} /></FormControl>
+                    </FormItem>
+                  )} />
 
-              <FormField control={form.control} name="certificacoes" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Certificações</FormLabel>
-                  <FormControl><Input placeholder="Suas certificações" {...field} /></FormControl>
-                </FormItem>
-              )} />
-            </div>
+                  <FormField control={form.control} name="certificacoes" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Certificações</FormLabel>
+                      <FormControl><Input placeholder="Suas certificações" {...field} /></FormControl>
+                    </FormItem>
+                  )} />
+                </div>
+              </>
+            )}
 
             {/* Unidades (filiais) - only for dono_escola */}
             {isDono && (

@@ -70,8 +70,8 @@ const FIELDS_BY_TYPE: Record<ProfileType, FieldDisplay[]> = {
   ],
   torcedor: [
     { key: 'time_torcida', label: 'Time do Coração' },
-    { key: 'data_nascimento', label: 'Data de Nascimento' },
-    { key: 'email', label: 'Email' },
+    { key: 'cidade', label: 'Cidade' },
+    { key: 'estado', label: 'Estado' },
   ],
   scout: [
     { key: 'especialidade', label: 'Especialidade' },
@@ -110,7 +110,9 @@ export function DadosEspecificos({ tipo, dados }: Props) {
 
   return (
     <Card className="p-5">
-      <h2 className="font-semibold text-foreground mb-3">Informações Profissionais</h2>
+      <h2 className="font-semibold text-foreground mb-3">
+        {tipo === 'torcedor' ? 'Informações' : 'Informações Profissionais'}
+      </h2>
       <div className="space-y-3">
         {fields.map((field) => {
           const val = dados[field.key];
