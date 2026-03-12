@@ -46,7 +46,7 @@ function useAdminPerfisRede(search: string) {
   return useQuery({
     queryKey: ['carreira-admin-perfis-rede', search],
     queryFn: async () => {
-      const { data, error } = await supabase.from('perfis_rede').select('*').order('created_at', { ascending: false }).limit(200);
+      const { data, error } = await supabase.from('perfis_rede').select('*').neq('tipo', 'pai_responsavel').order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
       const userIds = [...new Set((data || []).map((p: any) => p.user_id))];
       let profilesMap: Record<string, any> = {};
