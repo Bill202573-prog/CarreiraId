@@ -236,7 +236,9 @@ export default function PerfilPage() {
                   )}
                   <TabsTrigger value="conexoes" className="flex-1">Conexões</TabsTrigger>
                   {showDescobrir && (
-                    <TabsTrigger value="descobrir" className="flex-1">Descobrir</TabsTrigger>
+                    <TabsTrigger value="descobrir" className="flex-1">
+                      {redeProfile.tipo === 'torcedor' ? 'Atletas' : 'Descobrir'}
+                    </TabsTrigger>
                   )}
                 </TabsList>
                 <TabsContent value="publicacoes">
