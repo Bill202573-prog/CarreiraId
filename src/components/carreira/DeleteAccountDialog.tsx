@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
+import { isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 
 interface DeleteAccountDialogProps {
   open: boolean;
