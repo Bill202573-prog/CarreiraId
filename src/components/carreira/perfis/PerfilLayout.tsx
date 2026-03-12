@@ -68,7 +68,7 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
             {perfil.foto_url ? (
               <img src={perfil.foto_url} alt={perfil.nome} className="w-24 h-24 rounded-full object-cover ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg" />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground ring-2 ring-primary ring-offset-2 ring-offset-background">
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg">
                 {perfil.nome?.[0]?.toUpperCase()}
               </div>
             )}

@@ -258,19 +258,27 @@ export default function CarreiraPerfilPage() {
   useEffect(() => {
     if (!currentUserId || !perfil || isOwner || perfil.type !== 'atleta') return;
     const trackView = async () => {
-      // Get viewer info
+      // Get viewer info from both tables, prioritizing perfis_rede for identity
       const { data: viewerRede } = await supabase
         .from('perfis_rede')
         .select('tipo, nome, foto_url')
         .eq('user_id', currentUserId)
         .maybeSingle();
+      const { data: viewerAtleta } = await supabase
+        .from('perfil_atleta')
+        .select('nome, foto_url')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+      
+      const viewerFoto = viewerRede?.foto_url || viewerAtleta?.foto_url || null;
+      const viewerNome = viewerRede?.nome || viewerAtleta?.nome || null;
       
       await supabase.from('perfil_visualizacoes').upsert({
         perfil_atleta_id: perfil.id,
         viewer_user_id: currentUserId,
         viewer_tipo: viewerRede?.tipo || null,
-        viewer_nome: viewerRede?.nome || null,
-        viewer_foto_url: viewerRede?.foto_url || null,
+        viewer_nome: viewerNome,
+        viewer_foto_url: viewerFoto,
         viewed_date: new Date().toISOString().split('T')[0],
       }, { onConflict: 'perfil_atleta_id,viewer_user_id,viewed_date' });
     };
@@ -717,8 +725,8 @@ export default function CarreiraPerfilPage() {
               </Card>
             )}
 
-            {/* Gamificação — desktop only */}
-            {isOwner && (
+            {/* Gamificação — desktop only, athletes only (not scouts/técnicos) */}
+            {isOwner && perfil.type === 'atleta' && (
               <GamificacaoHeroCard accentColor={accentColor} />
             )}
 
