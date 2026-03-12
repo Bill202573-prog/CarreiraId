@@ -108,7 +108,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
     }
     setUploading(true);
     try {
-      const url = await uploadProfilePhoto(file, user.id);
+      const url = await uploadProfilePhoto(file, effectiveUserId);
       // Optimistic update: reflect photo immediately in cache
       queryClient.setQueryData(['perfil-atleta', perfil.slug], (old: any) =>
         old ? { ...old, foto_url: url } : old
