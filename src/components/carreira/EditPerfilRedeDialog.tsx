@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCPF } from '@/lib/cpf-validator';
 import { formatCNPJ } from '@/lib/cnpj-validator';
+import { ColorPicker } from './ColorPicker';
 
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
