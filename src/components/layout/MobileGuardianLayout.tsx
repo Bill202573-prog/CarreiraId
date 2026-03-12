@@ -36,8 +36,9 @@ export function MobileGuardianLayout({
   };
 
   // SECURITY: Always check pending enrollments FIRST - block everything while loading or if pending
-  // This prevents password change dialog from appearing before we know if there's a pending payment
-  if (loadingEnrollments) {
+  // Use isFetching=false check only on first load (no cached data) to avoid white flash on navigation
+  const hasNeverLoaded = loadingEnrollments && pendingEnrollments === undefined;
+  if (hasNeverLoaded) {
     return (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <EnrollmentPaymentBlocker>

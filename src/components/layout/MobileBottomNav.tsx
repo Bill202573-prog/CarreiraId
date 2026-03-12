@@ -45,7 +45,7 @@ export function MobileBottomNav() {
           return (
             <button
               key={item.href}
-              onClick={() => navigate(item.href)}
+              onClick={() => navigate(item.href, { replace: true })}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative",
                 "touch-manipulation active:scale-95",
