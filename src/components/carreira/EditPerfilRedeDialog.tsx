@@ -83,6 +83,15 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const [brasaoUrl, setBrasaoUrl] = useState('');
   const [brasaoUploading, setBrasaoUploading] = useState(false);
 
+  // Fallback to direct Supabase auth for Carreira-only users
+  const sessionUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) sessionUserIdRef.current = session.user.id;
+    });
+  }, []);
+  const getEffectiveUserId = () => user?.id || sessionUserIdRef.current;
+
   // Unidades (filiais) for dono_escola
   const [unidades, setUnidades] = useState<Unidade[]>([]);
 
