@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Validate sync secret
     const syncSecret = req.headers.get('x-sync-secret')
     const expectedSecret = Deno.env.get('CARREIRA_SYNC_SECRET')
 
@@ -37,65 +36,30 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Match crianca_id by finding user via email, then their perfil_atleta
-    // 1. Find user by email
-    const { data: userData, error: userError } = await supabase.auth.admin.listUsers()
-    if (userError) throw userError
+    // Match user + perfil_atleta
+    const { userId, criancaId } = await resolveUser(supabase, email_responsavel, nome_crianca)
 
-    const user = userData.users.find((u: any) => u.email?.toLowerCase() === email_responsavel.toLowerCase())
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'User not found', email: email_responsavel }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // 2. Find perfil_atleta matching user_id + nome (normalized comparison)
-    const { data: perfis, error: perfilError } = await supabase
-      .from('perfil_atleta')
-      .select('id, crianca_id, nome')
-      .eq('user_id', user.id)
-
-    if (perfilError) throw perfilError
-
-    // Normalize for comparison
-    const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
-    const nomeBuscado = normalize(nome_crianca)
-
-    const perfil = perfis?.find((p: any) => normalize(p.nome) === nomeBuscado)
-
-    if (!perfil || !perfil.crianca_id) {
-      return new Response(JSON.stringify({ 
-        error: 'Perfil atleta not found for this child',
-        nome_buscado: nome_crianca,
-        perfis_encontrados: perfis?.map((p: any) => p.nome),
-      }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const criancaId = perfil.crianca_id
     let result: any = null
 
-    // Route by tipo
     switch (tipo) {
-      case 'atividade_externa': {
+      case 'atividade_externa':
         result = await handleAtividadeExterna(supabase, acao, dados, criancaId)
         break
-      }
-      case 'evento_gol': {
+      case 'evento_gol':
         result = await handleEventoGol(supabase, acao, dados, criancaId)
         break
-      }
-      case 'evento_premiacao': {
+      case 'evento_premiacao':
         result = await handleEventoPremiacao(supabase, acao, dados, criancaId)
         break
-      }
-      case 'conquista_coletiva': {
+      case 'conquista_coletiva':
         result = await handleConquistaColetiva(supabase, acao, dados, criancaId)
         break
-      }
+      case 'amistoso_convocacao':
+        result = await handleAmistosoConvocacao(supabase, acao, dados, criancaId, userId)
+        break
+      case 'campeonato_convocacao':
+        result = await handleCampeonatoConvocacao(supabase, acao, dados, criancaId, userId)
+        break
       default:
         return new Response(JSON.stringify({ error: `Unknown tipo: ${tipo}` }), {
           status: 400,
@@ -116,17 +80,43 @@ Deno.serve(async (req) => {
   }
 })
 
+// ── Resolve user + crianca ──────────────────────────────────────────
+
+async function resolveUser(supabase: any, email: string, nomeCrianca: string) {
+  const { data: userData, error: userError } = await supabase.auth.admin.listUsers()
+  if (userError) throw userError
+
+  const user = userData.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
+  if (!user) {
+    throw new Error(`User not found for email: ${email}`)
+  }
+
+  const { data: perfis, error: perfilError } = await supabase
+    .from('perfil_atleta')
+    .select('id, crianca_id, nome')
+    .eq('user_id', user.id)
+
+  if (perfilError) throw perfilError
+
+  const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+  const perfil = perfis?.find((p: any) => normalize(p.nome) === normalize(nomeCrianca))
+
+  if (!perfil || !perfil.crianca_id) {
+    throw new Error(`Perfil atleta not found for child: ${nomeCrianca}`)
+  }
+
+  return { userId: user.id, criancaId: perfil.crianca_id }
+}
+
+// ── Handlers ────────────────────────────────────────────────────────
+
 async function handleAtividadeExterna(supabase: any, acao: string, dados: any, criancaId: string) {
   if (acao === 'delete') {
-    const { error } = await supabase
-      .from('atividades_externas_sync')
-      .delete()
-      .eq('atleta_id_atividade_id', dados.id)
+    const { error } = await supabase.from('atividades_externas_sync').delete().eq('atleta_id_atividade_id', dados.id)
     if (error) throw error
     return { deleted: dados.id }
   }
 
-  // upsert for create/update
   const record = {
     atleta_id_atividade_id: dados.id,
     crianca_id: criancaId,
@@ -167,10 +157,7 @@ async function handleAtividadeExterna(supabase: any, acao: string, dados: any, c
 
 async function handleEventoGol(supabase: any, acao: string, dados: any, criancaId: string) {
   if (acao === 'delete') {
-    const { error } = await supabase
-      .from('evento_gols_sync')
-      .delete()
-      .eq('atleta_id_gol_id', dados.id)
+    const { error } = await supabase.from('evento_gols_sync').delete().eq('atleta_id_gol_id', dados.id)
     if (error) throw error
     return { deleted: dados.id }
   }
@@ -183,6 +170,10 @@ async function handleEventoGol(supabase: any, acao: string, dados: any, criancaI
     quantidade: dados.quantidade || 1,
     evento_nome: dados.evento_nome || null,
     time_nome: dados.time_nome || null,
+    evento_data: dados.evento_data || null,
+    evento_adversario: dados.evento_adversario || null,
+    evento_placar_time1: dados.evento_placar_time1 ?? null,
+    evento_placar_time2: dados.evento_placar_time2 ?? null,
     synced_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }
@@ -199,10 +190,7 @@ async function handleEventoGol(supabase: any, acao: string, dados: any, criancaI
 
 async function handleEventoPremiacao(supabase: any, acao: string, dados: any, criancaId: string) {
   if (acao === 'delete') {
-    const { error } = await supabase
-      .from('evento_premiacoes_sync')
-      .delete()
-      .eq('atleta_id_premiacao_id', dados.id)
+    const { error } = await supabase.from('evento_premiacoes_sync').delete().eq('atleta_id_premiacao_id', dados.id)
     if (error) throw error
     return { deleted: dados.id }
   }
@@ -213,6 +201,7 @@ async function handleEventoPremiacao(supabase: any, acao: string, dados: any, cr
     evento_id: dados.evento_id || null,
     tipo_premiacao: dados.tipo_premiacao,
     evento_nome: dados.evento_nome || null,
+    evento_data: dados.evento_data || null,
     synced_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }
@@ -229,10 +218,7 @@ async function handleEventoPremiacao(supabase: any, acao: string, dados: any, cr
 
 async function handleConquistaColetiva(supabase: any, acao: string, dados: any, criancaId: string) {
   if (acao === 'delete') {
-    const { error } = await supabase
-      .from('conquistas_coletivas_sync')
-      .delete()
-      .eq('atleta_id_conquista_id', dados.id)
+    const { error } = await supabase.from('conquistas_coletivas_sync').delete().eq('atleta_id_conquista_id', dados.id)
     if (error) throw error
     return { deleted: dados.id }
   }
@@ -252,6 +238,73 @@ async function handleConquistaColetiva(supabase: any, acao: string, dados: any, 
   const { data, error } = await supabase
     .from('conquistas_coletivas_sync')
     .upsert(record, { onConflict: 'atleta_id_conquista_id' })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+async function handleAmistosoConvocacao(supabase: any, acao: string, dados: any, criancaId: string, userId: string) {
+  if (acao === 'delete') {
+    const { error } = await supabase.from('amistoso_convocacoes_sync').delete().eq('atleta_id_convocacao_id', dados.id)
+    if (error) throw error
+    return { deleted: dados.id }
+  }
+
+  const record = {
+    atleta_id_convocacao_id: dados.id,
+    user_id: userId,
+    crianca_id: criancaId,
+    evento_nome: dados.evento_nome || null,
+    evento_data: dados.evento_data || null,
+    evento_tipo: dados.evento_tipo || null,
+    evento_adversario: dados.evento_adversario || null,
+    evento_local: dados.evento_local || null,
+    evento_placar_time1: dados.evento_placar_time1 ?? null,
+    evento_placar_time2: dados.evento_placar_time2 ?? null,
+    evento_status: dados.evento_status || null,
+    status: dados.status || 'confirmado',
+    presente: dados.presente ?? null,
+    synced_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  const { data, error } = await supabase
+    .from('amistoso_convocacoes_sync')
+    .upsert(record, { onConflict: 'atleta_id_convocacao_id' })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+async function handleCampeonatoConvocacao(supabase: any, acao: string, dados: any, criancaId: string, userId: string) {
+  if (acao === 'delete') {
+    const { error } = await supabase.from('campeonato_convocacoes_sync').delete().eq('atleta_id_convocacao_id', dados.id)
+    if (error) throw error
+    return { deleted: dados.id }
+  }
+
+  const record = {
+    atleta_id_convocacao_id: dados.id,
+    user_id: userId,
+    crianca_id: criancaId,
+    campeonato_nome: dados.campeonato_nome || null,
+    campeonato_ano: dados.campeonato_ano ?? null,
+    campeonato_categoria: dados.campeonato_categoria || null,
+    campeonato_status: dados.campeonato_status || null,
+    campeonato_nome_time: dados.campeonato_nome_time || null,
+    escolinha_nome: dados.escolinha_nome || null,
+    status: dados.status || 'confirmado',
+    synced_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  const { data, error } = await supabase
+    .from('campeonato_convocacoes_sync')
+    .upsert(record, { onConflict: 'atleta_id_convocacao_id' })
     .select()
     .single()
 
