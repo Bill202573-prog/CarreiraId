@@ -6,6 +6,7 @@ import { CarreiraTimeline } from '@/components/carreira/CarreiraTimeline';
 import { ConexoesCount } from '@/components/carreira/ConexoesCount';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
+import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { CreatePostForm } from '@/components/carreira/CreatePostForm';
 import { PostCard } from '@/components/carreira/PostCard';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
