@@ -187,11 +187,15 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
 
   const handleBrasaoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    const effectiveId = getEffectiveUserId();
+    if (!file || !effectiveId) {
+      if (!effectiveId) toast.error('Você precisa estar logado para enviar o brasão');
+      return;
+    }
     setBrasaoUploading(true);
     try {
       const ext = file.name.split('.').pop();
-      const path = `${user.id}/brasao-${Date.now()}.${ext}`;
+      const path = `${effectiveId}/brasao-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('atleta-fotos')
         .upload(path, file, { upsert: true });
