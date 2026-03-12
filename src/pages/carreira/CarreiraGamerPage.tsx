@@ -132,7 +132,7 @@ export default function CarreiraGamerPage() {
                   <div
                     key={player.user_id}
                     className={`flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer ${isMe ? 'ring-1' : 'hover:bg-muted/50'}`}
-                    style={isMe ? { backgroundColor: `${accentColor}10`, ringColor: accentColor } : undefined}
+                    style={isMe ? { backgroundColor: `${accentColor}10`, outline: `1px solid ${accentColor}` } : undefined}
                     onClick={() => player.slug && navigate(carreiraPath(`/${player.slug}`))}
                   >
                     {/* Position */}
