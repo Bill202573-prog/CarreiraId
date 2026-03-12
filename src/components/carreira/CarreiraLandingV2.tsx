@@ -4,6 +4,7 @@ import logoCarreira from '@/assets/logo-carreira-id.png';
 import logoAtletaIdDark from '@/assets/logo-atleta-id-dark.png';
 import heroLandingV2Bg from '@/assets/hero-landing-v2-bg.jpg';
 import heroSolucaoBg from '@/assets/hero-solucao-bg.jpg';
+import mockupCelular from '@/assets/mockup-carreira-celular.png';
 import {
   Accordion,
   AccordionContent,
@@ -236,7 +237,11 @@ export function CarreiraLandingV2() {
             </p>
           </div>
           <div className="flex justify-center">
-            <HeroProfileCard />
+            <img
+              src={mockupCelular}
+              alt="Carreira ID - Perfil de atleta no celular"
+              className="w-full max-w-[280px] md:max-w-[320px] rounded-3xl shadow-2xl border border-[#2a3a4e]"
+            />
           </div>
         </div>
         </div>
