@@ -479,7 +479,50 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
               Exibir WhatsApp publicamente no perfil (para contato)
             </Label>
           </div>
+
+          <div className="space-y-2">
+            <Label>Email *</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              maxLength={100}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Data de Nascimento</Label>
+            <Input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
+            />
+          </div>
         </div>
+
+        {/* Brasão upload for torcedor */}
+        {type === 'torcedor' && (
+          <div className="space-y-2">
+            <Label>Brasão do Time Favorito</Label>
+            <div className="flex items-center gap-3">
+              {brasaoPreview ? (
+                <img src={brasaoPreview} alt="Brasão" className="w-14 h-14 object-contain rounded border border-border bg-white p-1" />
+              ) : (
+                <div className="w-14 h-14 rounded border border-dashed border-border bg-muted flex items-center justify-center">
+                  <Upload className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              <label className="cursor-pointer">
+                <span className="text-sm text-primary hover:underline">
+                  {brasaoPreview ? 'Trocar brasão' : 'Enviar brasão'}
+                </span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleBrasaoChange} />
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Fields */}
         {fields.map((field) => {
