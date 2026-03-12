@@ -74,27 +74,29 @@ export function FansSection({ perfilAtletaId, accentColor = '#3b82f6' }: FansSec
         <Heart className="w-3.5 h-3.5" style={{ color: accentColor }} />
         Torcida ({fans.length})
       </h3>
-      <div className="flex flex-wrap gap-2">
-        {fans.slice(0, 12).map((fan) => (
-          <div
-            key={fan.user_id}
-            className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors"
-            onClick={() => navigate(carreiraPath(fan.slug ? `/${fan.slug}` : `/perfil/${fan.user_id}`))}
-          >
-            <Avatar className="w-8 h-8">
-              {fan.foto_url ? (
-                <AvatarImage src={fan.foto_url} alt={fan.nome} className="object-cover" />
-              ) : null}
-              <AvatarFallback className="text-[10px]">
-                <User className="w-3.5 h-3.5" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <p className="text-xs font-medium truncate max-w-[100px]">{fan.nome}</p>
-              <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[fan.tipo] || fan.tipo}</p>
+      <div className="max-h-[120px] overflow-y-auto">
+        <div className="flex flex-wrap gap-2">
+          {fans.map((fan) => (
+            <div
+              key={fan.user_id}
+              className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors"
+              onClick={() => navigate(carreiraPath(fan.slug ? `/${fan.slug}` : `/perfil/${fan.user_id}`))}
+            >
+              <Avatar className="w-8 h-8">
+                {fan.foto_url ? (
+                  <AvatarImage src={fan.foto_url} alt={fan.nome} className="object-cover" />
+                ) : null}
+                <AvatarFallback className="text-[10px]">
+                  <User className="w-3.5 h-3.5" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate max-w-[100px]">{fan.nome}</p>
+                <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[fan.tipo] || fan.tipo}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </Card>
   );
