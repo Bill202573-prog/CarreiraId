@@ -23,6 +23,20 @@ import { toast } from 'sonner';
 import { EditPerfilDialog } from './EditPerfilDialog';
 import { EditContaDialog } from './EditContaDialog';
 
+function TorcedoresCount({ perfilId }: { perfilId: string }) {
+  const { data: count } = useQuery({
+    queryKey: ['torcedores-count', perfilId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('atleta_follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_perfil_id', perfilId);
+      return count || 0;
+    },
+  });
+  return <span><strong className="text-foreground">{count ?? 0}</strong> torcedores</span>;
+}
+
 interface PerfilHeaderProps {
   perfil: PerfilAtleta;
   isOwner?: boolean;
