@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 
 export type ProfileType =
   | 'atleta_filho'
+  | 'jogador_profissional'
   | 'professor'
   | 'tecnico'
   | 'dono_escola'
@@ -10,7 +11,8 @@ export type ProfileType =
   | 'influenciador'
   | 'scout'
   | 'agente_clube'
-  | 'fotografo';
+  | 'fotografo'
+  | 'torcedor';
 
 interface ProfileOption {
   type: ProfileType;
