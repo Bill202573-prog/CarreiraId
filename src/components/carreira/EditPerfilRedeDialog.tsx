@@ -69,6 +69,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const [saving, setSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState(perfil?.foto_url || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [corDestaque, setCorDestaque] = useState((perfil?.dados_perfil as any)?.cor_destaque || '#3b82f6');
 
   // Account fields (from profiles table)
   const [contaEmail, setContaEmail] = useState('');
