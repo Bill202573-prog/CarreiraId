@@ -17,7 +17,8 @@ import CarreiraAdminLayout from '@/components/layout/CarreiraAdminLayout';
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor/Treinador', tecnico: 'Técnico', dono_escola: 'Dono de Escola',
   preparador_fisico: 'Preparador Físico', empresario: 'Empresário', influenciador: 'Influenciador',
-  pai_responsavel: 'Pai/Responsável', scout: 'Scout', agente_clube: 'Agente de Clube', fotografo: 'Fotógrafo',
+  scout: 'Scout', agente_clube: 'Agente de Clube', fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor', jogador_profissional: 'Jogador Profissional', plataforma: 'Plataforma',
 };
 
 function useAdminPerfisAtleta(search: string) {
@@ -46,7 +47,7 @@ function useAdminPerfisRede(search: string) {
   return useQuery({
     queryKey: ['carreira-admin-perfis-rede', search],
     queryFn: async () => {
-      const { data, error } = await supabase.from('perfis_rede').select('*').order('created_at', { ascending: false }).limit(200);
+      const { data, error } = await supabase.from('perfis_rede').select('*').neq('tipo', 'pai_responsavel').order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
       const userIds = [...new Set((data || []).map((p: any) => p.user_id))];
       let profilesMap: Record<string, any> = {};
