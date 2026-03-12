@@ -177,6 +177,10 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [whatsappPublico, setWhatsappPublico] = useState(false);
+  const [email, setEmail] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [brasaoFile, setBrasaoFile] = useState<File | null>(null);
+  const [brasaoPreview, setBrasaoPreview] = useState<string | null>(null);
 
   const isDono = type === 'dono_escola';
 
