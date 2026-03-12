@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Instagram, Trash2, Globe, Phone, Mail, User, Plus, Lock, Upload } from 'lucide-react';
+import { Loader2, Instagram, Trash2, Globe, Phone, Mail, Plus, Lock, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,104 @@ import { formatCPF } from '@/lib/cpf-validator';
 import { formatCNPJ } from '@/lib/cnpj-validator';
 import { ColorPicker } from './ColorPicker';
 
+// ── Dynamic field definitions per profile type (mirrors ProfileTypeForm) ──
+
+interface DynFieldDef {
+  key: string;
+  label: string;
+  type: 'text' | 'textarea' | 'select' | 'multiselect';
+  options?: string[];
+}
+
+const CATEGORIAS = ['Sub-5', 'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
+
+function getDynamicFields(tipo: string): DynFieldDef[] {
+  switch (tipo) {
+    case 'professor':
+      return [
+        { key: 'especialidade', label: 'Especialidade', type: 'select', options: ['Preparação Física', 'Técnico de Futebol', 'Goleiros', 'Tático', 'Coordenação Motora', 'Outro'] },
+        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Outro'] },
+        { key: 'categorias', label: 'Categorias que trabalha', type: 'multiselect', options: CATEGORIAS },
+        { key: 'certificacoes', label: 'Certificações / Cursos', type: 'textarea' },
+        { key: 'experiencia', label: 'Experiência Profissional', type: 'textarea' },
+      ];
+    case 'tecnico':
+      return [
+        { key: 'clube_atual', label: 'Clube / Organização Atual', type: 'text' },
+        { key: 'categorias', label: 'Categorias de Interesse', type: 'multiselect', options: CATEGORIAS },
+        { key: 'posicoes', label: 'Posições que mais observa', type: 'multiselect', options: POSICOES },
+        { key: 'licencas', label: 'Licenças / Certificações', type: 'textarea' },
+        { key: 'historico', label: 'Histórico Profissional', type: 'textarea' },
+      ];
+    case 'dono_escola':
+      return [
+        { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text' },
+        { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text' },
+        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
+        { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
+        { key: 'site', label: 'Site', type: 'text' },
+      ];
+    case 'preparador_fisico':
+      return [
+        { key: 'especialidade', label: 'Especialidade', type: 'select', options: ['Força', 'Resistência', 'Reabilitação', 'Funcional', 'Velocidade', 'Outro'] },
+        { key: 'areas_atuacao', label: 'Áreas de Atuação', type: 'multiselect', options: ['Atletas de Base', 'Profissional', 'Amador', 'Reabilitação'] },
+        { key: 'cref', label: 'CREF', type: 'text' },
+        { key: 'formacao', label: 'Formação Acadêmica', type: 'textarea' },
+        { key: 'certificacoes', label: 'Certificações', type: 'textarea' },
+      ];
+    case 'empresario':
+      return [
+        { key: 'empresa', label: 'Empresa / Agência', type: 'text' },
+        { key: 'areas_atuacao', label: 'Áreas de Atuação', type: 'multiselect', options: ['Representação', 'Marketing Esportivo', 'Assessoria de Carreira', 'Direitos de Imagem', 'Outro'] },
+        { key: 'credenciais', label: 'Credenciais / Licenças', type: 'textarea' },
+        { key: 'site', label: 'Site / Contato', type: 'text' },
+      ];
+    case 'influenciador':
+      return [
+        { key: 'nicho', label: 'Nicho / Especialidade', type: 'select', options: ['Análise Tática', 'Treinos', 'Motivação', 'Bastidores', 'Humor', 'Notícias', 'Outro'] },
+        { key: 'rede_principal', label: 'Principal Rede Social', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter/X'] },
+        { key: 'arroba', label: '@ da Rede Social', type: 'text' },
+        { key: 'outras_redes', label: 'Outras Redes Sociais', type: 'textarea' },
+      ];
+    case 'jogador_profissional':
+      return [
+        { key: 'clube_atual', label: 'Clube Atual (ou último)', type: 'text' },
+        { key: 'status_carreira', label: 'Status da Carreira', type: 'select', options: ['Ativo', 'Aposentado'] },
+        { key: 'posicao', label: 'Posição', type: 'select', options: POSICOES },
+        { key: 'categorias', label: 'Categorias que jogou', type: 'multiselect', options: [...CATEGORIAS, 'Seleção Brasileira'] },
+        { key: 'titulos', label: 'Títulos e Conquistas', type: 'textarea' },
+      ];
+    case 'scout':
+      return [
+        { key: 'especialidade', label: 'Especialidade', type: 'select', options: ['Futebol de Base', 'Profissional', 'Internacional', 'Feminino', 'Outro'] },
+        { key: 'regioes', label: 'Regiões de Atuação', type: 'text' },
+        { key: 'clubes_anteriores', label: 'Clubes com quem já trabalhou', type: 'textarea' },
+        { key: 'categorias', label: 'Categorias de Interesse', type: 'multiselect', options: CATEGORIAS },
+        { key: 'posicoes', label: 'Posições que mais busca', type: 'multiselect', options: POSICOES },
+      ];
+    case 'agente_clube':
+      return [
+        { key: 'clube', label: 'Qual clube você representa?', type: 'text' },
+        { key: 'categorias', label: 'Categorias que observa', type: 'multiselect', options: CATEGORIAS },
+        { key: 'posicoes', label: 'Posições de Interesse', type: 'multiselect', options: POSICOES },
+        { key: 'tempo_clube', label: 'Tempo no Clube', type: 'text' },
+        { key: 'contato', label: 'Contato Profissional', type: 'text' },
+      ];
+    case 'fotografo':
+      return [
+        { key: 'especialidade', label: 'Especialidade', type: 'select', options: ['Esportes', 'Eventos Esportivos', 'Retratos de Atletas', 'Cobertura de Campeonatos', 'Outro'] },
+        { key: 'regiao', label: 'Região de Atuação', type: 'text' },
+        { key: 'portfolio', label: 'Portfólio (link)', type: 'text' },
+        { key: 'site_whatsapp', label: 'Site / WhatsApp', type: 'text' },
+      ];
+    default:
+      return [];
+  }
+}
+
+// ── Form schema (base fields) ──
+
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   bio: z.string().max(500, 'Máximo de 500 caracteres').optional(),
@@ -30,14 +128,6 @@ const formSchema = z.object({
   telefone_whatsapp: z.string().max(20).optional(),
   cpf_cnpj: z.string().max(20).optional(),
   tipo_documento: z.enum(['cpf', 'cnpj']).optional(),
-  nome_escola: z.string().optional(),
-  localizacao: z.string().optional(),
-  modalidades: z.string().optional(),
-  categorias: z.string().optional(),
-  experiencia_anos: z.string().optional(),
-  certificacoes: z.string().optional(),
-  cidade: z.string().optional(),
-  estado: z.string().optional(),
   time_torcida: z.string().optional(),
 });
 
@@ -83,6 +173,9 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const [brasaoUrl, setBrasaoUrl] = useState('');
   const [brasaoUploading, setBrasaoUploading] = useState(false);
 
+  // Dynamic dados_perfil values
+  const [dadosValues, setDadosValues] = useState<Record<string, string | string[]>>({});
+
   // Fallback to direct Supabase auth for Carreira-only users
   const sessionUserIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -97,8 +190,10 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
 
   const isTorcedor = perfil?.tipo === 'torcedor';
   const isDono = perfil?.tipo === 'dono_escola';
+  const tipo = perfil?.tipo || '';
 
   const dados = (perfil?.dados_perfil || {}) as Record<string, any>;
+  const dynamicFields = getDynamicFields(tipo);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -111,19 +206,23 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       telefone_whatsapp: formatPhone(String(perfil?.telefone_whatsapp || '')),
       cpf_cnpj: '',
       tipo_documento: perfil?.tipo_documento === 'cnpj' ? 'cnpj' : 'cpf',
-      nome_escola: dados.nome_escola || dados.escola_nome || '',
-      localizacao: dados.localizacao || '',
-      modalidades: Array.isArray(dados.modalidades) ? dados.modalidades.join(', ') : (dados.modalidades || ''),
-      categorias: Array.isArray(dados.categorias) ? dados.categorias.join(', ') : (dados.categorias || ''),
-      experiencia_anos: dados.experiencia_anos?.toString() || '',
-      certificacoes: dados.certificacoes || '',
-      cidade: dados.cidade || '',
-      estado: dados.estado || '',
       time_torcida: dados.time_torcida || '',
     },
   });
 
   const tipoDoc = form.watch('tipo_documento') || 'cpf';
+
+  // Load dados_perfil values into dynamic state
+  const loadDadosValues = useCallback((d: Record<string, any>) => {
+    const vals: Record<string, string | string[]> = {};
+    for (const field of getDynamicFields(tipo)) {
+      const val = d[field.key];
+      if (val !== undefined && val !== null) {
+        vals[field.key] = val;
+      }
+    }
+    setDadosValues(vals);
+  }, [tipo]);
 
   useEffect(() => {
     if (open && perfil) {
@@ -139,20 +238,13 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         telefone_whatsapp: formatPhone(String(perfil.telefone_whatsapp || '')),
         cpf_cnpj: rawDoc ? formatDoc(rawDoc, docTipo) : '',
         tipo_documento: docTipo,
-        nome_escola: d.nome_escola || d.escola_nome || '',
-        localizacao: d.localizacao || '',
-        modalidades: Array.isArray(d.modalidades) ? d.modalidades.join(', ') : (d.modalidades || ''),
-        categorias: Array.isArray(d.categorias) ? d.categorias.join(', ') : (d.categorias || ''),
-        experiencia_anos: d.experiencia_anos?.toString() || '',
-        certificacoes: d.certificacoes || '',
-        cidade: d.cidade || '',
-        estado: d.estado || '',
         time_torcida: d.time_torcida || '',
       });
       setPhotoUrl(perfil.foto_url || '');
       setCorDestaque(d.cor_destaque || '#3b82f6');
       setBrasaoUrl(d.brasao_url || '');
       setUnidades(Array.isArray(d.unidades) ? d.unidades : []);
+      loadDadosValues(d);
 
       // Load account data
       if (user) {
@@ -171,7 +263,19 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
           });
       }
     }
-  }, [open, perfil, form, user]);
+  }, [open, perfil, form, user, loadDadosValues]);
+
+  const setDynValue = (key: string, value: string | string[]) => {
+    setDadosValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleDynMulti = (key: string, option: string) => {
+    const current = (Array.isArray(dadosValues[key]) ? dadosValues[key] : []) as string[];
+    const next = current.includes(option)
+      ? current.filter((o) => o !== option)
+      : [...current, option];
+    setDynValue(key, next);
+  };
 
   const addUnidade = useCallback(() => {
     if (unidades.length < 5) setUnidades(prev => [...prev, { nome: '', bairro: '', referencia: '' }]);
@@ -216,28 +320,29 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
       const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
 
+      // Build new dados_perfil preserving existing keys and updating dynamic fields
       const newDados: Record<string, any> = {
         ...dados,
         cor_destaque: corDestaque,
-        cidade: data.cidade || null,
-        estado: data.estado || null,
       };
 
-      // Only include professional fields for non-torcedor types
-      if (!isTorcedor) {
-        newDados.nome_escola = data.nome_escola || null;
-        newDados.localizacao = data.localizacao || null;
-        newDados.modalidades = data.modalidades ? data.modalidades.split(',').map(s => s.trim()).filter(Boolean) : [];
-        newDados.categorias = data.categorias ? data.categorias.split(',').map(s => s.trim()).filter(Boolean) : [];
-        newDados.experiencia_anos = data.experiencia_anos ? parseInt(data.experiencia_anos) : null;
-        newDados.certificacoes = data.certificacoes || null;
-        newDados.unidades = isDono ? unidades.filter(u => u.nome.trim() || u.bairro.trim()) : (dados.unidades || null);
+      // Merge all dynamic field values into dados_perfil
+      for (const field of dynamicFields) {
+        const val = dadosValues[field.key];
+        if (val !== undefined) {
+          newDados[field.key] = val;
+        }
       }
 
       // Torcedor-specific fields
       if (isTorcedor) {
         newDados.time_torcida = data.time_torcida || null;
         newDados.brasao_url = brasaoUrl || null;
+      }
+
+      // Unidades for dono_escola
+      if (isDono) {
+        newDados.unidades = unidades.filter(u => u.nome.trim() || u.bairro.trim());
       }
 
       const { error } = await supabase
@@ -299,6 +404,76 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   };
 
   const canUseCnpj = ['dono_escola', 'empresario'].includes(perfil?.tipo || '');
+
+  // ── Render a single dynamic field ──
+  const renderDynField = (field: DynFieldDef) => {
+    const val = dadosValues[field.key];
+
+    if (field.type === 'select' && field.options) {
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label className="text-sm">{field.label}</Label>
+          <Select value={(val as string) || ''} onValueChange={(v) => setDynValue(field.key, v)}>
+            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+            <SelectContent>
+              {field.options.map((opt) => (
+                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    if (field.type === 'multiselect' && field.options) {
+      const selected = Array.isArray(val) ? val : [];
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label className="text-sm">{field.label}</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {field.options.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => toggleDynMulti(field.key, opt)}
+                className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                  selected.includes(opt)
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted text-muted-foreground border-border hover:bg-accent'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (field.type === 'textarea') {
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label className="text-sm">{field.label}</Label>
+          <Textarea
+            value={(val as string) || ''}
+            onChange={(e) => setDynValue(field.key, e.target.value)}
+            rows={3}
+          />
+        </div>
+      );
+    }
+
+    // text
+    return (
+      <div key={field.key} className="space-y-2">
+        <Label className="text-sm">{field.label}</Label>
+        <Input
+          value={(val as string) || ''}
+          onChange={(e) => setDynValue(field.key, e.target.value)}
+        />
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -364,22 +539,6 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
                       <input type="file" accept="image/*" className="hidden" onChange={handleBrasaoUpload} disabled={brasaoUploading} />
                     </label>
                   </div>
-                </div>
-
-                {/* Cidade / Estado for torcedor */}
-                <div className="grid grid-cols-2 gap-3">
-                  <FormField control={form.control} name="cidade" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade</FormLabel>
-                      <FormControl><Input placeholder="Ex: Rio de Janeiro" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="estado" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado</FormLabel>
-                      <FormControl><Input placeholder="Ex: RJ" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
                 </div>
               </>
             )}
@@ -467,23 +626,19 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               </div>
 
               {canUseCnpj && (
-                <FormField control={form.control} name="tipo_documento" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de documento</FormLabel>
-                    <FormControl>
-                      <Select value={field.value || 'cpf'} onValueChange={(value) => {
-                        field.onChange(value as 'cpf' | 'cnpj');
-                        form.setValue('cpf_cnpj', '');
-                      }}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cpf">CPF</SelectItem>
-                          <SelectItem value="cnpj">CNPJ</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )} />
+                <div className="space-y-2">
+                  <Label className="text-sm">Tipo de documento</Label>
+                  <Select value={tipoDoc} onValueChange={(value) => {
+                    form.setValue('tipo_documento', value as 'cpf' | 'cnpj');
+                    form.setValue('cpf_cnpj', '');
+                  }}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
               <FormField control={form.control} name="cpf_cnpj" render={({ field }) => (
@@ -501,55 +656,13 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               )} />
             </div>
 
-            {/* Profile-specific fields - NOT shown for torcedor */}
-            {!isTorcedor && (
-              <>
-                <FormField control={form.control} name="nome_escola" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome da Escola / Instituição</FormLabel>
-                    <FormControl><Input placeholder="Ex: Escola do Flamengo" {...field} /></FormControl>
-                  </FormItem>
-                )} />
-
-                <FormField control={form.control} name="localizacao" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Localização</FormLabel>
-                    <FormControl><Input placeholder="Ex: Rio de Janeiro" {...field} /></FormControl>
-                  </FormItem>
-                )} />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField control={form.control} name="modalidades" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Modalidades</FormLabel>
-                      <FormControl><Input placeholder="Futebol, Futsal" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-
-                  <FormField control={form.control} name="categorias" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Categorias</FormLabel>
-                      <FormControl><Input placeholder="Sub-7, Sub-9" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField control={form.control} name="experiencia_anos" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Anos de Experiência</FormLabel>
-                      <FormControl><Input type="number" placeholder="5" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-
-                  <FormField control={form.control} name="certificacoes" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Certificações</FormLabel>
-                      <FormControl><Input placeholder="Suas certificações" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-                </div>
-              </>
+            {/* ── Dynamic profile-type-specific fields ── */}
+            {dynamicFields.length > 0 && (
+              <div className="space-y-3">
+                <Separator />
+                <p className="text-sm font-medium text-foreground">Informações do perfil</p>
+                {dynamicFields.map(renderDynField)}
+              </div>
             )}
 
             {/* Unidades (filiais) - only for dono_escola */}
