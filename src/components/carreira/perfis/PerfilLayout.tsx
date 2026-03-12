@@ -99,6 +99,21 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
               </div>
             )}
 
+            {/* Jogador Profissional summary */}
+            {perfil.tipo === 'jogador_profissional' && perfil.dados_perfil?.clube_atual && (
+              <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start flex-wrap">
+                <span className="text-sm text-muted-foreground">
+                  {perfil.dados_perfil?.status_carreira === 'Aposentado' ? 'Último clube:' : 'Clube:'}
+                </span>
+                <span className="text-sm font-semibold text-foreground">{perfil.dados_perfil.clube_atual}</span>
+                {perfil.dados_perfil?.posicao && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                    {perfil.dados_perfil.posicao}
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Cidade/Estado for torcedor */}
             {perfil.tipo === 'torcedor' && (perfil.dados_perfil?.cidade || perfil.dados_perfil?.estado) && (
               <p className="text-xs text-muted-foreground mt-1">
