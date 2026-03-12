@@ -14,6 +14,7 @@ import { EditPerfilDialog } from '@/components/carreira/EditPerfilDialog';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
+import { FansSection } from '@/components/carreira/FansSection';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -820,6 +821,11 @@ export default function CarreiraPerfilPage() {
             {/* Quem viu este perfil — public, below profile header */}
             {perfil.type === 'atleta' && profileViews && profileViews.length > 0 && (
               <ProfileViewsSection views={profileViews} accentColor={accentColor} navigate={navigate} />
+            )}
+
+            {/* Fãs / Torcida — below profile views */}
+            {perfil.type === 'atleta' && (
+              <FansSection perfilAtletaId={perfil.id} accentColor={accentColor} />
             )}
 
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
