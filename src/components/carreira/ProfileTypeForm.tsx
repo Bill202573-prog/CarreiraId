@@ -177,6 +177,10 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [whatsappPublico, setWhatsappPublico] = useState(false);
+  const [email, setEmail] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [brasaoFile, setBrasaoFile] = useState<File | null>(null);
+  const [brasaoPreview, setBrasaoPreview] = useState<string | null>(null);
 
   const isDono = type === 'dono_escola';
 
@@ -216,6 +220,15 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
     reader.readAsDataURL(file);
   };
 
+  const handleBrasaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBrasaoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setBrasaoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const formatPhone = (value: string) => {
     const d = value.replace(/\D/g, '').slice(0, 11);
     if (d.length <= 2) return d;
@@ -241,6 +254,12 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
     const cleanPhone = telefoneWhatsapp.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 8) {
       toast.error('WhatsApp é obrigatório');
+      return;
+    }
+
+    // Validate email
+    if (!email.trim() || !email.includes('@')) {
+      toast.error('Email é obrigatório');
       return;
     }
 
@@ -278,6 +297,20 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
         }
       }
 
+      // Upload brasão if provided (torcedor)
+      let brasaoUrl: string | null = null;
+      if (brasaoFile) {
+        const ext = brasaoFile.name.split('.').pop();
+        const path = `perfis-rede/brasao-${userId}-${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('atleta-fotos')
+          .upload(path, brasaoFile, { upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
+          brasaoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        }
+      }
+
       // Separate profile fields from dados_perfil
       const dadosPerfil: Record<string, unknown> = {};
       const profileFields: Record<string, string> = {};
@@ -300,6 +333,11 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
           dadosPerfil.unidades = validUnidades;
         }
       }
+
+      // Save email, data_nascimento, brasao
+      if (email.trim()) dadosPerfil.email = email.trim();
+      if (dataNascimento) dadosPerfil.data_nascimento = dataNascimento;
+      if (brasaoUrl) dadosPerfil.brasao_url = brasaoUrl;
 
       const { error } = await supabase.from('perfis_rede').insert({
         user_id: userId,
@@ -447,7 +485,50 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
               Exibir WhatsApp publicamente no perfil (para contato)
             </Label>
           </div>
+
+          <div className="space-y-2">
+            <Label>Email *</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              maxLength={100}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Data de Nascimento</Label>
+            <Input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
+            />
+          </div>
         </div>
+
+        {/* Brasão upload for torcedor */}
+        {type === 'torcedor' && (
+          <div className="space-y-2">
+            <Label>Brasão do Time Favorito</Label>
+            <div className="flex items-center gap-3">
+              {brasaoPreview ? (
+                <img src={brasaoPreview} alt="Brasão" className="w-14 h-14 object-contain rounded border border-border bg-white p-1" />
+              ) : (
+                <div className="w-14 h-14 rounded border border-dashed border-border bg-muted flex items-center justify-center">
+                  <Upload className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              <label className="cursor-pointer">
+                <span className="text-sm text-primary hover:underline">
+                  {brasaoPreview ? 'Trocar brasão' : 'Enviar brasão'}
+                </span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleBrasaoChange} />
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Fields */}
         {fields.map((field) => {

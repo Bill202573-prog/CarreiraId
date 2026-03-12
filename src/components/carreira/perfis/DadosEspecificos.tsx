@@ -70,6 +70,8 @@ const FIELDS_BY_TYPE: Record<ProfileType, FieldDisplay[]> = {
   ],
   torcedor: [
     { key: 'time_torcida', label: 'Time do Coração' },
+    { key: 'data_nascimento', label: 'Data de Nascimento' },
+    { key: 'email', label: 'Email' },
   ],
   scout: [
     { key: 'especialidade', label: 'Especialidade' },
