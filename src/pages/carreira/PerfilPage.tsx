@@ -8,6 +8,8 @@ import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
 import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
+import { HistoricoProfissionalSection, type HistoricoProfissional } from '@/components/carreira/HistoricoProfissionalSection';
+import { HistoricoProfissionalFormDialog } from '@/components/carreira/HistoricoProfissionalFormDialog';
 
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
@@ -18,6 +20,8 @@ import { usePostsRede } from '@/hooks/useCarreiraData';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useEffect, useState } from 'react';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function PerfilPage() {
   const { userId } = useParams<{ userId: string }>();
