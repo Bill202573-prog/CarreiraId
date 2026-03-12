@@ -237,7 +237,11 @@ export function CarreiraLandingV2() {
             </p>
           </div>
           <div className="flex justify-center">
-            <HeroProfileCard />
+            <img
+              src={mockupCelular}
+              alt="Carreira ID - Perfil de atleta no celular"
+              className="w-full max-w-[280px] md:max-w-[320px] rounded-3xl shadow-2xl border border-[#2a3a4e]"
+            />
           </div>
         </div>
         </div>
