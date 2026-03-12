@@ -10,7 +10,7 @@ import { ArrowLeft, Loader2, Upload, Lock, Plus, Trash2 } from 'lucide-react';
 import type { ProfileType } from './ProfileTypeSelector';
 import { validateCPF, formatCPF, cleanCPF } from '@/lib/cpf-validator';
 import { validateCNPJ, formatCNPJ } from '@/lib/cnpj-validator';
-import { ColorPicker } from './ColorPicker';
+
 
 interface Props {
   type: ProfileType;
