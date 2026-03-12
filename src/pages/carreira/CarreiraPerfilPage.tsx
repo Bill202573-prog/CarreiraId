@@ -811,6 +811,7 @@ export default function CarreiraPerfilPage() {
                   }}
                   isOwnProfile={isOwner}
                   currentUserId={currentUserId}
+                  accentColor={accentColor}
                   onEditProfile={isOwner ? () => setEditDialogOpen(true) : undefined}
                 />
               </div>
