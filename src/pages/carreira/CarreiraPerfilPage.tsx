@@ -6,6 +6,7 @@ import { CarreiraTimeline } from '@/components/carreira/CarreiraTimeline';
 import { ConexoesCount } from '@/components/carreira/ConexoesCount';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
+import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { CreatePostForm } from '@/components/carreira/CreatePostForm';
 import { PostCard } from '@/components/carreira/PostCard';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
@@ -816,6 +817,13 @@ export default function CarreiraPerfilPage() {
                   onEditProfile={isOwner ? () => setEditDialogOpen(true) : undefined}
                 />
               </div>
+            )}
+            {/* Dados Específicos do perfil rede */}
+            {perfil.type === 'rede' && (
+              <DadosEspecificos
+                tipo={perfil.tipo as any}
+                dados={perfil.dados_perfil as Record<string, any> | null}
+              />
             )}
 
             {/* Quem viu este perfil — public, below profile header */}
