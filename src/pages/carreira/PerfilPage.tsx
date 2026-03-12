@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Share2, Copy, Check } from 'lucide-react';
 import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
 import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { Card } from '@/components/ui/card';
 
 export default function PerfilPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -30,6 +31,7 @@ export default function PerfilPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [historicoDialogOpen, setHistoricoDialogOpen] = useState(false);
   const [editingHistorico, setEditingHistorico] = useState<HistoricoProfissional | null>(null);
+  const [copied, setCopied] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function PerfilPage() {
     enabled: !!userId,
   });
 
-  const tema = 'dark-orange'; // Dark premium theme for all Carreira profiles
+  const tema = 'dark-orange';
   const isDarkTheme = true;
 
   useEffect(() => {
@@ -106,6 +108,18 @@ export default function PerfilPage() {
 
   const isOwnProfile = currentUserId === redeProfile.user_id;
 
+  const inviteLink = (redeProfile as any).convite_codigo
+    ? `${window.location.origin}${carreiraPath('/cadastro')}?convite=${(redeProfile as any).convite_codigo}`
+    : '';
+
+  const handleCopyInvite = () => {
+    if (!inviteLink) return;
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    toast.success('Link de convite copiado!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
       <header className={`sticky top-0 z-50 backdrop-blur border-b ${isDarkTheme ? 'bg-[hsl(220_12%_10%/0.95)] border-[hsl(220_10%_18%)]' : 'bg-background/95'}`}>
@@ -124,7 +138,6 @@ export default function PerfilPage() {
               userId={redeProfile.user_id}
               perfilNome={redeProfile.nome}
               onMigrated={() => {
-                // Redirect to the new athlete profile
                 supabase
                   .from('perfil_atleta')
                   .select('slug')
@@ -198,6 +211,22 @@ export default function PerfilPage() {
 
           return (
             <>
+              {/* Invite card for own profile */}
+              {isOwnProfile && inviteLink && (
+                <Card className="p-4 mt-4 border-border/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Share2 className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-foreground">Convide amigos para a rede</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={handleCopyInvite}>
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {copied ? 'Copiado!' : 'Copiar link'}
+                    </Button>
+                  </div>
+                </Card>
+              )}
+
               <Tabs defaultValue="publicacoes" className="mt-4">
                 <TabsList className={`w-full grid grid-cols-${tabCount}`}>
                   <TabsTrigger value="publicacoes" className="flex-1">Publicações</TabsTrigger>
