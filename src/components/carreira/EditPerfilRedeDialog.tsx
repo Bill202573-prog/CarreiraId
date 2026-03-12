@@ -314,6 +314,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               currentBannerUrl=""
               onPhotoChange={setPhotoUrl}
               onBannerChange={() => {}}
+              showBanner={false}
             />
 
             {/* Color picker */}
