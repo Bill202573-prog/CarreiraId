@@ -301,13 +301,13 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       let brasaoUrl: string | null = null;
       if (brasaoFile) {
         const ext = brasaoFile.name.split('.').pop();
-        const path = `perfis-rede/brasao-${userId}-${Date.now()}.${ext}`;
+        const path = `${userId}/brasao-${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from('atleta-fotos')
           .upload(path, brasaoFile, { upsert: true });
         if (!uploadError) {
           const { data: urlData } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
-          brasaoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+          brasaoUrl = urlData.publicUrl;
         }
       }
 
