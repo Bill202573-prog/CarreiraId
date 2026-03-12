@@ -146,6 +146,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
           </div>
         )}
         <CardContent className={`p-4 sm:p-5 ${perfil.banner_url ? '-mt-10' : ''}`}>
+          {/* === TOP: Avatar + core info side by side === */}
           <div className="flex items-start gap-4 sm:gap-5">
             {/* Avatar */}
             <div className="relative shrink-0">
@@ -167,11 +168,10 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
             </div>
 
-            {/* Info */}
+            {/* Core info next to avatar */}
             <div className="flex-1 min-w-0">
               <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{perfil.nome}</h1>
               
-              {/* Subtitle: "Atleta Sub X" + "Perfil administrado pelo responsável" */}
               {categoriaDisplay && (
                 <p className="text-xs font-medium mt-0.5" style={{ color: perfil.cor_destaque || '#3b82f6' }}>
                   Atleta {categoriaDisplay}
@@ -184,7 +184,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                 </div>
               )}
 
-              {/* Status automático + badges técnicos */}
+              {/* Status + badges */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-1.5">
                 {atletaStatusInfo && (
                   <Badge variant="outline" className="gap-1 text-xs font-semibold"
@@ -202,7 +202,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                 ))}
               </div>
 
-              {/* Technical data: position + dominant foot */}
+              {/* Position + foot */}
               {(perfil.posicao_principal || perfil.pe_dominante) && (
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1 text-xs text-muted-foreground">
                   {perfil.posicao_principal && (
@@ -224,50 +224,56 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
                   <span>{[perfil.cidade, perfil.estado].filter(Boolean).join(', ')}</span>
                 </div>
               )}
+            </div>
+          </div>
 
-              {/* Followers / Connections / Torcedores */}
-              <div className="flex items-center justify-center sm:justify-start gap-3 mt-2 text-xs text-muted-foreground pt-2 border-t-2" style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}40` }}>
-                <span><strong className="text-foreground">{perfil.followers_count || 0}</strong> seguidores</span>
-                <ConexoesCount userId={perfil.user_id} />
-                <TorcedoresCount perfilId={perfil.id} />
-              </div>
+          {/* === FULL-WIDTH SEPARATOR === */}
+          <div className="mt-3 -mx-4 sm:-mx-5 border-t-2" style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}40` }} />
 
-              {perfil.bio && <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{perfil.bio}</p>}
+          {/* === BOTTOM: Full-width centered content === */}
+          <div className="mt-3 flex flex-col items-center text-center">
+            {/* Stats */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span><strong className="text-foreground">{perfil.followers_count || 0}</strong> seguidores</span>
+              <ConexoesCount userId={perfil.user_id} />
+              <TorcedoresCount perfilId={perfil.id} />
+            </div>
 
-              {(perfil as any).instagram_url && (
-                <a href={(perfil as any).instagram_url.startsWith('http') ? (perfil as any).instagram_url : `https://instagram.com/${(perfil as any).instagram_url.replace('@', '')}`}
-                  target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-xs text-primary hover:underline">
-                  <Instagram className="w-3.5 h-3.5" />
-                  {(perfil as any).instagram_url.includes('instagram.com') 
-                    ? '@' + (perfil as any).instagram_url.split('/').filter(Boolean).pop()
-                    : (perfil as any).instagram_url.startsWith('@') ? (perfil as any).instagram_url : '@' + (perfil as any).instagram_url}
-                </a>
-              )}
+            {perfil.bio && <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{perfil.bio}</p>}
 
-              {/* Actions */}
-              <div className="flex gap-1.5 mt-2 flex-wrap">
-                {isOwner && (
-                  <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
-                    style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}
-                    onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3 h-3 mr-1" />Editar Perfil
-                  </Button>
-                )}
-                {!isOwner && user && (
-                  <>
-                    <ConectarButton targetUserId={perfil.user_id} currentUserId={user.id} />
-                    <Button size="sm" className="h-7 text-xs px-2.5" variant={isFollowing ? 'outline' : 'default'}
-                      onClick={handleFollow} disabled={toggleFollow.isPending}
-                      style={!isFollowing ? { backgroundColor: perfil.cor_destaque || undefined } : undefined}>
-                      {isFollowing ? <><UserCheck className="w-3 h-3 mr-1" />Seguindo</> : <><UserPlus className="w-3 h-3 mr-1" />Seguir</>}
-                    </Button>
-                  </>
-                )}
-                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={handleShare}
-                  style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}>
-                  <Share2 className="w-3 h-3 mr-1" />Compartilhar
+            {(perfil as any).instagram_url && (
+              <a href={(perfil as any).instagram_url.startsWith('http') ? (perfil as any).instagram_url : `https://instagram.com/${(perfil as any).instagram_url.replace('@', '')}`}
+                target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-xs text-primary hover:underline">
+                <Instagram className="w-3.5 h-3.5" />
+                {(perfil as any).instagram_url.includes('instagram.com') 
+                  ? '@' + (perfil as any).instagram_url.split('/').filter(Boolean).pop()
+                  : (perfil as any).instagram_url.startsWith('@') ? (perfil as any).instagram_url : '@' + (perfil as any).instagram_url}
+              </a>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-1.5 mt-3 flex-wrap justify-center">
+              {isOwner && (
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
+                  style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}
+                  onClick={() => setEditDialogOpen(true)}>
+                  <Pencil className="w-3 h-3 mr-1" />Editar Perfil
                 </Button>
-              </div>
+              )}
+              {!isOwner && user && (
+                <>
+                  <ConectarButton targetUserId={perfil.user_id} currentUserId={user.id} />
+                  <Button size="sm" className="h-7 text-xs px-2.5" variant={isFollowing ? 'outline' : 'default'}
+                    onClick={handleFollow} disabled={toggleFollow.isPending}
+                    style={!isFollowing ? { backgroundColor: perfil.cor_destaque || undefined } : undefined}>
+                    {isFollowing ? <><UserCheck className="w-3 h-3 mr-1" />Seguindo</> : <><UserPlus className="w-3 h-3 mr-1" />Seguir</>}
+                  </Button>
+                </>
+              )}
+              <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={handleShare}
+                style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}>
+                <Share2 className="w-3 h-3 mr-1" />Compartilhar
+              </Button>
             </div>
           </div>
         </CardContent>
