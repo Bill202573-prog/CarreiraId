@@ -254,6 +254,9 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               onBannerChange={() => {}}
             />
 
+            {/* Color picker */}
+            <ColorPicker value={corDestaque} onChange={setCorDestaque} />
+
             <FormField control={form.control} name="nome" render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome *</FormLabel>
