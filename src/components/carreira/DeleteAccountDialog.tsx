@@ -32,22 +32,46 @@ export function DeleteAccountDialog({ open, onOpenChange, perfilId, perfilTable 
     setDeleting(true);
 
     try {
-      // Mark profile as inactive — use only columns that exist on the table
-      const updateData: Record<string, any> = { status_conta: 'inativo' };
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) throw new Error('Usuário não autenticado');
+
+      // 1. Delete posts authored by this profile
       if (perfilTable === 'perfil_atleta') {
-        updateData.is_public = false;
+        await supabase.from('posts_atleta').delete().eq('autor_id', perfilId);
+      } else {
+        await supabase.from('posts_atleta').delete().eq('perfil_rede_id', perfilId);
       }
 
-      const { error } = await supabase
-        .from(perfilTable)
-        .update(updateData as any)
-        .eq('id', perfilId);
+      // 2. Delete likes and comments by this user
+      await supabase.from('post_likes').delete().eq('user_id', userId);
+      await supabase.from('post_comentarios').delete().eq('user_id', userId);
 
-      if (error) throw error;
+      // 3. Delete connections
+      await supabase.from('rede_conexoes').delete().or(`solicitante_id.eq.${userId},destinatario_id.eq.${userId}`);
 
-      // Sign out the user
+      // 4. Delete follows
+      await supabase.from('atleta_follows').delete().eq('follower_id', userId);
+
+      // 5. Delete profile visualizations
+      if (perfilTable === 'perfil_atleta') {
+        await supabase.from('perfil_visualizacoes').delete().eq('perfil_atleta_id', perfilId);
+      }
+      await supabase.from('perfil_visualizacoes').delete().eq('viewer_user_id', userId);
+
+      // 6. Delete the profile itself
+      await supabase.from(perfilTable).delete().eq('id', perfilId);
+
+      // 7. Also delete the other profile table if it exists
+      if (perfilTable === 'perfil_atleta') {
+        await supabase.from('perfis_rede').delete().eq('user_id', userId);
+      } else {
+        await supabase.from('perfil_atleta').delete().eq('user_id', userId);
+      }
+
+      // 8. Sign out the user
       await supabase.auth.signOut();
-      toast.success('Sua conta foi desativada com sucesso. Seus dados foram removidos da plataforma.');
+      toast.success('Sua conta foi apagada permanentemente. Você pode se cadastrar novamente quando quiser.');
 
       if (isCarreiraDomain()) {
         navigate(carreiraPath('/'), { replace: true });
@@ -72,6 +96,9 @@ export function DeleteAccountDialog({ open, onOpenChange, perfilId, perfilTable 
           <AlertDialogDescription className="space-y-3">
             <p>
               <strong>Atenção:</strong> Esta ação é <strong>irreversível</strong>. Todos os seus dados, publicações, conexões e informações de perfil serão permanentemente removidos e <strong>não poderão ser recuperados</strong>.
+            </p>
+            <p>
+              Você poderá se cadastrar novamente usando os mesmos dados (CPF, email, etc).
             </p>
             <p>
               Para confirmar, digite <strong>"{CONFIRMATION_PHRASE}"</strong> no campo abaixo:
