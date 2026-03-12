@@ -57,10 +57,11 @@ export function DeleteAccountDialog({ open, onOpenChange, perfilId, perfilTable 
       await supabase.auth.signOut();
       toast.success('Sua conta foi apagada permanentemente. Você pode se cadastrar novamente quando quiser.');
 
+      // Use window.location to force full page reload, avoiding stale React state / blank screen
       if (isCarreiraDomain()) {
-        navigate(carreiraPath('/'), { replace: true });
+        window.location.href = '/';
       } else {
-        navigate('/auth', { replace: true });
+        window.location.href = '/auth';
       }
     } catch (err: any) {
       toast.error('Erro ao apagar conta: ' + err.message);
