@@ -43,7 +43,7 @@ interface Props {
   children?: ReactNode;
 }
 
-export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfile, children }: Props) {
+export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfile, accentColor, children }: Props) {
   const config = TYPE_CONFIG[perfil.tipo as ProfileType] || { label: perfil.tipo, icon: '👤', color: 'bg-muted text-muted-foreground' };
 
   const siteUrl = (perfil.site || perfil.dados_perfil?.site || perfil.dados_perfil?.portfolio || '').trim();
