@@ -150,9 +150,11 @@ const TYPE_LABELS: Record<ProfileType, string> = {
   empresario: 'Empresário',
   influenciador: 'Influenciador',
   atleta_filho: 'Atleta (meu filho)',
+  jogador_profissional: 'Jogador Profissional',
   scout: 'Scout',
   agente_clube: 'Agente de Clube',
   fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor',
 };
 
 interface Unidade {
