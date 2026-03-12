@@ -532,7 +532,7 @@ export default function CarreiraCadastroPage() {
         {step === 'invites' && userId && (
           <InvitePage
             userId={userId}
-            onSkip={() => navigate(carreiraPath('/'))}
+            onSkip={() => navigate(carreiraPath('/feed'))}
           />
         )}
 
