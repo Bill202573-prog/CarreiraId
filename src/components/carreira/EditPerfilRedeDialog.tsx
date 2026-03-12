@@ -182,13 +182,13 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
     setBrasaoUploading(true);
     try {
       const ext = file.name.split('.').pop();
-      const path = `perfis-rede/brasao-${user.id}-${Date.now()}.${ext}`;
+      const path = `${user.id}/brasao-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('atleta-fotos')
         .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
-      setBrasaoUrl(`${urlData.publicUrl}?t=${Date.now()}`);
+      setBrasaoUrl(urlData.publicUrl);
       toast.success('Brasão enviado!');
     } catch (err: any) {
       toast.error('Erro ao enviar brasão: ' + err.message);
