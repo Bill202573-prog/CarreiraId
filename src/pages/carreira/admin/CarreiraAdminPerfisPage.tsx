@@ -17,7 +17,8 @@ import CarreiraAdminLayout from '@/components/layout/CarreiraAdminLayout';
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor/Treinador', tecnico: 'Técnico', dono_escola: 'Dono de Escola',
   preparador_fisico: 'Preparador Físico', empresario: 'Empresário', influenciador: 'Influenciador',
-  pai_responsavel: 'Pai/Responsável', scout: 'Scout', agente_clube: 'Agente de Clube', fotografo: 'Fotógrafo',
+  scout: 'Scout', agente_clube: 'Agente de Clube', fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor', jogador_profissional: 'Jogador Profissional', plataforma: 'Plataforma',
 };
 
 function useAdminPerfisAtleta(search: string) {
