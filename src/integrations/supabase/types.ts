@@ -131,6 +131,99 @@ export type Database = {
         }
         Relationships: []
       }
+      atividades_externas_sync: {
+        Row: {
+          atleta_id_atividade_id: string
+          carga_horaria_horas: number | null
+          created_at: string
+          credibilidade_status: string
+          crianca_id: string
+          data: string
+          data_fim: string | null
+          duracao_minutos: number
+          evidencia_tipo: string | null
+          evidencia_url: string | null
+          fotos_urls: string[] | null
+          frequencia_semanal: number | null
+          id: string
+          local_atividade: string
+          metodologia: string | null
+          objetivos: string[] | null
+          observacoes: string | null
+          organizador: string | null
+          origem: string
+          profissionais_envolvidos: string[] | null
+          profissional_instituicao: string
+          synced_at: string
+          tipo: string
+          tipo_outro_descricao: string | null
+          tornar_publico: boolean | null
+          torneio_abrangencia: string | null
+          torneio_nome: string | null
+          updated_at: string
+        }
+        Insert: {
+          atleta_id_atividade_id: string
+          carga_horaria_horas?: number | null
+          created_at?: string
+          credibilidade_status?: string
+          crianca_id: string
+          data: string
+          data_fim?: string | null
+          duracao_minutos?: number
+          evidencia_tipo?: string | null
+          evidencia_url?: string | null
+          fotos_urls?: string[] | null
+          frequencia_semanal?: number | null
+          id?: string
+          local_atividade: string
+          metodologia?: string | null
+          objetivos?: string[] | null
+          observacoes?: string | null
+          organizador?: string | null
+          origem?: string
+          profissionais_envolvidos?: string[] | null
+          profissional_instituicao: string
+          synced_at?: string
+          tipo: string
+          tipo_outro_descricao?: string | null
+          tornar_publico?: boolean | null
+          torneio_abrangencia?: string | null
+          torneio_nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          atleta_id_atividade_id?: string
+          carga_horaria_horas?: number | null
+          created_at?: string
+          credibilidade_status?: string
+          crianca_id?: string
+          data?: string
+          data_fim?: string | null
+          duracao_minutos?: number
+          evidencia_tipo?: string | null
+          evidencia_url?: string | null
+          fotos_urls?: string[] | null
+          frequencia_semanal?: number | null
+          id?: string
+          local_atividade?: string
+          metodologia?: string | null
+          objetivos?: string[] | null
+          observacoes?: string | null
+          organizador?: string | null
+          origem?: string
+          profissionais_envolvidos?: string[] | null
+          profissional_instituicao?: string
+          synced_at?: string
+          tipo?: string
+          tipo_outro_descricao?: string | null
+          tornar_publico?: boolean | null
+          torneio_abrangencia?: string | null
+          torneio_nome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       atividades_externas_whitelist: {
         Row: {
           ativo: boolean
@@ -322,6 +415,51 @@ export type Database = {
         }
         Relationships: []
       }
+      conquistas_coletivas_sync: {
+        Row: {
+          atleta_id_conquista_id: string
+          created_at: string
+          crianca_id: string
+          data: string | null
+          descricao: string | null
+          evento_nome: string | null
+          id: string
+          origem: string
+          synced_at: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          atleta_id_conquista_id: string
+          created_at?: string
+          crianca_id: string
+          data?: string | null
+          descricao?: string | null
+          evento_nome?: string | null
+          id?: string
+          origem?: string
+          synced_at?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          atleta_id_conquista_id?: string
+          created_at?: string
+          crianca_id?: string
+          data?: string | null
+          descricao?: string | null
+          evento_nome?: string | null
+          id?: string
+          origem?: string
+          synced_at?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       crianca_escolinha: {
         Row: {
           ativo: boolean
@@ -476,6 +614,90 @@ export type Database = {
           quantidade_meta?: number
           tipo_perfil_alvo?: string[] | null
           titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      evento_gols_sync: {
+        Row: {
+          atleta_id_gol_id: string
+          created_at: string
+          crianca_id: string
+          evento_id: string | null
+          evento_nome: string | null
+          id: string
+          origem: string
+          quantidade: number
+          synced_at: string
+          time_id: string | null
+          time_nome: string | null
+          updated_at: string
+        }
+        Insert: {
+          atleta_id_gol_id: string
+          created_at?: string
+          crianca_id: string
+          evento_id?: string | null
+          evento_nome?: string | null
+          id?: string
+          origem?: string
+          quantidade?: number
+          synced_at?: string
+          time_id?: string | null
+          time_nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          atleta_id_gol_id?: string
+          created_at?: string
+          crianca_id?: string
+          evento_id?: string | null
+          evento_nome?: string | null
+          id?: string
+          origem?: string
+          quantidade?: number
+          synced_at?: string
+          time_id?: string | null
+          time_nome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      evento_premiacoes_sync: {
+        Row: {
+          atleta_id_premiacao_id: string
+          created_at: string
+          crianca_id: string
+          evento_id: string | null
+          evento_nome: string | null
+          id: string
+          origem: string
+          synced_at: string
+          tipo_premiacao: string
+          updated_at: string
+        }
+        Insert: {
+          atleta_id_premiacao_id: string
+          created_at?: string
+          crianca_id: string
+          evento_id?: string | null
+          evento_nome?: string | null
+          id?: string
+          origem?: string
+          synced_at?: string
+          tipo_premiacao: string
+          updated_at?: string
+        }
+        Update: {
+          atleta_id_premiacao_id?: string
+          created_at?: string
+          crianca_id?: string
+          evento_id?: string | null
+          evento_nome?: string | null
+          id?: string
+          origem?: string
+          synced_at?: string
+          tipo_premiacao?: string
           updated_at?: string
         }
         Relationships: []
