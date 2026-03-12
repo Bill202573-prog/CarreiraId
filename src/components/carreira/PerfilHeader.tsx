@@ -50,6 +50,15 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const [uploading, setUploading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editContaOpen, setEditContaOpen] = useState(false);
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+
+  // Fallback to direct Supabase auth for Carreira-only users
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) setSessionUserId(session.user.id);
+    });
+  }, []);
+  const effectiveUserId = user?.id || sessionUserId;
   const { data: isFollowing } = useIsFollowing(perfil.id);
   const toggleFollow = useToggleFollow();
   const { data: experiencias } = useCarreiraExperiencias(perfil.crianca_id);
