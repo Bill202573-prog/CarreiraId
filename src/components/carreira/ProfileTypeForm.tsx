@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, Upload, Lock, Plus, Trash2 } from 'lucide-react';
 import type { ProfileType } from './ProfileTypeSelector';
 import { validateCPF, formatCPF, cleanCPF } from '@/lib/cpf-validator';
 import { validateCNPJ, formatCNPJ } from '@/lib/cnpj-validator';
+import { ColorPicker } from './ColorPicker';
 
 interface Props {
   type: ProfileType;
@@ -160,6 +161,7 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [whatsappPublico, setWhatsappPublico] = useState(false);
+  const [corDestaque, setCorDestaque] = useState('#3b82f6');
 
   const isDono = type === 'dono_escola';
 
@@ -284,6 +286,9 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
         }
       }
 
+      // Save accent color
+      dadosPerfil.cor_destaque = corDestaque;
+
       const { error } = await supabase.from('perfis_rede').insert({
         user_id: userId,
         tipo: type,
@@ -372,6 +377,9 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
             </label>
           </div>
         </div>
+
+        {/* Color picker */}
+        <ColorPicker value={corDestaque} onChange={setCorDestaque} />
 
         {/* CPF/CNPJ and WhatsApp - Private fields */}
         <div className="rounded-lg border border-border p-4 space-y-4 bg-muted/30">

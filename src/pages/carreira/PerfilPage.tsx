@@ -8,6 +8,8 @@ import { PerfilLayout } from '@/components/carreira/perfis/PerfilLayout';
 import { DadosEspecificos } from '@/components/carreira/perfis/DadosEspecificos';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
+import { HistoricoProfissionalSection, type HistoricoProfissional } from '@/components/carreira/HistoricoProfissionalSection';
+import { HistoricoProfissionalFormDialog } from '@/components/carreira/HistoricoProfissionalFormDialog';
 
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
@@ -18,13 +20,17 @@ import { usePostsRede } from '@/hooks/useCarreiraData';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useEffect, useState } from 'react';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function PerfilPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  
+  const [historicoDialogOpen, setHistoricoDialogOpen] = useState(false);
+  const [editingHistorico, setEditingHistorico] = useState<HistoricoProfissional | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -151,16 +157,54 @@ export default function PerfilPage() {
           }}
           isOwnProfile={isOwnProfile}
           currentUserId={currentUserId}
+          accentColor={(redeProfile.dados_perfil as any)?.cor_destaque || '#3b82f6'}
           onEditProfile={isOwnProfile ? () => setEditDialogOpen(true) : undefined}
         >
-          {(() => {
-            const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
-            const showDescobrir = isOwnProfile && SCOUTING_TYPES.includes(redeProfile.tipo);
-            return (
+        {(() => {
+          const redeAccent = (redeProfile.dados_perfil as any)?.cor_destaque || '#3b82f6';
+          const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
+          const showDescobrir = isOwnProfile && SCOUTING_TYPES.includes(redeProfile.tipo);
+          const NON_HISTORICO_TYPES = ['atleta_filho', 'pai_responsavel', 'influenciador'];
+          const showHistorico = !NON_HISTORICO_TYPES.includes(redeProfile.tipo);
+          const historico: HistoricoProfissional[] = (redeProfile.dados_perfil as any)?.historico_profissional || [];
+
+          const handleSaveHistorico = async (item: HistoricoProfissional) => {
+            const dados = (redeProfile.dados_perfil || {}) as Record<string, any>;
+            const list: HistoricoProfissional[] = dados.historico_profissional || [];
+            const idx = list.findIndex(h => h.id === item.id);
+            const updated = idx >= 0 ? list.map((h, i) => i === idx ? item : h) : [...list, item];
+            updated.sort((a, b) => b.data_inicio.localeCompare(a.data_inicio));
+
+            await supabase.from('perfis_rede').update({
+              dados_perfil: { ...dados, historico_profissional: updated },
+            } as any).eq('id', redeProfile.id);
+
+            queryClient.invalidateQueries({ queryKey: ['perfil-rede', userId] });
+            toast.success(idx >= 0 ? 'Experiência atualizada!' : 'Experiência adicionada!');
+            setEditingHistorico(null);
+          };
+
+          const handleDeleteHistorico = async (id: string) => {
+            const dados = (redeProfile.dados_perfil || {}) as Record<string, any>;
+            const list: HistoricoProfissional[] = dados.historico_profissional || [];
+            await supabase.from('perfis_rede').update({
+              dados_perfil: { ...dados, historico_profissional: list.filter(h => h.id !== id) },
+            } as any).eq('id', redeProfile.id);
+            queryClient.invalidateQueries({ queryKey: ['perfil-rede', userId] });
+            toast.success('Experiência removida');
+          };
+
+          const tabCount = 3 + (showHistorico ? 1 : 0) + (showDescobrir ? 1 : 0);
+
+          return (
+            <>
               <Tabs defaultValue="publicacoes" className="mt-4">
-                <TabsList className={`w-full ${showDescobrir ? 'grid grid-cols-4' : ''}`}>
+                <TabsList className={`w-full grid grid-cols-${tabCount}`}>
                   <TabsTrigger value="publicacoes" className="flex-1">Publicações</TabsTrigger>
                   <TabsTrigger value="sobre" className="flex-1">Sobre</TabsTrigger>
+                  {showHistorico && (
+                    <TabsTrigger value="historico" className="flex-1">Histórico</TabsTrigger>
+                  )}
                   <TabsTrigger value="conexoes" className="flex-1">Conexões</TabsTrigger>
                   {showDescobrir && (
                     <TabsTrigger value="descobrir" className="flex-1">Descobrir</TabsTrigger>
@@ -175,6 +219,18 @@ export default function PerfilPage() {
                     dados={redeProfile.dados_perfil as Record<string, any> | null}
                   />
                 </TabsContent>
+                {showHistorico && (
+                  <TabsContent value="historico">
+                    <HistoricoProfissionalSection
+                      historico={historico}
+                      isOwner={isOwnProfile}
+                      accentColor={redeAccent}
+                      onAdd={() => { setEditingHistorico(null); setHistoricoDialogOpen(true); }}
+                      onEdit={(item) => { setEditingHistorico(item); setHistoricoDialogOpen(true); }}
+                      onDelete={handleDeleteHistorico}
+                    />
+                  </TabsContent>
+                )}
                 <TabsContent value="conexoes">
                   <ConnectionsSection
                     userId={redeProfile.user_id}
@@ -187,8 +243,17 @@ export default function PerfilPage() {
                   </TabsContent>
                 )}
               </Tabs>
-            );
-          })()}
+              {isOwnProfile && (
+                <HistoricoProfissionalFormDialog
+                  open={historicoDialogOpen}
+                  onOpenChange={setHistoricoDialogOpen}
+                  editing={editingHistorico}
+                  onSave={handleSaveHistorico}
+                />
+              )}
+            </>
+          );
+        })()}
         </PerfilLayout>
       </main>
 

@@ -318,7 +318,7 @@ export default function CarreiraPerfilPage() {
     enabled: !!currentUserId && isOwner,
   });
 
-  // Profile views (who viewed my profile - like LinkedIn)
+  // Profile views (who viewed my profile - like LinkedIn) — enriched with fresh photos
   const { data: profileViews } = useQuery({
     queryKey: ['profile-views', perfil?.id],
     queryFn: async () => {
@@ -329,7 +329,32 @@ export default function CarreiraPerfilPage() {
         .order('created_at', { ascending: false })
         .limit(10);
       if (error) throw error;
-      return data || [];
+      if (!data || data.length === 0) return [];
+
+      // Enrich with fresh photos from perfis_rede and perfil_atleta
+      const viewerIds = [...new Set(data.map(v => v.viewer_user_id))];
+      const { data: redeProfiles } = await supabase
+        .from('perfis_rede')
+        .select('user_id, foto_url, nome, tipo')
+        .in('user_id', viewerIds);
+      const { data: atletaProfiles } = await supabase
+        .from('perfil_atleta')
+        .select('user_id, foto_url, nome')
+        .in('user_id', viewerIds);
+
+      const redeMap = new Map((redeProfiles || []).map(p => [p.user_id, p]));
+      const atletaMap = new Map((atletaProfiles || []).map(p => [p.user_id, p]));
+
+      return data.map(view => {
+        const rede = redeMap.get(view.viewer_user_id);
+        const atleta = atletaMap.get(view.viewer_user_id);
+        return {
+          ...view,
+          viewer_foto_url: rede?.foto_url || atleta?.foto_url || view.viewer_foto_url,
+          viewer_nome: rede?.nome || atleta?.nome || view.viewer_nome,
+          viewer_tipo: rede?.tipo || view.viewer_tipo,
+        };
+      });
     },
     enabled: !!perfil?.id && perfil?.type === 'atleta',
   });
@@ -409,7 +434,9 @@ export default function CarreiraPerfilPage() {
     );
   }
 
-  const accentColor = perfil.cor_destaque || '#3b82f6';
+  const accentColor = perfil.type === 'rede'
+    ? ((perfil.dados_perfil as any)?.cor_destaque || '#3b82f6')
+    : (perfil.cor_destaque || '#3b82f6');
   const modalidades = perfil.type === 'atleta' 
     ? (perfil.modalidades?.length ? perfil.modalidades : [perfil.modalidade || 'Futebol'])
     : [];
@@ -784,6 +811,7 @@ export default function CarreiraPerfilPage() {
                   }}
                   isOwnProfile={isOwner}
                   currentUserId={currentUserId}
+                  accentColor={accentColor}
                   onEditProfile={isOwner ? () => setEditDialogOpen(true) : undefined}
                 />
               </div>

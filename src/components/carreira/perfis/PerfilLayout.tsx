@@ -39,10 +39,11 @@ interface Props {
   isOwnProfile: boolean;
   currentUserId?: string | null;
   onEditProfile?: () => void;
+  accentColor?: string;
   children?: ReactNode;
 }
 
-export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfile, children }: Props) {
+export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfile, accentColor, children }: Props) {
   const config = TYPE_CONFIG[perfil.tipo as ProfileType] || { label: perfil.tipo, icon: '👤', color: 'bg-muted text-muted-foreground' };
 
   const siteUrl = (perfil.site || perfil.dados_perfil?.site || perfil.dados_perfil?.portfolio || '').trim();
@@ -66,9 +67,14 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-shrink-0 flex justify-center sm:justify-start">
             {perfil.foto_url ? (
-              <img src={perfil.foto_url} alt={perfil.nome} className="w-24 h-24 rounded-full object-cover ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg" />
+              <img src={perfil.foto_url} alt={perfil.nome}
+                className="w-24 h-24 rounded-full object-cover ring-2 ring-offset-2 ring-offset-background shadow-lg"
+                style={accentColor ? { '--tw-ring-color': accentColor } as any : undefined}
+              />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg">
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground ring-2 ring-offset-2 ring-offset-background shadow-lg"
+                style={accentColor ? { '--tw-ring-color': accentColor } as any : undefined}
+              >
                 {perfil.nome?.[0]?.toUpperCase()}
               </div>
             )}

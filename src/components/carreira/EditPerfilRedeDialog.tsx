@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCPF } from '@/lib/cpf-validator';
 import { formatCNPJ } from '@/lib/cnpj-validator';
+import { ColorPicker } from './ColorPicker';
 
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -68,6 +69,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   const [saving, setSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState(perfil?.foto_url || '');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [corDestaque, setCorDestaque] = useState((perfil?.dados_perfil as any)?.cor_destaque || '#3b82f6');
 
   // Account fields (from profiles table)
   const [contaEmail, setContaEmail] = useState('');
@@ -124,6 +126,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         certificacoes: d.certificacoes || '',
       });
       setPhotoUrl(perfil.foto_url || '');
+      setCorDestaque(d.cor_destaque || '#3b82f6');
       setUnidades(Array.isArray(d.unidades) ? d.unidades : []);
 
       // Load account data
@@ -172,6 +175,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         experiencia_anos: data.experiencia_anos ? parseInt(data.experiencia_anos) : null,
         certificacoes: data.certificacoes || null,
         unidades: isDono ? unidades.filter(u => u.nome.trim() || u.bairro.trim()) : (dados.unidades || null),
+        cor_destaque: corDestaque,
       };
 
       const { error } = await supabase
@@ -249,6 +253,9 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               onPhotoChange={setPhotoUrl}
               onBannerChange={() => {}}
             />
+
+            {/* Color picker */}
+            <ColorPicker value={corDestaque} onChange={setCorDestaque} />
 
             <FormField control={form.control} name="nome" render={({ field }) => (
               <FormItem>
