@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      amistoso_convocacoes_sync: {
+        Row: {
+          atleta_id_convocacao_id: string
+          created_at: string | null
+          crianca_id: string
+          evento_adversario: string | null
+          evento_data: string | null
+          evento_local: string | null
+          evento_nome: string | null
+          evento_placar_time1: number | null
+          evento_placar_time2: number | null
+          evento_status: string | null
+          evento_tipo: string | null
+          id: string
+          origem: string
+          presente: boolean | null
+          status: string | null
+          synced_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          atleta_id_convocacao_id: string
+          created_at?: string | null
+          crianca_id: string
+          evento_adversario?: string | null
+          evento_data?: string | null
+          evento_local?: string | null
+          evento_nome?: string | null
+          evento_placar_time1?: number | null
+          evento_placar_time2?: number | null
+          evento_status?: string | null
+          evento_tipo?: string | null
+          id?: string
+          origem?: string
+          presente?: boolean | null
+          status?: string | null
+          synced_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          atleta_id_convocacao_id?: string
+          created_at?: string | null
+          crianca_id?: string
+          evento_adversario?: string | null
+          evento_data?: string | null
+          evento_local?: string | null
+          evento_nome?: string | null
+          evento_placar_time1?: number | null
+          evento_placar_time2?: number | null
+          evento_status?: string | null
+          evento_tipo?: string | null
+          id?: string
+          origem?: string
+          presente?: boolean | null
+          status?: string | null
+          synced_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       atividades_externas: {
         Row: {
           carga_horaria_horas: number | null
@@ -304,6 +367,60 @@ export type Database = {
           created_at?: string
           id?: string
           word?: string
+        }
+        Relationships: []
+      }
+      campeonato_convocacoes_sync: {
+        Row: {
+          atleta_id_convocacao_id: string
+          campeonato_ano: number | null
+          campeonato_categoria: string | null
+          campeonato_nome: string | null
+          campeonato_nome_time: string | null
+          campeonato_status: string | null
+          created_at: string | null
+          crianca_id: string
+          escolinha_nome: string | null
+          id: string
+          origem: string
+          status: string | null
+          synced_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          atleta_id_convocacao_id: string
+          campeonato_ano?: number | null
+          campeonato_categoria?: string | null
+          campeonato_nome?: string | null
+          campeonato_nome_time?: string | null
+          campeonato_status?: string | null
+          created_at?: string | null
+          crianca_id: string
+          escolinha_nome?: string | null
+          id?: string
+          origem?: string
+          status?: string | null
+          synced_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          atleta_id_convocacao_id?: string
+          campeonato_ano?: number | null
+          campeonato_categoria?: string | null
+          campeonato_nome?: string | null
+          campeonato_nome_time?: string | null
+          campeonato_status?: string | null
+          created_at?: string | null
+          crianca_id?: string
+          escolinha_nome?: string | null
+          id?: string
+          origem?: string
+          status?: string | null
+          synced_at?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -623,8 +740,12 @@ export type Database = {
           atleta_id_gol_id: string
           created_at: string
           crianca_id: string
+          evento_adversario: string | null
+          evento_data: string | null
           evento_id: string | null
           evento_nome: string | null
+          evento_placar_time1: number | null
+          evento_placar_time2: number | null
           id: string
           origem: string
           quantidade: number
@@ -637,8 +758,12 @@ export type Database = {
           atleta_id_gol_id: string
           created_at?: string
           crianca_id: string
+          evento_adversario?: string | null
+          evento_data?: string | null
           evento_id?: string | null
           evento_nome?: string | null
+          evento_placar_time1?: number | null
+          evento_placar_time2?: number | null
           id?: string
           origem?: string
           quantidade?: number
@@ -651,8 +776,12 @@ export type Database = {
           atleta_id_gol_id?: string
           created_at?: string
           crianca_id?: string
+          evento_adversario?: string | null
+          evento_data?: string | null
           evento_id?: string | null
           evento_nome?: string | null
+          evento_placar_time1?: number | null
+          evento_placar_time2?: number | null
           id?: string
           origem?: string
           quantidade?: number
@@ -668,6 +797,7 @@ export type Database = {
           atleta_id_premiacao_id: string
           created_at: string
           crianca_id: string
+          evento_data: string | null
           evento_id: string | null
           evento_nome: string | null
           id: string
@@ -680,6 +810,7 @@ export type Database = {
           atleta_id_premiacao_id: string
           created_at?: string
           crianca_id: string
+          evento_data?: string | null
           evento_id?: string | null
           evento_nome?: string | null
           id?: string
@@ -692,6 +823,7 @@ export type Database = {
           atleta_id_premiacao_id?: string
           created_at?: string
           crianca_id?: string
+          evento_data?: string | null
           evento_id?: string | null
           evento_nome?: string | null
           id?: string
