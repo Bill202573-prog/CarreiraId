@@ -816,13 +816,15 @@ export default function CarreiraPerfilPage() {
                   accentColor={accentColor}
                   onEditProfile={isOwner ? () => setEditDialogOpen(true) : undefined}
                 />
-                </div>
-                {/* Dados Específicos do perfil rede */}
-                <DadosEspecificos
-                  tipo={perfil.tipo as any}
-                  dados={perfil.dados_perfil as Record<string, any> | null}
-                />
               </div>
+            )}
+            {/* Dados Específicos do perfil rede */}
+            {perfil.type === 'rede' && (
+              <DadosEspecificos
+                tipo={perfil.tipo as any}
+                dados={perfil.dados_perfil as Record<string, any> | null}
+              />
+            )}
 
             {/* Quem viu este perfil — public, below profile header */}
             {perfil.type === 'atleta' && profileViews && profileViews.length > 0 && (
