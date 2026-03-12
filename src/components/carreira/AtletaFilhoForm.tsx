@@ -141,7 +141,10 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           .from('atleta-fotos')
           .upload(path, fotoFile, { upsert: true });
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error('Erro upload foto:', uploadError);
+          toast.error('Erro ao enviar foto, mas o perfil será criado sem foto.');
+        } else {
           const { data: urlData } = supabase.storage
             .from('atleta-fotos')
             .getPublicUrl(path);

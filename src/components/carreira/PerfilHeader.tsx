@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,6 +50,15 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const [uploading, setUploading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editContaOpen, setEditContaOpen] = useState(false);
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+
+  // Fallback to direct Supabase auth for Carreira-only users
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) setSessionUserId(session.user.id);
+    });
+  }, []);
+  const effectiveUserId = user?.id || sessionUserId;
   const { data: isFollowing } = useIsFollowing(perfil.id);
   const toggleFollow = useToggleFollow();
   const { data: experiencias } = useCarreiraExperiencias(perfil.crianca_id);
@@ -92,14 +101,14 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file || !effectiveUserId) return;
     if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic')) {
       toast.error('Por favor, selecione uma imagem');
       return;
     }
     setUploading(true);
     try {
-      const url = await uploadProfilePhoto(file, user.id);
+      const url = await uploadProfilePhoto(file, effectiveUserId);
       // Optimistic update: reflect photo immediately in cache
       queryClient.setQueryData(['perfil-atleta', perfil.slug], (old: any) =>
         old ? { ...old, foto_url: url } : old

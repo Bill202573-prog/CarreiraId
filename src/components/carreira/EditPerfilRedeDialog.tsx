@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -82,6 +82,15 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   // Brasão for torcedor
   const [brasaoUrl, setBrasaoUrl] = useState('');
   const [brasaoUploading, setBrasaoUploading] = useState(false);
+
+  // Fallback to direct Supabase auth for Carreira-only users
+  const sessionUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) sessionUserIdRef.current = session.user.id;
+    });
+  }, []);
+  const getEffectiveUserId = () => user?.id || sessionUserIdRef.current;
 
   // Unidades (filiais) for dono_escola
   const [unidades, setUnidades] = useState<Unidade[]>([]);
@@ -178,11 +187,15 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
 
   const handleBrasaoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    const effectiveId = getEffectiveUserId();
+    if (!file || !effectiveId) {
+      if (!effectiveId) toast.error('Você precisa estar logado para enviar o brasão');
+      return;
+    }
     setBrasaoUploading(true);
     try {
       const ext = file.name.split('.').pop();
-      const path = `${user.id}/brasao-${Date.now()}.${ext}`;
+      const path = `${effectiveId}/brasao-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('atleta-fotos')
         .upload(path, file, { upsert: true });
@@ -301,6 +314,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
               currentBannerUrl=""
               onPhotoChange={setPhotoUrl}
               onBannerChange={() => {}}
+              showBanner={false}
             />
 
             {/* Color picker */}
