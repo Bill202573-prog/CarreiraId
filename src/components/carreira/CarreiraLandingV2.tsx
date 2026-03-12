@@ -240,7 +240,7 @@ export function CarreiraLandingV2() {
             <img
               src={mockupCelular}
               alt="Carreira ID - Perfil de atleta no celular"
-              className="w-full max-w-[280px] md:max-w-[320px] rounded-3xl shadow-2xl border border-[#2a3a4e]"
+              className="w-full max-w-[280px] md:max-w-[320px] drop-shadow-2xl"
             />
           </div>
         </div>
