@@ -257,6 +257,12 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       return;
     }
 
+    // Validate email
+    if (!email.trim() || !email.includes('@')) {
+      toast.error('Email é obrigatório');
+      return;
+    }
+
     // Validate required fields
     for (const field of fields) {
       if (field.required && !field.isProfileField) {
