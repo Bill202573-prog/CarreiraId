@@ -242,6 +242,19 @@ section {
   border-color: hsl(220 10% 22%);
 }
 
+/* Radix Select trigger (button-based) - fix contrast on dark theme */
+[data-theme="dark-orange"] [role="combobox"],
+[data-theme="dark-orange"] button[data-slot="select-trigger"] {
+  color: hsl(0 0% 95%);
+  background-color: hsl(220 12% 10%);
+  border-color: hsl(220 10% 22%);
+}
+
+[data-theme="dark-orange"] [role="combobox"] span[data-placeholder],
+[data-theme="dark-orange"] [role="combobox"] .text-muted-foreground {
+  color: hsl(0 0% 50%);
+}
+
 [data-theme="dark-orange"] input::placeholder,
 [data-theme="dark-orange"] textarea::placeholder {
   color: hsl(0 0% 40%);
