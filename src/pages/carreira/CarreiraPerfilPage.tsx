@@ -717,8 +717,8 @@ export default function CarreiraPerfilPage() {
               </Card>
             )}
 
-            {/* Gamificação — desktop only */}
-            {isOwner && (
+            {/* Gamificação — desktop only, athletes only (not scouts/técnicos) */}
+            {isOwner && perfil.type === 'atleta' && (
               <GamificacaoHeroCard accentColor={accentColor} />
             )}
 
