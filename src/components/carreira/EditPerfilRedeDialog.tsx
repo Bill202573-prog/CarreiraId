@@ -203,7 +203,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
       const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
       const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
 
-      const newDados = {
+      const newDados: Record<string, any> = {
         ...dados,
         cor_destaque: corDestaque,
         cidade: data.cidade || null,
