@@ -289,6 +289,7 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       // Save accent color
       dadosPerfil.cor_destaque = corDestaque;
 
+      const { error } = await supabase.from('perfis_rede').insert({
         user_id: userId,
         tipo: type,
         nome: nome.trim(),
