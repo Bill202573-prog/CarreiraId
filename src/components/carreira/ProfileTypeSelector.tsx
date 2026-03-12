@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 
 export type ProfileType =
   | 'atleta_filho'
+  | 'jogador_profissional'
   | 'professor'
   | 'tecnico'
   | 'dono_escola'
@@ -10,7 +11,8 @@ export type ProfileType =
   | 'influenciador'
   | 'scout'
   | 'agente_clube'
-  | 'fotografo';
+  | 'fotografo'
+  | 'torcedor';
 
 interface ProfileOption {
   type: ProfileType;
@@ -21,6 +23,7 @@ interface ProfileOption {
 
 const PROFILE_OPTIONS: ProfileOption[] = [
   { type: 'atleta_filho', icon: '⚽', label: 'Cadastrar meu Atleta', description: 'Crie o perfil esportivo do seu filho (você administra)' },
+  { type: 'jogador_profissional', icon: '🏟️', label: 'Jogador Profissional', description: 'Joga ou já jogou profissionalmente' },
   { type: 'professor', icon: '👨‍🏫', label: 'Professor / Treinador', description: 'Ensina e treina atletas em formação' },
   { type: 'tecnico', icon: '📋', label: 'Técnico de Futebol', description: 'Dirige equipes em competições e jogos' },
   { type: 'dono_escola', icon: '🏫', label: 'Dono de Escola', description: 'Administra escolinha ou clube de base' },
@@ -30,6 +33,7 @@ const PROFILE_OPTIONS: ProfileOption[] = [
   { type: 'scout', icon: '🎯', label: 'Scout', description: 'Observa e identifica talentos esportivos' },
   { type: 'agente_clube', icon: '🏢', label: 'Agente de Clube', description: 'Representa um clube na captação de talentos' },
   { type: 'fotografo', icon: '📸', label: 'Fotógrafo', description: 'Registra momentos esportivos' },
+  { type: 'torcedor', icon: '🎉', label: 'Torcedor', description: 'Participe da rede e acompanhe o esporte' },
 ];
 
 interface Props {

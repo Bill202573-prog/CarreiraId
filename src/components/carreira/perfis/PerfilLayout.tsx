@@ -15,9 +15,11 @@ const TYPE_CONFIG: Record<ProfileType, { label: string; icon: string; color: str
   empresario: { label: 'Empresário', icon: '💼', color: 'bg-slate-500/10 text-slate-700 border-slate-200' },
   influenciador: { label: 'Influenciador', icon: '⭐', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-200' },
   atleta_filho: { label: 'Atleta', icon: '⚽', color: 'bg-green-500/10 text-green-700 border-green-200' },
+  jogador_profissional: { label: 'Jogador Profissional', icon: '🏟️', color: 'bg-emerald-500/10 text-emerald-700 border-emerald-200' },
   scout: { label: 'Scout', icon: '🎯', color: 'bg-red-500/10 text-red-700 border-red-200' },
   agente_clube: { label: 'Agente de Clube', icon: '🏢', color: 'bg-cyan-500/10 text-cyan-700 border-cyan-200' },
   fotografo: { label: 'Fotógrafo', icon: '📸', color: 'bg-indigo-500/10 text-indigo-700 border-indigo-200' },
+  torcedor: { label: 'Torcedor', icon: '🎉', color: 'bg-amber-500/10 text-amber-700 border-amber-200' },
 };
 
 interface PerfilData {

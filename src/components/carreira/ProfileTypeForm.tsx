@@ -99,6 +99,20 @@ function getFields(type: ProfileType): FieldDef[] {
         { key: 'localizacao', label: 'Localização', type: 'text', placeholder: 'Cidade, Estado' },
         ...common,
       ];
+    case 'jogador_profissional':
+      return [
+        { key: 'clube_atual', label: 'Clube Atual (ou último)', type: 'text', required: true, placeholder: 'Ex: Santos FC' },
+        { key: 'status_carreira', label: 'Status da Carreira', type: 'select', required: true, options: ['Ativo', 'Aposentado'] },
+        { key: 'posicao', label: 'Posição', type: 'select', required: true, options: POSICOES },
+        { key: 'categorias', label: 'Categorias que jogou', type: 'multiselect', options: [...CATEGORIAS, 'Seleção Brasileira'] },
+        { key: 'titulos', label: 'Títulos e Conquistas', type: 'textarea', placeholder: 'Liste seus títulos...' },
+        ...common,
+      ];
+    case 'torcedor':
+      return [
+        { key: 'time_torcida', label: 'Time do coração', type: 'text', required: true, placeholder: 'Ex: Flamengo' },
+        ...common,
+      ];
     case 'scout':
       return [
         { key: 'especialidade', label: 'Especialidade', type: 'select', required: true, options: ['Futebol de Base', 'Profissional', 'Internacional', 'Feminino', 'Outro'] },
@@ -136,9 +150,11 @@ const TYPE_LABELS: Record<ProfileType, string> = {
   empresario: 'Empresário',
   influenciador: 'Influenciador',
   atleta_filho: 'Atleta (meu filho)',
+  jogador_profissional: 'Jogador Profissional',
   scout: 'Scout',
   agente_clube: 'Agente de Clube',
   fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor',
 };
 
 interface Unidade {

@@ -61,6 +61,16 @@ const FIELDS_BY_TYPE: Record<ProfileType, FieldDisplay[]> = {
     { key: 'outras_redes', label: 'Outras Redes', type: 'multiline' },
   ],
   atleta_filho: [],
+  jogador_profissional: [
+    { key: 'clube_atual', label: 'Clube Atual (ou último)' },
+    { key: 'status_carreira', label: 'Status da Carreira' },
+    { key: 'posicao', label: 'Posição' },
+    { key: 'categorias', label: 'Categorias', type: 'list' },
+    { key: 'titulos', label: 'Títulos e Conquistas', type: 'multiline' },
+  ],
+  torcedor: [
+    { key: 'time_torcida', label: 'Time do Coração' },
+  ],
   scout: [
     { key: 'especialidade', label: 'Especialidade' },
     { key: 'regioes', label: 'Regiões de Atuação' },
