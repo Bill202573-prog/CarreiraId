@@ -23,6 +23,20 @@ import { toast } from 'sonner';
 import { EditPerfilDialog } from './EditPerfilDialog';
 import { EditContaDialog } from './EditContaDialog';
 
+function TorcedoresCount({ perfilId }: { perfilId: string }) {
+  const { data: count } = useQuery({
+    queryKey: ['torcedores-count', perfilId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('atleta_follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_perfil_id', perfilId);
+      return count || 0;
+    },
+  });
+  return <span><strong className="text-foreground">{count ?? 0}</strong> torcedores</span>;
+}
+
 interface PerfilHeaderProps {
   perfil: PerfilAtleta;
   isOwner?: boolean;
@@ -171,7 +185,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
 
               {/* Status automático + badges técnicos */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-1.5">
                 {atletaStatusInfo && (
                   <Badge variant="outline" className="gap-1 text-xs font-semibold"
                     style={{ borderColor: perfil.cor_destaque || '#3b82f6', color: perfil.cor_destaque || '#3b82f6' }}>
@@ -190,7 +204,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
               {/* Technical data: position + dominant foot */}
               {(perfil.posicao_principal || perfil.pe_dominante) && (
-                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1 text-xs text-muted-foreground">
                   {perfil.posicao_principal && (
                     <span className="flex items-center gap-1">
                       <Footprints className="w-3 h-3" />
@@ -205,16 +219,17 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
 
               {(perfil.cidade || perfil.estado) && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5">
+                <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-muted-foreground mt-1.5">
                   <MapPin className="w-3 h-3" />
                   <span>{[perfil.cidade, perfil.estado].filter(Boolean).join(', ')}</span>
                 </div>
               )}
 
-              {/* Followers / Connections */}
-              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground border-t border-border/40 pt-2">
+              {/* Followers / Connections / Torcedores */}
+              <div className="flex items-center justify-center sm:justify-start gap-3 mt-2 text-xs text-muted-foreground pt-2 border-t-2" style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}40` }}>
                 <span><strong className="text-foreground">{perfil.followers_count || 0}</strong> seguidores</span>
                 <ConexoesCount userId={perfil.user_id} />
+                <TorcedoresCount perfilId={perfil.id} />
               </div>
 
               {perfil.bio && <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{perfil.bio}</p>}
