@@ -822,6 +822,11 @@ export default function CarreiraPerfilPage() {
               <ProfileViewsSection views={profileViews} accentColor={accentColor} navigate={navigate} />
             )}
 
+            {/* Fãs / Torcida — below profile views */}
+            {perfil.type === 'atleta' && (
+              <FansSection perfilAtletaId={perfil.id} accentColor={accentColor} />
+            )}
+
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
               <div className="lg:hidden">
                 <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
