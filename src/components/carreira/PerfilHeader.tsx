@@ -101,7 +101,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file || !effectiveUserId) return;
     if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic')) {
       toast.error('Por favor, selecione uma imagem');
       return;
