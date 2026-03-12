@@ -175,6 +175,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         experiencia_anos: data.experiencia_anos ? parseInt(data.experiencia_anos) : null,
         certificacoes: data.certificacoes || null,
         unidades: isDono ? unidades.filter(u => u.nome.trim() || u.bairro.trim()) : (dados.unidades || null),
+        cor_destaque: corDestaque,
       };
 
       const { error } = await supabase
