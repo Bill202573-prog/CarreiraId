@@ -281,7 +281,7 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       let fotoUrl: string | null = null;
       if (fotoFile) {
         const ext = fotoFile.name.split('.').pop();
-        const path = `perfis-rede/${userId}-${Date.now()}.${ext}`;
+        const path = `${userId}/perfil-rede-${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from('atleta-fotos')
           .upload(path, fotoFile, { upsert: true });
@@ -293,7 +293,7 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
           const { data: urlData } = supabase.storage
             .from('atleta-fotos')
             .getPublicUrl(path);
-          fotoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+          fotoUrl = urlData.publicUrl;
         }
       }
 
