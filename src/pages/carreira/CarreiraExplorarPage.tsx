@@ -225,18 +225,22 @@ function useSearchPeopleExplorar(query: string) {
     queryFn: async () => {
       if (!query || query.length < 2) return { rede: [] as any[], atletas: [] as any[] };
       const searchTerm = `%${query}%`;
-      const { data: redeResults } = await supabase
-        .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url, slug')
-        .ilike('nome', searchTerm)
-        .limit(10);
       const { data: atletaResults } = await supabase
         .from('perfil_atleta')
         .select('id, user_id, nome, foto_url, slug, modalidade, categoria')
         .eq('is_public', true)
         .ilike('nome', searchTerm)
         .limit(10);
-      return { rede: redeResults || [], atletas: atletaResults || [] };
+      // Collect user_ids already covered by athlete profiles to avoid duplicates
+      const atletaUserIds = new Set((atletaResults || []).map((a: any) => a.user_id));
+      const { data: redeResults } = await supabase
+        .from('perfis_rede')
+        .select('id, user_id, nome, tipo, foto_url, slug')
+        .ilike('nome', searchTerm)
+        .limit(10);
+      // Filter out rede profiles that already have an athlete profile
+      const filteredRede = (redeResults || []).filter((r: any) => !atletaUserIds.has(r.user_id));
+      return { rede: filteredRede, atletas: atletaResults || [] };
     },
     enabled: query.length >= 2,
   });
