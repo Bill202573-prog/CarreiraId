@@ -4,6 +4,7 @@ import logoCarreira from '@/assets/logo-carreira-id.png';
 import logoAtletaIdDark from '@/assets/logo-atleta-id-dark.png';
 import heroLandingV2Bg from '@/assets/hero-landing-v2-bg.jpg';
 import heroSolucaoBg from '@/assets/hero-solucao-bg.jpg';
+import mockupCelular from '@/assets/mockup-carreira-celular.png';
 import {
   Accordion,
   AccordionContent,
