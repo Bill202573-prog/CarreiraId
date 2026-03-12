@@ -33,43 +33,27 @@ export function DeleteAccountDialog({ open, onOpenChange, perfilId, perfilTable 
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      if (!userId) throw new Error('Usuário não autenticado');
+      if (!session) throw new Error('Usuário não autenticado');
 
-      // 1. Delete posts authored by this profile
-      if (perfilTable === 'perfil_atleta') {
-        await supabase.from('posts_atleta').delete().eq('autor_id', perfilId);
-      } else {
-        await supabase.from('posts_atleta').delete().eq('perfil_rede_id', perfilId);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: publishableKey,
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const payload = await res.json();
+
+      if (!res.ok) {
+        throw new Error(payload?.error || `Erro (${res.status})`);
       }
 
-      // 2. Delete likes and comments by this user
-      await supabase.from('post_likes').delete().eq('user_id', userId);
-      await supabase.from('post_comentarios').delete().eq('user_id', userId);
-
-      // 3. Delete connections
-      await supabase.from('rede_conexoes').delete().or(`solicitante_id.eq.${userId},destinatario_id.eq.${userId}`);
-
-      // 4. Delete follows
-      await supabase.from('atleta_follows').delete().eq('follower_id', userId);
-
-      // 5. Delete profile visualizations
-      if (perfilTable === 'perfil_atleta') {
-        await supabase.from('perfil_visualizacoes').delete().eq('perfil_atleta_id', perfilId);
-      }
-      await supabase.from('perfil_visualizacoes').delete().eq('viewer_user_id', userId);
-
-      // 6. Delete the profile itself
-      await supabase.from(perfilTable).delete().eq('id', perfilId);
-
-      // 7. Also delete the other profile table if it exists
-      if (perfilTable === 'perfil_atleta') {
-        await supabase.from('perfis_rede').delete().eq('user_id', userId);
-      } else {
-        await supabase.from('perfil_atleta').delete().eq('user_id', userId);
-      }
-
-      // 8. Sign out the user
+      // Sign out locally (server already deleted the user)
       await supabase.auth.signOut();
       toast.success('Sua conta foi apagada permanentemente. Você pode se cadastrar novamente quando quiser.');
 
