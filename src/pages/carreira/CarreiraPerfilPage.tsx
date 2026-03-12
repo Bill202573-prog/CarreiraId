@@ -434,7 +434,9 @@ export default function CarreiraPerfilPage() {
     );
   }
 
-  const accentColor = perfil.cor_destaque || '#3b82f6';
+  const accentColor = perfil.type === 'rede'
+    ? ((perfil.dados_perfil as any)?.cor_destaque || '#3b82f6')
+    : (perfil.cor_destaque || '#3b82f6');
   const modalidades = perfil.type === 'atleta' 
     ? (perfil.modalidades?.length ? perfil.modalidades : [perfil.modalidade || 'Futebol'])
     : [];
