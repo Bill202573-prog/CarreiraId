@@ -157,6 +157,7 @@ export default function PerfilPage() {
           }}
           isOwnProfile={isOwnProfile}
           currentUserId={currentUserId}
+          accentColor={(redeProfile.dados_perfil as any)?.cor_destaque || '#3b82f6'}
           onEditProfile={isOwnProfile ? () => setEditDialogOpen(true) : undefined}
         >
         {(() => {

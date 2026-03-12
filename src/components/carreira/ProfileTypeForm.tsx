@@ -161,6 +161,7 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [whatsappPublico, setWhatsappPublico] = useState(false);
+  const [corDestaque, setCorDestaque] = useState('#3b82f6');
 
   const isDono = type === 'dono_escola';
 
