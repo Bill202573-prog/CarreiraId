@@ -126,6 +126,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
         certificacoes: d.certificacoes || '',
       });
       setPhotoUrl(perfil.foto_url || '');
+      setCorDestaque(d.cor_destaque || '#3b82f6');
       setUnidades(Array.isArray(d.unidades) ? d.unidades : []);
 
       // Load account data
