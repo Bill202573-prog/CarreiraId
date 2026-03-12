@@ -22,7 +22,6 @@ const CONFIRMATION_PHRASE = 'apagar minha conta';
 export function DeleteAccountDialog({ open, onOpenChange, perfilId, perfilTable }: DeleteAccountDialogProps) {
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
-  const navigate = useNavigate();
 
   const isConfirmed = confirmText.toLowerCase().trim() === CONFIRMATION_PHRASE;
 
