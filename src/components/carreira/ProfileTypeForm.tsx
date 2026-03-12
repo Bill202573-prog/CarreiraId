@@ -220,6 +220,15 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
     reader.readAsDataURL(file);
   };
 
+  const handleBrasaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBrasaoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setBrasaoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const formatPhone = (value: string) => {
     const d = value.replace(/\D/g, '').slice(0, 11);
     if (d.length <= 2) return d;
