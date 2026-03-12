@@ -390,9 +390,6 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
           </div>
         </div>
 
-        {/* Color picker */}
-        <ColorPicker value={corDestaque} onChange={setCorDestaque} />
-
         {/* CPF/CNPJ and WhatsApp - Private fields */}
         <div className="rounded-lg border border-border p-4 space-y-4 bg-muted/30">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
