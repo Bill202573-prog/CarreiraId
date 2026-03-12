@@ -96,7 +96,7 @@ export default function PerfilPage() {
           <div className="text-5xl mb-4">🔍</div>
           <h1 className="text-xl font-bold text-foreground">Perfil não encontrado</h1>
           <p className="text-sm text-muted-foreground mt-2">Este usuário ainda não criou um perfil na rede.</p>
-          <Button className="mt-6" onClick={() => navigate(carreiraPath('/'))}>
+          <Button className="mt-6" onClick={() => navigate(carreiraPath('/feed'))}>
             Voltar ao Feed
           </Button>
         </main>
