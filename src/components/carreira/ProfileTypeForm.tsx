@@ -291,6 +291,20 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
         }
       }
 
+      // Upload brasão if provided (torcedor)
+      let brasaoUrl: string | null = null;
+      if (brasaoFile) {
+        const ext = brasaoFile.name.split('.').pop();
+        const path = `perfis-rede/brasao-${userId}-${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('atleta-fotos')
+          .upload(path, brasaoFile, { upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
+          brasaoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        }
+      }
+
       // Separate profile fields from dados_perfil
       const dadosPerfil: Record<string, unknown> = {};
       const profileFields: Record<string, string> = {};
@@ -313,6 +327,11 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
           dadosPerfil.unidades = validUnidades;
         }
       }
+
+      // Save email, data_nascimento, brasao
+      if (email.trim()) dadosPerfil.email = email.trim();
+      if (dataNascimento) dadosPerfil.data_nascimento = dataNascimento;
+      if (brasaoUrl) dadosPerfil.brasao_url = brasaoUrl;
 
       const { error } = await supabase.from('perfis_rede').insert({
         user_id: userId,
