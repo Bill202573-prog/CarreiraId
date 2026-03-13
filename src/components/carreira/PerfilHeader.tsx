@@ -64,6 +64,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const { data: isFollowing } = useIsFollowing(perfil.id);
   const toggleFollow = useToggleFollow();
   const { data: experiencias } = useCarreiraExperiencias(perfil.crianca_id);
+  const { temAcesso } = useCarreiraPlano(perfil.crianca_id || null);
 
   // Auto-calculate athlete status from current experience
   const atletaStatusInfo = (() => {
