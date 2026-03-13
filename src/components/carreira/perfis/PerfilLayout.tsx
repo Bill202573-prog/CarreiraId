@@ -83,10 +83,25 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
           </div>
 
           <div className="flex-1 min-w-0 text-center sm:text-left">
-            <h1 className="text-xl font-bold text-foreground">{perfil.nome}</h1>
+            <h1 className="text-xl font-bold text-foreground">
+              {perfil.tipo === 'dono_escola' && perfil.dados_perfil?.nome_escola
+                ? perfil.dados_perfil.nome_escola
+                : perfil.nome}
+            </h1>
             <Badge variant="outline" className={`mt-1 ${config.color}`}>
               {config.icon} {config.label}
             </Badge>
+
+            {/* Modalidades tags for dono_escola */}
+            {perfil.tipo === 'dono_escola' && Array.isArray(perfil.dados_perfil?.modalidades) && perfil.dados_perfil.modalidades.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5 justify-center sm:justify-start">
+                {perfil.dados_perfil.modalidades.map((m: string) => (
+                  <Badge key={m} variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {m}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {/* Torcedor badge with brasão */}
             {perfil.tipo === 'torcedor' && perfil.dados_perfil?.time_torcida && (
