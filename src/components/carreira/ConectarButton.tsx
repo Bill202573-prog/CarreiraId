@@ -43,9 +43,11 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
       // When checking per-unit, filter by unidade_nome
       if (preselectedUnidade) {
         query = query.eq('unidade_nome', preselectedUnidade);
+      } else {
+        query = query.is('unidade_nome', null);
       }
-      const { data } = await query.maybeSingle();
-      return data;
+      const { data } = await query.limit(1).select('*');
+      return data && data.length > 0 ? data[0] : null;
     },
     enabled: !!currentUserId,
   });

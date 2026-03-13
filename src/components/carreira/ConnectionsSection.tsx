@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, UserPlus, Check, X, Users } from 'lucide-react';
+import { Loader2, UserPlus, Check, X, Users, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -37,13 +37,15 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rede_conexoes')
-        .select('solicitante_id, destinatario_id')
+        .select('solicitante_id, destinatario_id, unidade_nome')
         .or(`solicitante_id.eq.${userId},destinatario_id.eq.${userId}`)
         .eq('status', 'aceita');
       if (error) throw error;
-      const connectedUserIds = (data || []).map(c =>
-        c.solicitante_id === userId ? c.destinatario_id : c.solicitante_id
-      );
+      const connectionDetails = (data || []).map(c => ({
+        connectedUserId: c.solicitante_id === userId ? c.destinatario_id : c.solicitante_id,
+        unidade_nome: (c as any).unidade_nome || null,
+      }));
+      const connectedUserIds = [...new Set(connectionDetails.map(c => c.connectedUserId))];
       if (connectedUserIds.length === 0) return [];
       const { data: redeProfiles } = await supabase
         .from('perfis_rede')
@@ -54,8 +56,6 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         .select('id, user_id, nome, foto_url, slug')
         .eq('is_public', true)
         .in('user_id', connectedUserIds);
-      // Build a map keyed by user_id, using perfis_rede as primary identity
-      // and perfil_atleta foto_url as fallback for photo only
       const userMap = new Map<string, any>();
       for (const p of (redeProfiles || [])) {
         userMap.set(p.user_id, p);
@@ -63,17 +63,20 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
       for (const p of (atletaProfiles || [])) {
         const existing = userMap.get(p.user_id);
         if (!existing) {
-          // User only has perfil_atleta (no perfis_rede) — show as Atleta
           userMap.set(p.user_id, { ...p, tipo: 'Atleta' });
         } else {
-          // User has both — keep perfis_rede identity, use atleta photo as fallback
           userMap.set(p.user_id, {
             ...existing,
             foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
-      return Array.from(userMap.values());
+      // Build final list with unidade_nome attached
+      return connectionDetails.map(cd => {
+        const profile = userMap.get(cd.connectedUserId);
+        if (!profile) return null;
+        return { ...profile, unidade_nome: cd.unidade_nome };
+      }).filter(Boolean);
     },
   });
 
@@ -83,7 +86,7 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
       if (!isOwnProfile) return [];
       const { data, error } = await supabase
         .from('rede_conexoes')
-        .select('id, solicitante_id')
+        .select('id, solicitante_id, unidade_nome')
         .eq('destinatario_id', userId)
         .eq('status', 'pendente');
       if (error) throw error;
@@ -113,11 +116,16 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
           });
         }
       }
-      const allSenders = Array.from(senderMap.values());
-      return allSenders.map(p => ({
-        ...p,
-        connectionId: data.find(r => r.solicitante_id === p.user_id)?.id,
-      }));
+      // Return one entry per connection row (not per user) so unit info is preserved
+      return data.map(r => {
+        const profile = senderMap.get(r.solicitante_id);
+        if (!profile) return null;
+        return {
+          ...profile,
+          connectionId: r.id,
+          unidade_nome: (r as any).unidade_nome || null,
+        };
+      }).filter(Boolean);
     },
     enabled: isOwnProfile,
   });
@@ -244,6 +252,11 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate cursor-pointer hover:underline" onClick={() => navigate(carreiraPath(`/perfil/${person.user_id}`))}>{person.nome}</p>
                   <p className="text-xs text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
+                  {person.unidade_nome && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                      <MapPin className="w-2.5 h-2.5" />{person.unidade_nome}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-1">
                   <Button size="sm" variant="default" className="h-8" disabled={respondingId === person.connectionId} onClick={() => person.connectionId && handleAccept(person.connectionId)}>
@@ -283,6 +296,11 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{person.nome}</p>
                   <p className="text-xs text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
+                  {person.unidade_nome && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                      <MapPin className="w-2.5 h-2.5" />{person.unidade_nome}
+                    </p>
+                  )}
                 </div>
               </Card>
             ))}
