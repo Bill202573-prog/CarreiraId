@@ -434,6 +434,7 @@ export type Database = {
           gateway_subscription_id: string | null
           id: string
           inicio_em: string
+          metodo_pagamento: string | null
           plano: string
           status: string
           updated_at: string
@@ -449,6 +450,7 @@ export type Database = {
           gateway_subscription_id?: string | null
           id?: string
           inicio_em?: string
+          metodo_pagamento?: string | null
           plano?: string
           status?: string
           updated_at?: string
@@ -464,6 +466,7 @@ export type Database = {
           gateway_subscription_id?: string | null
           id?: string
           inicio_em?: string
+          metodo_pagamento?: string | null
           plano?: string
           status?: string
           updated_at?: string
