@@ -16,6 +16,7 @@ import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { FansSection } from '@/components/carreira/FansSection';
+import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -916,6 +917,20 @@ export default function CarreiraPerfilPage() {
                 tipo={perfil.tipo as any}
                 dados={perfil.dados_perfil as Record<string, any> | null}
               />
+            )}
+
+            {/* Descobrir Atletas — scouting profiles on desktop */}
+            {isOwner && perfil.type === 'rede' && (() => {
+              const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', 'empresario', 'torcedor'];
+              return SCOUTING_TYPES.includes(perfil.tipo || '');
+            })() && (
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                  <Search className="w-4 h-4" style={{ color: accentColor }} />
+                  {perfil.tipo === 'torcedor' ? 'Buscar Atletas' : 'Descobrir Atletas'}
+                </h3>
+                <DescobrirAtletasSection />
+              </Card>
             )}
 
             {/* Quem viu este perfil — public, below profile header */}
