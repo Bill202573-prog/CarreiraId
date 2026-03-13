@@ -102,35 +102,14 @@ export function useCarreiraGols(criancaId: string | null | undefined) {
     queryFn: async () => {
       if (!criancaId) return [];
 
-      // Fetch from original tables
-      const { data: originalData, error: origError } = await supabase
-        .from('evento_gols')
-        .select(`
-          id,
-          evento_id,
-          crianca_id,
-          quantidade,
-          time:evento_times(id, nome),
-          evento:eventos_esportivos(id, nome, data, tipo, adversario, local, placar_time1, placar_time2, status)
-        `)
-        .eq('crianca_id', criancaId)
-        .order('quantidade', { ascending: false });
-
-      if (origError) throw origError;
-
-      const original = (originalData || []).map((item: any) => ({
-        ...item,
-        evento: Array.isArray(item.evento) ? item.evento[0] : item.evento,
-        time: Array.isArray(item.time) ? item.time[0] : item.time,
-      })) as GolPublico[];
-
-      // Fetch from sync tables
-      const { data: syncData } = await supabase
+      const { data: syncData, error } = await supabase
         .from('evento_gols_sync')
         .select('*')
         .eq('crianca_id', criancaId);
 
-      const synced = (syncData || []).map((s: any) => ({
+      if (error) throw error;
+
+      return (syncData || []).map((s: any) => ({
         id: s.id,
         evento_id: s.evento_id || s.atleta_id_gol_id,
         crianca_id: s.crianca_id,
@@ -148,8 +127,6 @@ export function useCarreiraGols(criancaId: string | null | undefined) {
           status: 'finalizado',
         },
       } as GolPublico));
-
-      return [...original, ...synced];
     },
     enabled: !!criancaId,
   });
@@ -161,33 +138,14 @@ export function useCarreiraAmistosos(criancaId: string | null | undefined) {
     queryFn: async () => {
       if (!criancaId) return [];
 
-      const { data, error } = await supabase
-        .from('amistoso_convocacoes')
-        .select(`
-          id,
-          evento_id,
-          crianca_id,
-          status,
-          presente,
-          evento:eventos_esportivos(id, nome, data, tipo, adversario, local, placar_time1, placar_time2, status)
-        `)
-        .eq('crianca_id', criancaId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const original = (data || []).map((item: any) => ({
-        ...item,
-        evento: Array.isArray(item.evento) ? item.evento[0] : item.evento,
-      })) as AmistosoConvocacaoPublica[];
-
-      // Fetch from sync tables
-      const { data: syncData } = await supabase
+      const { data: syncData, error } = await supabase
         .from('amistoso_convocacoes_sync')
         .select('*')
         .eq('crianca_id', criancaId);
 
-      const synced = (syncData || []).map((s: any) => ({
+      if (error) throw error;
+
+      return (syncData || []).map((s: any) => ({
         id: s.id,
         evento_id: s.atleta_id_convocacao_id,
         crianca_id: s.crianca_id,
@@ -205,8 +163,6 @@ export function useCarreiraAmistosos(criancaId: string | null | undefined) {
           status: s.evento_status || 'finalizado',
         },
       } as AmistosoConvocacaoPublica));
-
-      return [...original, ...synced];
     },
     enabled: !!criancaId,
   });
@@ -218,41 +174,14 @@ export function useCarreiraCampeonatos(criancaId: string | null | undefined) {
     queryFn: async () => {
       if (!criancaId) return [];
 
-      const { data, error } = await supabase
-        .from('campeonato_convocacoes')
-        .select(`
-          id,
-          campeonato_id,
-          crianca_id,
-          status,
-          campeonato:campeonatos(
-            id, nome, ano, categoria, status, nome_time,
-            escolinha:escolinhas(id, nome)
-          )
-        `)
-        .eq('crianca_id', criancaId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const original = (data || []).map((item: any) => ({
-        ...item,
-        campeonato: Array.isArray(item.campeonato) ? item.campeonato[0] : item.campeonato,
-      })).map((item: any) => ({
-        ...item,
-        campeonato: item.campeonato ? {
-          ...item.campeonato,
-          escolinha: Array.isArray(item.campeonato.escolinha) ? item.campeonato.escolinha[0] : item.campeonato.escolinha,
-        } : null,
-      })) as CampeonatoConvocacaoPublica[];
-
-      // Fetch from sync tables
-      const { data: syncData } = await supabase
+      const { data: syncData, error } = await supabase
         .from('campeonato_convocacoes_sync')
         .select('*')
         .eq('crianca_id', criancaId);
 
-      const synced = (syncData || []).map((s: any) => ({
+      if (error) throw error;
+
+      return (syncData || []).map((s: any) => ({
         id: s.id,
         campeonato_id: s.atleta_id_convocacao_id,
         crianca_id: s.crianca_id,
@@ -267,8 +196,6 @@ export function useCarreiraCampeonatos(criancaId: string | null | undefined) {
           escolinha: s.escolinha_nome ? { id: s.id, nome: s.escolinha_nome } : undefined,
         },
       } as CampeonatoConvocacaoPublica));
-
-      return [...original, ...synced];
     },
     enabled: !!criancaId,
   });
@@ -280,32 +207,14 @@ export function useCarreiraPremiacoes(criancaId: string | null | undefined) {
     queryFn: async () => {
       if (!criancaId) return [];
 
-      const { data, error } = await supabase
-        .from('evento_premiacoes')
-        .select(`
-          id,
-          evento_id,
-          crianca_id,
-          tipo_premiacao,
-          evento:eventos_esportivos(id, nome, data, tipo)
-        `)
-        .eq('crianca_id', criancaId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const original = (data || []).map((item: any) => ({
-        ...item,
-        evento: Array.isArray(item.evento) ? item.evento[0] : item.evento,
-      })) as PremiacaoPublica[];
-
-      // Fetch from sync tables
-      const { data: syncData } = await supabase
+      const { data: syncData, error } = await supabase
         .from('evento_premiacoes_sync')
         .select('*')
         .eq('crianca_id', criancaId);
 
-      const synced = (syncData || []).map((s: any) => ({
+      if (error) throw error;
+
+      return (syncData || []).map((s: any) => ({
         id: s.id,
         evento_id: s.evento_id || s.atleta_id_premiacao_id,
         crianca_id: s.crianca_id,
@@ -317,8 +226,6 @@ export function useCarreiraPremiacoes(criancaId: string | null | undefined) {
           tipo: 'amistoso',
         },
       } as PremiacaoPublica));
-
-      return [...original, ...synced];
     },
     enabled: !!criancaId,
   });
@@ -330,33 +237,14 @@ export function useCarreiraConquistas(criancaId: string | null | undefined) {
     queryFn: async () => {
       if (!criancaId) return [];
 
-      // Get escolinha IDs the child belongs to
-      const { data: vinculos, error: vinculosError } = await supabase
-        .from('crianca_escolinha')
-        .select('escolinha_id')
-        .eq('crianca_id', criancaId);
-
-      if (vinculosError) throw vinculosError;
-
-      let original: ConquistaPublica[] = [];
-      if (vinculos?.length) {
-        const escolinhaIds = vinculos.map(v => v.escolinha_id);
-        const { data, error } = await supabase
-          .from('conquistas_coletivas')
-          .select('*')
-          .in('escolinha_id', escolinhaIds)
-          .order('ano', { ascending: false });
-        if (error) throw error;
-        original = data as ConquistaPublica[];
-      }
-
-      // Fetch from sync tables
-      const { data: syncData } = await supabase
+      const { data: syncData, error } = await supabase
         .from('conquistas_coletivas_sync')
         .select('*')
         .eq('crianca_id', criancaId);
 
-      const synced = (syncData || []).map((s: any) => ({
+      if (error) throw error;
+
+      return (syncData || []).map((s: any) => ({
         id: s.id,
         evento_id: s.atleta_id_conquista_id,
         escolinha_id: '',
@@ -365,8 +253,6 @@ export function useCarreiraConquistas(criancaId: string | null | undefined) {
         ano: s.data ? new Date(s.data).getFullYear() : new Date().getFullYear(),
         categoria: s.descricao || null,
       } as ConquistaPublica));
-
-      return [...original, ...synced];
     },
     enabled: !!criancaId,
   });
