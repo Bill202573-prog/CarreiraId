@@ -1,0 +1,1 @@
+ALTER TABLE public.carreira_assinaturas ADD COLUMN IF NOT EXISTS metodo_pagamento text DEFAULT 'pix';

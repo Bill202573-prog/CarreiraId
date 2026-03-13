@@ -16,6 +16,7 @@ import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { FansSection } from '@/components/carreira/FansSection';
+import { AssinaturaCard } from '@/components/carreira/AssinaturaCard';
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -845,6 +846,11 @@ export default function CarreiraPerfilPage() {
                   ))}
                 </div>
               </Card>
+            )}
+
+            {/* Assinatura — owner only, athletes only */}
+            {isOwner && perfil.type === 'atleta' && perfil.crianca_id && (
+              <AssinaturaCard userId={perfil.user_id} criancaId={perfil.crianca_id} accentColor={accentColor} />
             )}
 
             {/* Gamificação — desktop only, athletes only (not scouts/técnicos) */}
