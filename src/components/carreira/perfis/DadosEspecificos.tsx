@@ -36,6 +36,7 @@ const FIELDS_BY_TYPE: Record<ProfileType, FieldDisplay[]> = {
   ],
   dono_escola: [
     { key: 'nome_escola', label: 'Nome da Escola' },
+    { key: 'endereco', label: 'Endereço' },
     { key: 'localizacao', label: 'Localização' },
     { key: 'modalidades', label: 'Modalidades', type: 'list' },
     { key: 'categorias', label: 'Categorias', type: 'list' },
