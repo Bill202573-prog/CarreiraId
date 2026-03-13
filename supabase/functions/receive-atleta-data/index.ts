@@ -328,3 +328,67 @@ async function handleCampeonatoConvocacao(supabase: any, acao: string, dados: an
   if (error) throw error
   return data
 }
+
+async function handleExperienciaEscolinha(supabase: any, acao: string, dados: any, criancaId: string, userId: string) {
+  const escolinhaId = dados.escolinha_id
+
+  if (acao === 'delete') {
+    if (!escolinhaId) throw new Error('escolinha_id is required for delete')
+    // Only delete synced records (those with escolinha_id set)
+    const { error } = await supabase
+      .from('carreira_experiencias')
+      .delete()
+      .eq('crianca_id', criancaId)
+      .eq('escolinha_id', escolinhaId)
+    if (error) throw error
+    return { deleted: escolinhaId }
+  }
+
+  if (!dados.nome_escola) throw new Error('nome_escola is required')
+
+  // Check if record already exists for this escolinha + crianca
+  const { data: existing } = await supabase
+    .from('carreira_experiencias')
+    .select('id')
+    .eq('crianca_id', criancaId)
+    .eq('escolinha_id', escolinhaId)
+    .maybeSingle()
+
+  const record = {
+    user_id: userId,
+    crianca_id: criancaId,
+    escolinha_id: escolinhaId,
+    nome_escola: dados.nome_escola,
+    data_inicio: dados.data_inicio,
+    data_fim: dados.data_fim || null,
+    atual: dados.atual ?? true,
+    bairro: dados.bairro || null,
+    cidade: dados.cidade || null,
+    estado: dados.estado || null,
+    tipo_instituicao: dados.tipo_instituicao || 'escolinha',
+    categoria_instituicao: dados.categoria_instituicao || null,
+    observacoes: dados.observacoes || null,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (existing?.id) {
+    // Update existing record
+    const { data, error } = await supabase
+      .from('carreira_experiencias')
+      .update(record)
+      .eq('id', existing.id)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  } else {
+    // Insert new record
+    const { data, error } = await supabase
+      .from('carreira_experiencias')
+      .insert(record)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+}
