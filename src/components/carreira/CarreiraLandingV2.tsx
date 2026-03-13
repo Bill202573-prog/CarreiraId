@@ -616,7 +616,7 @@ export function CarreiraLandingV2() {
             {[
               {
                 q: 'O Carreira ID é gratuito?',
-                a: 'Sim! Você pode criar seu perfil público, fazer publicações e compartilhar seu link gratuitamente. O plano Carreira (R$19/mês) oferece recursos avançados como linha do tempo estruturada e mini currículo esportivo.',
+                a: 'Sim! O plano Base é gratuito para sempre. Você pode criar seu perfil público, fazer publicações, conectar-se a outros atletas e compartilhar seu link. Os planos Competidor (R$17,90/mês) e Elite (R$29,90/mês) oferecem recursos avançados.',
               },
               {
                 q: 'Quem pode criar um perfil?',
@@ -636,7 +636,11 @@ export function CarreiraLandingV2() {
               },
               {
                 q: 'Posso cancelar o plano a qualquer momento?',
-                a: 'Sim, o plano Carreira pode ser cancelado a qualquer momento sem multa. Seu perfil continua ativo no plano gratuito, preservando todas as suas publicações.',
+                a: 'Sim, os planos Competidor e Elite podem ser cancelados a qualquer momento sem multa. Seu perfil continua ativo no plano Base gratuito, preservando todas as suas publicações.',
+              },
+              {
+                q: 'Como compartilho meu perfil?',
+                a: 'Cada perfil tem um link único (ex: carreiraid.com.br/seu-nome). Você pode copiar e enviar por WhatsApp, redes sociais, e-mail ou qualquer outro meio.',
               },
               {
                 q: 'Como compartilho meu perfil?',
