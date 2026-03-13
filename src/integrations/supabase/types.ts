@@ -553,6 +553,7 @@ export type Database = {
           stats_avancadas: boolean
           updated_at: string
           ver_views: boolean
+          video_max_mb: number
           video_seg: number
           youtube: boolean
         }
@@ -576,6 +577,7 @@ export type Database = {
           stats_avancadas?: boolean
           updated_at?: string
           ver_views?: boolean
+          video_max_mb?: number
           video_seg?: number
           youtube?: boolean
         }
@@ -599,6 +601,7 @@ export type Database = {
           stats_avancadas?: boolean
           updated_at?: string
           ver_views?: boolean
+          video_max_mb?: number
           video_seg?: number
           youtube?: boolean
         }
@@ -1313,6 +1316,7 @@ export type Database = {
           perfil_rede_id: string | null
           texto: string
           updated_at: string
+          video_url: string | null
           visibilidade: string
         }
         Insert: {
@@ -1326,6 +1330,7 @@ export type Database = {
           perfil_rede_id?: string | null
           texto: string
           updated_at?: string
+          video_url?: string | null
           visibilidade?: string
         }
         Update: {
@@ -1339,6 +1344,7 @@ export type Database = {
           perfil_rede_id?: string | null
           texto?: string
           updated_at?: string
+          video_url?: string | null
           visibilidade?: string
         }
         Relationships: [
