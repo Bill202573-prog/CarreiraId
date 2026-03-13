@@ -280,7 +280,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   };
 
   const addUnidade = useCallback(() => {
-    if (unidades.length < 5) setUnidades(prev => [...prev, { nome: '', bairro: '', referencia: '' }]);
+    if (unidades.length < 5) setUnidades(prev => [...prev, { nome: '', endereco: '', bairro: '', referencia: '' }]);
   }, [unidades.length]);
 
   const removeUnidade = useCallback((idx: number) => {
