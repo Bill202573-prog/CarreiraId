@@ -125,8 +125,8 @@ Deno.serve(async (req) => {
         billingType: 'UNDEFINED', // Let customer choose payment method on checkout
         value: valor,
         dueDate: dueDate.toISOString().split('T')[0],
-        description: 'Carreira ID Pro - Assinatura mensal',
-        externalReference: `carreira_${user_id}_${crianca_id}`,
+        description: `Carreira ID ${planoSelecionado.charAt(0).toUpperCase() + planoSelecionado.slice(1)} - Assinatura mensal`,
+        externalReference: `carreira_${planoSelecionado}_${user_id}_${crianca_id}`,
         notificationDisabled: true,
       }),
     });
