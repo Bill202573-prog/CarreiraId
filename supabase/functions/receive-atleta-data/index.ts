@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
         atleta_id_vinculado: true,
         atleta_id_sync_at: new Date().toISOString(),
       })
-      .eq('crianca_id', (await resolveUser(supabase, email_responsavel, nome_crianca)).criancaId)
+      .eq('crianca_id', criancaId)
       .eq('atleta_id_vinculado', false)
 
     if (updateError) {
