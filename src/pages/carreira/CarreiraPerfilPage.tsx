@@ -461,10 +461,36 @@ export default function CarreiraPerfilPage() {
   const accentColor = perfil.type === 'rede'
     ? ((perfil.dados_perfil as any)?.cor_destaque || '#3b82f6')
     : (perfil.cor_destaque || '#3b82f6');
-  const modalidades = perfil.type === 'atleta' 
+  const modalidades = perfil.type === 'atleta'
     ? (perfil.modalidades?.length ? perfil.modalidades : [perfil.modalidade || 'Futebol'])
     : [];
   const isRedeProfile = perfil.type === 'rede';
+  const isDonoEscolaProfile = isRedeProfile && perfil.tipo === 'dono_escola';
+  const displayProfileName = isDonoEscolaProfile
+    ? (String(perfil.dados_perfil?.nome_escola || perfil.nome || '').trim() || perfil.nome)
+    : perfil.nome;
+  const modalidadesRede = isDonoEscolaProfile && Array.isArray(perfil.dados_perfil?.modalidades)
+    ? perfil.dados_perfil.modalidades.filter((item: any): item is string => typeof item === 'string' && item.trim().length > 0)
+    : [];
+  const unidadesPerfil = isDonoEscolaProfile && Array.isArray(perfil.dados_perfil?.unidades)
+    ? perfil.dados_perfil.unidades
+    : [];
+  const schoolUnitsForConnection = isDonoEscolaProfile
+    ? [
+        {
+          nome: displayProfileName,
+          bairro: perfil.dados_perfil?.localizacao || '',
+          endereco: perfil.dados_perfil?.endereco || '',
+        },
+        ...unidadesPerfil.map((u: any, idx: number) => ({
+          nome: String(u?.nome || `Unidade ${idx + 1}`).trim(),
+          bairro: u?.bairro || '',
+          endereco: u?.endereco || '',
+        })),
+      ].filter((u, idx, arr) =>
+        !!u.nome && arr.findIndex(other => other.nome.toLowerCase() === u.nome.toLowerCase()) === idx
+      )
+    : [];
   const instagramHandle = isRedeProfile
     ? (perfil.instagram || perfil.dados_perfil?.arroba || '').replace(/^@+/, '').trim()
     : '';
@@ -649,12 +675,12 @@ export default function CarreiraPerfilPage() {
                 style={{ '--tw-ring-color': accentColor } as any}
               >
                 {perfil.foto_url ? (
-                  <AvatarImage src={perfil.foto_url} alt={perfil.nome} className="object-cover" />
+                  <AvatarImage src={perfil.foto_url} alt={displayProfileName} className="object-cover" />
                 ) : null}
                 <AvatarFallback className="text-xl"><User className="w-8 h-8" /></AvatarFallback>
               </Avatar>
 
-              <h2 className="font-bold text-foreground text-sm">{perfil.nome}</h2>
+              <h2 className="font-bold text-foreground text-sm">{displayProfileName}</h2>
               
               {/* Athlete subtitle: "Atleta Sub X" + managed by guardian */}
               {!isRedeProfile && sidebarCategoria && (
@@ -679,10 +705,21 @@ export default function CarreiraPerfilPage() {
                 ))}
               </div>
               )}
-              
+
               {/* Type label (rede only) */}
               {isRedeProfile && perfil.tipo && (
                 <p className="text-xs text-muted-foreground mt-1">{TYPE_LABELS[perfil.tipo] || perfil.tipo}</p>
+              )}
+
+              {/* Modalidades tags for escola profile */}
+              {isDonoEscolaProfile && modalidadesRede.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-1 mt-1.5">
+                  {modalidadesRede.map((mod: string) => (
+                    <Badge key={mod} variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {mod}
+                    </Badge>
+                  ))}
+                </div>
               )}
 
               {/* Location */}
@@ -747,11 +784,36 @@ export default function CarreiraPerfilPage() {
 
               {/* Actions */}
               <div className="mt-3 space-y-2">
-                {!isOwner && currentUserId && (
+                {!isOwner && currentUserId && !isDonoEscolaProfile && (
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                 )}
+
+                {!isOwner && currentUserId && isDonoEscolaProfile && schoolUnitsForConnection.length > 0 && (
+                  <div className="space-y-1.5">
+                    {schoolUnitsForConnection.map((unidade, idx) => (
+                      <div key={`${unidade.nome}-${idx}`} className="rounded-md border border-border/70 bg-muted/20 p-2">
+                        <div className="mb-1 min-w-0 text-left">
+                          <p className="text-[11px] font-medium text-foreground truncate">{unidade.nome}</p>
+                          {(unidade.bairro || unidade.endereco) && (
+                            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+                              <MapPin className="w-2.5 h-2.5 shrink-0" />
+                              {[unidade.bairro, unidade.endereco].filter(Boolean).join(' • ')}
+                            </p>
+                          )}
+                        </div>
+                        <ConectarButton
+                          targetUserId={perfil.user_id}
+                          currentUserId={currentUserId}
+                          accentColor={accentColor}
+                          unidadeNome={unidade.nome}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
-                <ShareButton slug={perfil.slug} nome={perfil.nome} accentColor={accentColor} />
+                <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} />
               </div>
               </div>
             </Card>
