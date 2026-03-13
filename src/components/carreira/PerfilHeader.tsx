@@ -7,7 +7,6 @@ import { Camera, Loader2, MapPin, Share2, Trophy, User, Pencil, Instagram, UserP
 import { PerfilAtleta, useUpdatePerfilAtleta, uploadProfilePhoto, useIsFollowing, useToggleFollow } from '@/hooks/useCarreiraData';
 import { useCarreiraExperiencias } from '@/hooks/useCarreiraExperienciasData';
 import { useCarreiraPlano } from '@/hooks/useCarreiraPlano';
-import { useCarreiraExperiencias } from '@/hooks/useCarreiraExperienciasData';
 import { ConectarButton } from './ConectarButton';
 import { ConexoesCount } from './ConexoesCount';
 import { useQueryClient } from '@tanstack/react-query';
