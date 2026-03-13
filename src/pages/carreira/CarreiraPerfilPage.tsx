@@ -986,6 +986,13 @@ export default function CarreiraPerfilPage() {
                 </Card>
               </div>
             )}
+
+            {/* Assinatura — mobile only, owner + atleta */}
+            {isOwner && perfil.type === 'atleta' && perfil.crianca_id && (
+              <div className="lg:hidden">
+                <AssinaturaCard userId={perfil.user_id} criancaId={perfil.crianca_id} accentColor={accentColor} />
+              </div>
+            )}
             
             {perfil.type === 'atleta' ? (
               <CarreiraTimeline perfil={perfil as any} isOwner={isOwner} />
