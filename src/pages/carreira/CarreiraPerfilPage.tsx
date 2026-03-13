@@ -32,7 +32,7 @@ import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
   tecnico: 'Técnico',
-  dono_escola: 'Dono de Escola',
+  dono_escola: 'Escola de Esportes',
   preparador_fisico: 'Preparador Físico',
   empresario: 'Empresário',
   influenciador: 'Influenciador',

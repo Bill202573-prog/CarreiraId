@@ -18,7 +18,7 @@ import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
   tecnico: 'Técnico',
-  dono_escola: 'Dono de Escola',
+  dono_escola: 'Escola de Esportes',
   preparador_fisico: 'Preparador Físico',
   empresario: 'Empresário',
   influenciador: 'Influenciador',
@@ -194,7 +194,7 @@ function useSuggestions(userId?: string | null) {
 
       const { data: redeData } = await supabase
         .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url')
+        .select('id, user_id, nome, tipo, foto_url, dados_perfil')
         .limit(30);
       const { data: atletaData } = await supabase
         .from('perfil_atleta')
@@ -412,20 +412,24 @@ export default function CarreiraExplorarPage() {
                       </div>
                     </div>
                   ))}
-                  {searchResults.rede.map((r: any) => (
-                    <div key={`r-${r.id}`} className="flex items-center gap-3 p-2.5 hover:bg-muted/50 rounded-lg cursor-pointer"
-                      onClick={() => { navigate(carreiraPath(`/${r.slug || `perfil/${r.user_id}`}`)); setSearchOpen(false); setSearchQuery(''); }}>
-                      {r.foto_url ? <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" /> : <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground">{r.nome?.[0]}</div>}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {r.tipo === 'dono_escola' && r.dados_perfil?.nome_escola ? r.dados_perfil.nome_escola : r.nome}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {r.tipo === 'dono_escola' && r.dados_perfil?.nome_escola ? `${r.nome} • ` : ''}{TYPE_LABELS[r.tipo] || r.tipo}
-                        </p>
+                  {searchResults.rede.map((r: any) => {
+                    const isDono = r.tipo === 'dono_escola';
+                    const nomeEscola = isDono ? (r.dados_perfil?.nome_escola || r.nome) : r.nome;
+                    const modalidades = isDono && Array.isArray(r.dados_perfil?.modalidades) ? r.dados_perfil.modalidades : [];
+                    return (
+                      <div key={`r-${r.id}`} className="flex items-center gap-3 p-2.5 hover:bg-muted/50 rounded-lg cursor-pointer"
+                        onClick={() => { navigate(carreiraPath(`/${r.slug || `perfil/${r.user_id}`}`)); setSearchOpen(false); setSearchQuery(''); }}>
+                        {r.foto_url ? <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" /> : <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground">{(isDono ? nomeEscola : r.nome)?.[0]}</div>}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{nomeEscola}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {isDono ? 'Escola de Esportes' : (TYPE_LABELS[r.tipo] || r.tipo)}
+                            {isDono && modalidades.length > 0 ? ` • ${modalidades.join(', ')}` : ''}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               )}
             </Card>
@@ -529,7 +533,7 @@ export default function CarreiraExplorarPage() {
                           className="text-xs font-medium truncate cursor-pointer hover:underline"
                           onClick={() => navigate(carreiraPath(`/perfil/${person.user_id}`))}
                         >
-                          {person.nome}
+                          {person.tipo === 'dono_escola' && person.dados_perfil?.nome_escola ? person.dados_perfil.nome_escola : person.nome}
                         </p>
                         <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
                       </div>

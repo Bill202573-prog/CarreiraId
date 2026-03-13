@@ -21,9 +21,11 @@ interface Props {
   unidades?: Unidade[];
   /** Whether the target profile is a dono_escola */
   isDono?: boolean;
+  /** Pre-selected unit name — skips the dialog */
+  unidadeNome?: string;
 }
 
-export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6', unidades, isDono }: Props) {
+export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6', unidades, isDono, unidadeNome: preselectedUnidade }: Props) {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [showUnidadeDialog, setShowUnidadeDialog] = useState(false);
@@ -83,8 +85,10 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
   };
 
   const handleClickConectar = () => {
-    // If it's a dono_escola with branches, show selection dialog
-    if (isDono && unidades && unidades.length > 0) {
+    // If a unit name is pre-selected, use it directly
+    if (preselectedUnidade) {
+      handleConectar(preselectedUnidade);
+    } else if (isDono && unidades && unidades.length > 0) {
       setShowUnidadeDialog(true);
     } else {
       handleConectar();

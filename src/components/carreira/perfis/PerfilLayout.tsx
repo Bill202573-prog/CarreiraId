@@ -4,13 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConectarButton } from '../ConectarButton';
 import { ConexoesCount } from '../ConexoesCount';
-import { Instagram, Globe, Phone, Settings } from 'lucide-react';
+import { Instagram, Globe, Phone, Settings, MapPin } from 'lucide-react';
 import type { ProfileType } from '../ProfileTypeSelector';
 
 const TYPE_CONFIG: Record<ProfileType, { label: string; icon: string; color: string }> = {
   professor: { label: 'Professor / Treinador', icon: '👨‍🏫', color: 'bg-blue-500/10 text-blue-700 border-blue-200' },
   tecnico: { label: 'Técnico de Futebol', icon: '⚽', color: 'bg-green-500/10 text-green-700 border-green-200' },
-  dono_escola: { label: 'Dono de Escola', icon: '🏫', color: 'bg-purple-500/10 text-purple-700 border-purple-200' },
+  dono_escola: { label: 'Escola de Esportes', icon: '🏫', color: 'bg-purple-500/10 text-purple-700 border-purple-200' },
   preparador_fisico: { label: 'Preparador Físico', icon: '💪', color: 'bg-orange-500/10 text-orange-700 border-orange-200' },
   empresario: { label: 'Empresário', icon: '💼', color: 'bg-slate-500/10 text-slate-700 border-slate-200' },
   influenciador: { label: 'Influenciador', icon: '⭐', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-200' },
@@ -83,10 +83,25 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
           </div>
 
           <div className="flex-1 min-w-0 text-center sm:text-left">
-            <h1 className="text-xl font-bold text-foreground">{perfil.nome}</h1>
+            <h1 className="text-xl font-bold text-foreground">
+              {perfil.tipo === 'dono_escola' && perfil.dados_perfil?.nome_escola
+                ? perfil.dados_perfil.nome_escola
+                : perfil.nome}
+            </h1>
             <Badge variant="outline" className={`mt-1 ${config.color}`}>
               {config.icon} {config.label}
             </Badge>
+
+            {/* Modalidades tags for dono_escola */}
+            {perfil.tipo === 'dono_escola' && Array.isArray(perfil.dados_perfil?.modalidades) && perfil.dados_perfil.modalidades.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5 justify-center sm:justify-start">
+                {perfil.dados_perfil.modalidades.map((m: string) => (
+                  <Badge key={m} variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {m}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {/* Torcedor badge with brasão */}
             {perfil.tipo === 'torcedor' && perfil.dados_perfil?.time_torcida && (
@@ -166,15 +181,52 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
 
             <div className="mt-3 flex items-center gap-3 justify-center sm:justify-start flex-wrap">
               <ConexoesCount userId={perfil.user_id} />
-              {!isOwnProfile && currentUserId && (
+              {/* For non-escola profiles, show connect button here */}
+              {!isOwnProfile && currentUserId && perfil.tipo !== 'dono_escola' && (
                 <ConectarButton
                   targetUserId={perfil.user_id}
                   currentUserId={currentUserId}
-                  isDono={perfil.tipo === 'dono_escola'}
-                  unidades={perfil.tipo === 'dono_escola' && perfil.dados_perfil?.unidades ? perfil.dados_perfil.unidades : undefined}
                 />
               )}
             </div>
+
+            {/* Escola units with per-unit connect buttons */}
+            {perfil.tipo === 'dono_escola' && (() => {
+              const nomeEscola = perfil.dados_perfil?.nome_escola || perfil.nome;
+              const endereco = perfil.dados_perfil?.endereco || '';
+              const localizacao = perfil.dados_perfil?.localizacao || '';
+              const unidades = Array.isArray(perfil.dados_perfil?.unidades) ? perfil.dados_perfil.unidades : [];
+              const allUnits = [
+                { nome: nomeEscola, endereco, bairro: localizacao, referencia: '' },
+                ...unidades,
+              ];
+
+              return (
+                <div className="mt-3 space-y-2 w-full">
+                  {allUnits.map((u: any, idx: number) => (
+                    <div key={idx} className="rounded-md border border-border p-2.5 bg-muted/20 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{u.nome || `Unidade ${idx + 1}`}</p>
+                        {u.bairro && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="w-3 h-3 shrink-0" />{u.bairro}
+                          </p>
+                        )}
+                        {u.endereco && <p className="text-xs text-muted-foreground">{u.endereco}</p>}
+                      </div>
+                      {!isOwnProfile && currentUserId && (
+                        <ConectarButton
+                          targetUserId={perfil.user_id}
+                          currentUserId={currentUserId}
+                          accentColor={accentColor}
+                          unidadeNome={u.nome || nomeEscola}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Owner action button - single unified edit */}
             {isOwnProfile && onEditProfile && (
