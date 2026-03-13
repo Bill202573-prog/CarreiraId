@@ -247,12 +247,25 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
         );
 
       case 'experiencia':
-        return escolinhasLoading ? (
+        return (escolinhasLoading || experienciasLoading) ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <ExperienciaSection perfil={perfil} escolinhas={escolinhas} atividades={[]} isOwner={isOwner} accentColor={accentColor} />
+          <ExperienciaSection
+            perfil={perfil}
+            escolinhas={escolinhas}
+            atividades={[]}
+            experiencias={experiencias}
+            isOwner={isOwner}
+            accentColor={accentColor}
+            onAddExperiencia={() => {
+              setEditingExperiencia(null);
+              setExperienciaFormOpen(true);
+            }}
+            onEditExperiencia={handleEditExperiencia}
+            onDeleteExperiencia={(id) => setDeleteExpId(id)}
+          />
         );
       case 'estatisticas':
         return <CarreiraStatsCards criancaId={perfil.crianca_id} accentColor={accentColor} />;
