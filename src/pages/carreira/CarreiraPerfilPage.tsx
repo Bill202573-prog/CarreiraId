@@ -919,6 +919,20 @@ export default function CarreiraPerfilPage() {
               />
             )}
 
+            {/* Descobrir Atletas — scouting profiles on desktop */}
+            {isOwner && perfil.type === 'rede' && (() => {
+              const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', 'empresario', 'torcedor'];
+              return SCOUTING_TYPES.includes(perfil.tipo || '');
+            })() && (
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                  <Search className="w-4 h-4" style={{ color: accentColor }} />
+                  {perfil.tipo === 'torcedor' ? 'Buscar Atletas' : 'Descobrir Atletas'}
+                </h3>
+                <DescobrirAtletasSection />
+              </Card>
+            )}
+
             {/* Quem viu este perfil — public, below profile header */}
             {perfil.type === 'atleta' && profileViews && profileViews.length > 0 && (
               <ProfileViewsSection views={profileViews} accentColor={accentColor} navigate={navigate} />
