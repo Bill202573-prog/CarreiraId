@@ -1,0 +1,1 @@
+ALTER TABLE public.rede_conexoes ADD COLUMN IF NOT EXISTS unidade_nome text DEFAULT NULL;

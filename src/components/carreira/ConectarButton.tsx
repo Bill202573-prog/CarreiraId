@@ -2,18 +2,31 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { UserPlus, Check, Clock, Loader2, UserMinus } from 'lucide-react';
+import { UserPlus, Check, Clock, Loader2, UserMinus, MapPin } from 'lucide-react';
+
+interface Unidade {
+  nome: string;
+  endereco?: string;
+  bairro?: string;
+  referencia?: string;
+}
 
 interface Props {
   targetUserId: string;
   currentUserId?: string | null;
   accentColor?: string;
+  /** If the target is a dono_escola, pass their unidades so user can pick one */
+  unidades?: Unidade[];
+  /** Whether the target profile is a dono_escola */
+  isDono?: boolean;
 }
 
-export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6' }: Props) {
+export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6', unidades, isDono }: Props) {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [showUnidadeDialog, setShowUnidadeDialog] = useState(false);
 
   const { data: conexao, isLoading: statusLoading } = useQuery({
     queryKey: ['conexao-status', currentUserId, targetUserId],
@@ -44,24 +57,38 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
     queryClient.invalidateQueries({ queryKey: ['my-connections-accepted'] });
   };
 
-  const handleConectar = async () => {
+  const handleConectar = async (unidadeNome?: string) => {
     if (!currentUserId) {
       toast.error('Faça login para conectar');
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from('rede_conexoes').insert({
+    const insertData: any = {
       solicitante_id: currentUserId,
       destinatario_id: targetUserId,
       status: 'pendente',
-    } as any);
+    };
+    if (unidadeNome) {
+      insertData.unidade_nome = unidadeNome;
+    }
+    const { error } = await supabase.from('rede_conexoes').insert(insertData);
     if (error) {
       toast.error('Erro ao enviar solicitação');
     } else {
-      toast.success('Solicitação enviada!');
+      toast.success(unidadeNome ? `Solicitação enviada para ${unidadeNome}!` : 'Solicitação enviada!');
       invalidate();
     }
     setLoading(false);
+    setShowUnidadeDialog(false);
+  };
+
+  const handleClickConectar = () => {
+    // If it's a dono_escola with branches, show selection dialog
+    if (isDono && unidades && unidades.length > 0) {
+      setShowUnidadeDialog(true);
+    } else {
+      handleConectar();
+    }
   };
 
   const handleAceitar = async () => {
@@ -110,10 +137,50 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
 
   if (!conexao) {
     return (
-      <Button size="sm" onClick={handleConectar} className="text-white border-0 shadow-sm"
-        style={{ backgroundColor: accentColor }}>
-        <UserPlus className="w-4 h-4 mr-1" /> Conectar
-      </Button>
+      <>
+        <Button size="sm" onClick={handleClickConectar} className="text-white border-0 shadow-sm"
+          style={{ backgroundColor: accentColor }}>
+          <UserPlus className="w-4 h-4 mr-1" /> Conectar
+        </Button>
+
+        {/* Branch selection dialog */}
+        <Dialog open={showUnidadeDialog} onOpenChange={setShowUnidadeDialog}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-base">Escolha a unidade</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground mb-3">
+              Selecione a unidade à qual deseja se conectar:
+            </p>
+            <div className="space-y-2">
+              {/* Sede / Main option */}
+              <button
+                onClick={() => handleConectar('Sede')}
+                className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors"
+              >
+                <p className="text-sm font-medium text-foreground">🏫 Sede Principal</p>
+              </button>
+              {unidades?.map((u, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleConectar(u.nome || `Unidade ${idx + 1}`)}
+                  className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors"
+                >
+                  <p className="text-sm font-medium text-foreground">📍 {u.nome || `Unidade ${idx + 1}`}</p>
+                  {u.bairro && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3" />{u.bairro}
+                    </p>
+                  )}
+                  {u.endereco && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{u.endereco}</p>
+                  )}
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
@@ -121,6 +188,9 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
     return (
       <Button size="sm" variant="secondary" disabled>
         <Clock className="w-4 h-4 mr-1" /> Enviada
+        {(conexao as any).unidade_nome && (
+          <span className="ml-1 text-[10px] opacity-70">({(conexao as any).unidade_nome})</span>
+        )}
       </Button>
     );
   }
@@ -143,7 +213,12 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
       <Button size="sm" variant="secondary" onClick={handleDesconectar} className="group">
         <Check className="w-4 h-4 mr-1 group-hover:hidden" />
         <UserMinus className="w-4 h-4 mr-1 hidden group-hover:inline" />
-        <span className="group-hover:hidden">Conectado</span>
+        <span className="group-hover:hidden">
+          Conectado
+          {(conexao as any).unidade_nome && (
+            <span className="ml-1 text-[10px] opacity-70">({(conexao as any).unidade_nome})</span>
+          )}
+        </span>
         <span className="hidden group-hover:inline">Desconectar</span>
       </Button>
     );
@@ -151,7 +226,7 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
 
   // Rejected - allow re-connect
   return (
-    <Button size="sm" onClick={handleConectar} className="text-white border-0 shadow-sm"
+    <Button size="sm" onClick={handleClickConectar} className="text-white border-0 shadow-sm"
       style={{ backgroundColor: accentColor }}>
       <UserPlus className="w-4 h-4 mr-1" /> Conectar
     </Button>

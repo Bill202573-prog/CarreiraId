@@ -63,6 +63,7 @@ function getFields(type: ProfileType): FieldDef[] {
     case 'dono_escola':
       return [
         { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text', required: true, placeholder: 'Ex: Escola de Futebol Gol de Placa' },
+        { key: 'endereco', label: 'Endereço da Sede', type: 'text', placeholder: 'Ex: Rua das Flores, 123 - Centro' },
         { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text', required: true, placeholder: 'Ex: São Paulo, SP' },
         { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', required: true, options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
         { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
@@ -159,11 +160,12 @@ const TYPE_LABELS: Record<ProfileType, string> = {
 
 interface Unidade {
   nome: string;
+  endereco: string;
   bairro: string;
   referencia: string;
 }
 
-const EMPTY_UNIDADE: Unidade = { nome: '', bairro: '', referencia: '' };
+const EMPTY_UNIDADE: Unidade = { nome: '', endereco: '', bairro: '', referencia: '' };
 
 export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack, onComplete }: Props) {
   const fields = getFields(type);
@@ -667,6 +669,12 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
                   onChange={(e) => updateUnidade(idx, 'nome', e.target.value)}
                   placeholder="Nome da unidade (ex: Unidade Tijuca)"
                   maxLength={100}
+                />
+                <Input
+                  value={unidade.endereco || ''}
+                  onChange={(e) => updateUnidade(idx, 'endereco', e.target.value)}
+                  placeholder="Endereço (ex: Rua das Flores, 123)"
+                  maxLength={200}
                 />
                 <Input
                   value={unidade.bairro}

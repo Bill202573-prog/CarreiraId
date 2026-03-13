@@ -54,6 +54,7 @@ function getDynamicFields(tipo: string): DynFieldDef[] {
     case 'dono_escola':
       return [
         { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text' },
+        { key: 'endereco', label: 'Endereço da Sede', type: 'text' },
         { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text' },
         { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
         { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
@@ -135,6 +136,7 @@ type FormData = z.infer<typeof formSchema>;
 
 interface Unidade {
   nome: string;
+  endereco: string;
   bairro: string;
   referencia: string;
 }
@@ -278,7 +280,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   };
 
   const addUnidade = useCallback(() => {
-    if (unidades.length < 5) setUnidades(prev => [...prev, { nome: '', bairro: '', referencia: '' }]);
+    if (unidades.length < 5) setUnidades(prev => [...prev, { nome: '', endereco: '', bairro: '', referencia: '' }]);
   }, [unidades.length]);
 
   const removeUnidade = useCallback((idx: number) => {
@@ -688,6 +690,7 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
                       </Button>
                     </div>
                     <Input value={unidade.nome} onChange={(e) => updateUnidade(idx, 'nome', e.target.value)} placeholder="Nome (ex: Unidade Tijuca)" maxLength={100} />
+                    <Input value={unidade.endereco || ''} onChange={(e) => updateUnidade(idx, 'endereco', e.target.value)} placeholder="Endereço (ex: Rua das Flores, 123)" maxLength={200} />
                     <Input value={unidade.bairro} onChange={(e) => updateUnidade(idx, 'bairro', e.target.value)} placeholder="Bairro" maxLength={100} />
                     <Input value={unidade.referencia} onChange={(e) => updateUnidade(idx, 'referencia', e.target.value)} placeholder="Referência" maxLength={200} />
                   </div>

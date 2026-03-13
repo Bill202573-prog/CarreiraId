@@ -167,7 +167,12 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
             <div className="mt-3 flex items-center gap-3 justify-center sm:justify-start flex-wrap">
               <ConexoesCount userId={perfil.user_id} />
               {!isOwnProfile && currentUserId && (
-                <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} />
+                <ConectarButton
+                  targetUserId={perfil.user_id}
+                  currentUserId={currentUserId}
+                  isDono={perfil.tipo === 'dono_escola'}
+                  unidades={perfil.tipo === 'dono_escola' && perfil.dados_perfil?.unidades ? perfil.dados_perfil.unidades : undefined}
+                />
               )}
             </div>
 
