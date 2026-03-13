@@ -591,6 +591,14 @@ function ResponsavelTab({ userId, criancaId }: { userId: string; criancaId?: str
           Salvar Responsável
         </Button>
       </div>
+
+      {/* Assinatura do atleta — gerenciada pelo responsável */}
+      {criancaId && (
+        <>
+          <Separator className="my-4" />
+          <AssinaturaCard userId={userId} criancaId={criancaId} />
+        </>
+      )}
     </div>
   );
 }
