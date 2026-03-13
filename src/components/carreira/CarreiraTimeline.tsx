@@ -65,7 +65,8 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   const deleteExperiencia = useDeleteCarreiraExperiencia();
 
   const hasEscolinhaData = (escolinhas?.length || 0) > 0;
-  const isCarreiraOnly = !isPlatformProfile && !hasEscolinhaData;
+  const hasSyncedData = perfil.atleta_id_vinculado === true;
+  const isCarreiraOnly = !isPlatformProfile && !hasEscolinhaData && !hasSyncedData;
 
   const dadosPublicos = (perfil as any).dados_publicos as {
     gols?: boolean; campeonatos?: boolean; amistosos?: boolean; premiacoes?: boolean; conquistas?: boolean;
