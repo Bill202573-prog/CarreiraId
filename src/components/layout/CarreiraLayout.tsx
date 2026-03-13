@@ -88,11 +88,12 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
                     <Settings className="w-4 h-4 mr-2" />
                     Editar Minha Conta
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleBackToDashboard}>
-                    <Home className="w-4 h-4 mr-2" />
-                    App da Escolinha
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  {user.escolinhaId && (
+                    <DropdownMenuItem onClick={handleBackToDashboard}>
+                      <Home className="w-4 h-4 mr-2" />
+                      App da Escolinha
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sair
