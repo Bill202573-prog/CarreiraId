@@ -41,6 +41,7 @@ const CarreiraAdminGamificacaoPage = lazy(() => import("./pages/carreira/admin/C
 const CarreiraAdminPerformancePage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerformancePage"));
 const CarreiraAdminModeracaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminModeracaoPage"));
 const ResetPasswordPage = lazy(() => import("./pages/carreira/ResetPasswordPage"));
+const CarreiraPlanosPage = lazy(() => import("./pages/carreira/CarreiraPlanosPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="/termos" element={<TermosPage />} />
               <Route path="/privacidade" element={<PrivacidadePage />} />
               <Route path="/contato" element={<ContatoPage />} />
+              <Route path="/planos" element={<CarreiraPlanosPage />} />
               {/* Carreira ID — Admin */}
               <Route path="/carreira/admin" element={<CarreiraAdminDashboard />} />
               <Route path="/carreira/admin/perfis" element={<CarreiraAdminPerfisPage />} />

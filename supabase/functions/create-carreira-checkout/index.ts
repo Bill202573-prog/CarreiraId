@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const { user_id, crianca_id, cpf, nome, email, callback_url } = await req.json();
+    const { user_id, crianca_id, cpf, nome, email, callback_url, plano } = await req.json();
+    const planoSelecionado = plano || 'competidor';
 
     console.log('Creating Carreira Checkout for user:', user_id, 'crianca:', crianca_id);
 
@@ -53,14 +54,31 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get subscription value
+    // Get subscription value based on plan
+    const planoConfig: Record<string, { chave: string; fallback: number }> = {
+      competidor: { chave: 'carreira_valor_competidor', fallback: 15.90 },
+      elite: { chave: 'carreira_valor_elite', fallback: 29.90 },
+    };
+    const cfg = planoConfig[planoSelecionado] || planoConfig.competidor;
+    
     const { data: configValor } = await supabase
       .from('saas_config')
       .select('valor')
-      .eq('chave', 'carreira_valor_mensal')
+      .eq('chave', cfg.chave)
       .maybeSingle();
 
-    const valor = configValor ? parseFloat(configValor.valor) : 19.90;
+    // Fallback to legacy key
+    let valor = cfg.fallback;
+    if (configValor) {
+      valor = parseFloat(configValor.valor);
+    } else {
+      const { data: legacyConfig } = await supabase
+        .from('saas_config')
+        .select('valor')
+        .eq('chave', 'carreira_valor_mensal')
+        .maybeSingle();
+      if (legacyConfig) valor = parseFloat(legacyConfig.valor);
+    }
 
     // Find or create customer
     const cleanCpf = cpf.replace(/\D/g, '');
@@ -107,8 +125,8 @@ Deno.serve(async (req) => {
         billingType: 'UNDEFINED', // Let customer choose payment method on checkout
         value: valor,
         dueDate: dueDate.toISOString().split('T')[0],
-        description: 'Carreira ID Pro - Assinatura mensal',
-        externalReference: `carreira_${user_id}_${crianca_id}`,
+        description: `Carreira ID ${planoSelecionado.charAt(0).toUpperCase() + planoSelecionado.slice(1)} - Assinatura mensal`,
+        externalReference: `carreira_${planoSelecionado}_${user_id}_${crianca_id}`,
         notificationDisabled: true,
       }),
     });
@@ -137,7 +155,7 @@ Deno.serve(async (req) => {
       .insert({
         user_id,
         crianca_id,
-        plano: 'pro_mensal',
+        plano: planoSelecionado,
         status: 'pendente',
         valor,
         gateway: 'asaas_sandbox',

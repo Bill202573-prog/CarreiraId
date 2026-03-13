@@ -11,6 +11,8 @@ import { JornadaTimeline } from './JornadaTimeline';
 import { CarreiraAtividadeFormDialog } from './CarreiraAtividadeFormDialog';
 import { ExperienciaFormDialog } from './ExperienciaFormDialog';
 import { useCarreiraAtividadeLimit } from '@/hooks/useCarreiraFreemium';
+import { useCarreiraPlano } from '@/hooks/useCarreiraPlano';
+import { PlanBadge } from './FeatureGate';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
