@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const { user_id, crianca_id, cpf, nome, email, callback_url } = await req.json();
+    const { user_id, crianca_id, cpf, nome, email, callback_url, plano } = await req.json();
+    const planoSelecionado = plano || 'competidor';
 
     console.log('Creating Carreira Checkout for user:', user_id, 'crianca:', crianca_id);
 
