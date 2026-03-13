@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PerfilAtleta, useUpdatePerfilAtleta } from '@/hooks/useCarreiraData';
 import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { AssinaturaCard } from './AssinaturaCard';
 import { toast } from 'sonner';
 
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
@@ -456,7 +457,7 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
           </TabsContent>
 
           <TabsContent value="responsavel" className="mt-4">
-            <ResponsavelTab userId={perfil.user_id} />
+            <ResponsavelTab userId={perfil.user_id} criancaId={perfil.crianca_id || undefined} />
           </TabsContent>
         </Tabs>
 
@@ -472,7 +473,7 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
 }
 
 /* --- Responsável Tab inside EditPerfilDialog --- */
-function ResponsavelTab({ userId }: { userId: string }) {
+function ResponsavelTab({ userId, criancaId }: { userId: string; criancaId?: string }) {
   const queryClient = useQueryClient();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -591,6 +592,14 @@ function ResponsavelTab({ userId }: { userId: string }) {
           Salvar Responsável
         </Button>
       </div>
+
+      {/* Assinatura do atleta — gerenciada pelo responsável */}
+      {criancaId && (
+        <>
+          <Separator className="my-4" />
+          <AssinaturaCard userId={userId} criancaId={criancaId} />
+        </>
+      )}
     </div>
   );
 }
