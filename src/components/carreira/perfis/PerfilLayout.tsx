@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConectarButton } from '../ConectarButton';
 import { ConexoesCount } from '../ConexoesCount';
-import { Instagram, Globe, Phone, Settings } from 'lucide-react';
+import { Instagram, Globe, Phone, Settings, MapPin } from 'lucide-react';
 import type { ProfileType } from '../ProfileTypeSelector';
 
 const TYPE_CONFIG: Record<ProfileType, { label: string; icon: string; color: string }> = {
