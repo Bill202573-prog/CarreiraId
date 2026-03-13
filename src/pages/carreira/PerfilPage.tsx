@@ -208,6 +208,7 @@ export default function PerfilPage() {
           };
 
           const tabCount = 3 + (showHistorico ? 1 : 0) + (showDescobrir ? 1 : 0);
+          const gridClass = tabCount === 3 ? 'grid-cols-3' : tabCount === 4 ? 'grid-cols-4' : 'grid-cols-5';
 
           return (
             <>
@@ -228,7 +229,7 @@ export default function PerfilPage() {
               )}
 
               <Tabs defaultValue="publicacoes" className="mt-4">
-                <TabsList className={`w-full grid grid-cols-${tabCount}`}>
+                <TabsList className={`w-full grid ${gridClass}`}>
                   <TabsTrigger value="publicacoes" className="flex-1">Publicações</TabsTrigger>
                   <TabsTrigger value="sobre" className="flex-1">Sobre</TabsTrigger>
                   {showHistorico && (
