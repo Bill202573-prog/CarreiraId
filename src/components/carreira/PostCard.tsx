@@ -172,6 +172,19 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
             </div>
           )}
 
+          {/* Video */}
+          {(post as any).video_url && (
+            <div className="rounded-lg overflow-hidden bg-muted mb-2">
+              <video
+                src={(post as any).video_url}
+                controls
+                className="w-full max-h-96 object-contain"
+                preload="metadata"
+                playsInline
+              />
+            </div>
+          )}
+
           {post.imagens_urls && post.imagens_urls.length > 0 && (
             <div className={cn(
               'grid gap-1',

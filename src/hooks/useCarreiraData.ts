@@ -52,6 +52,7 @@ export interface PostAtleta {
   perfil_rede_id?: string | null;
   texto: string;
   imagens_urls: string[];
+  video_url?: string | null;
   visibilidade: string;
   likes_count: number;
   comments_count: number;
@@ -378,10 +379,11 @@ export function useCreatePostAtleta() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { autor_id?: string; perfil_rede_id?: string; texto: string; imagens_urls?: string[]; link_preview?: any }) => {
+    mutationFn: async (data: { autor_id?: string; perfil_rede_id?: string; texto: string; imagens_urls?: string[]; video_url?: string; link_preview?: any }) => {
       const insertData: any = {
         texto: data.texto,
         imagens_urls: data.imagens_urls || [],
+        video_url: data.video_url || null,
         visibilidade: 'publico',
         link_preview: data.link_preview || null,
       };
@@ -712,6 +714,26 @@ export async function uploadPostImage(file: File, userId: string): Promise<strin
   const { error: uploadError } = await supabase.storage
     .from('atleta-posts')
     .upload(fileName, compressed);
+
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('atleta-posts')
+    .getPublicUrl(fileName);
+
+  return publicUrl;
+}
+
+// Upload video for post
+export async function uploadPostVideo(file: File, userId: string): Promise<string> {
+  const fileExt = file.name.split('.').pop() || 'mp4';
+  const fileName = `${userId}/video-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('atleta-posts')
+    .upload(fileName, file, {
+      contentType: file.type || 'video/mp4',
+    });
 
   if (uploadError) throw uploadError;
 

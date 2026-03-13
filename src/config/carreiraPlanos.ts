@@ -5,6 +5,7 @@ export interface PlanoLimites {
   carreira_mes: number;
   posts_dia: number;
   video_seg: number;
+  video_max_mb: number;
   youtube: boolean;
   selo_elite: boolean;
   ver_views: boolean;
@@ -36,6 +37,7 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
       carreira_mes: 1,
       posts_dia: 1,
       video_seg: 0,
+      video_max_mb: 0,
       youtube: false,
       selo_elite: false,
       ver_views: false,
@@ -63,6 +65,7 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
       carreira_mes: 3,
       posts_dia: 3,
       video_seg: 20,
+      video_max_mb: 20,
       youtube: false,
       selo_elite: false,
       ver_views: false,
@@ -75,7 +78,7 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
       'Tudo do Base',
       '3 registros de jornada por mês',
       '3 registros de carreira por mês',
-      'Vídeos de até 20 segundos',
+      'Vídeos de até 20 segundos (20 MB)',
       'Perfil esportivo completo',
       'Liga de Conexões do Atleta',
     ],
@@ -91,6 +94,7 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
       carreira_mes: 9999,
       posts_dia: 99,
       video_seg: 60,
+      video_max_mb: 40,
       youtube: true,
       selo_elite: true,
       ver_views: true,
@@ -102,7 +106,7 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
     destaques: [
       'Tudo do Competidor',
       'Jornada ilimitada',
-      'Vídeos de até 1 minuto',
+      'Vídeos de até 1 minuto (40 MB)',
       'Publicação de vídeos do YouTube',
       'Prioridade nas buscas',
       'Selo de perfil Elite',

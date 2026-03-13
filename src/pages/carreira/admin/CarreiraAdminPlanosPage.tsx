@@ -24,6 +24,7 @@ interface PlanoConfig {
   carreira_mes: number;
   posts_dia: number;
   video_seg: number;
+  video_max_mb: number;
   youtube: boolean;
   selo_elite: boolean;
   ver_views: boolean;
@@ -38,6 +39,7 @@ const FEATURE_LABELS: Record<string, { label: string; desc: string; type: 'boole
   carreira_mes: { label: 'Registros de Carreira / mês', desc: 'Limite mensal de registros de carreira (escolinhas/clubes)', type: 'number' },
   posts_dia: { label: 'Posts por dia', desc: 'Limite diário de publicações no feed', type: 'number' },
   video_seg: { label: 'Duração de vídeo (seg)', desc: 'Tempo máximo de vídeo em segundos (0 = sem vídeo)', type: 'number' },
+  video_max_mb: { label: 'Tamanho máx. vídeo (MB)', desc: 'Tamanho máximo do arquivo de vídeo em MB', type: 'number' },
   youtube: { label: 'Vídeos do YouTube', desc: 'Permite publicar vídeos do YouTube', type: 'boolean' },
   selo_elite: { label: 'Selo Elite', desc: 'Exibe selo de perfil Elite', type: 'boolean' },
   ver_views: { label: 'Ver visualizações', desc: 'Permite ver quem visualizou o perfil', type: 'boolean' },

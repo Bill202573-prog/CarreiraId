@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { Image, Loader2, Send, User, X } from 'lucide-react';
-import { PerfilAtleta, useCreatePostAtleta, uploadPostImage } from '@/hooks/useCarreiraData';
+import { Image, Loader2, Send, User, X, Video, Lock } from 'lucide-react';
+import { PerfilAtleta, useCreatePostAtleta, uploadPostImage, uploadPostVideo } from '@/hooks/useCarreiraData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { LinkPreviewCard } from './LinkPreviewCard';
 import { ModerationBlockDialog } from './ModerationBlockDialog';
 import { compressImage } from '@/lib/image-compressor';
+import { validateVideo, isVideoFile, VIDEO_ACCEPT } from '@/lib/video-validator';
+import { useCarreiraPlano, usePostsDiaCount } from '@/hooks/useCarreiraPlano';
+import { PLANOS } from '@/config/carreiraPlanos';
+import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { useNavigate } from 'react-router-dom';
 import heic2any from 'heic2any';
 
 interface CreatePostFormProps {
@@ -24,11 +29,18 @@ interface CreatePostFormProps {
 
 export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRedeFoto, accentColor }: CreatePostFormProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const createPost = useCreatePostAtleta();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  
+  const criancaId = perfil?.crianca_id || null;
+  const { plano, limites, temAcesso } = useCarreiraPlano(criancaId);
+  const { data: postsDiaCount = 0 } = usePostsDiaCount(perfil?.id);
   
   const [texto, setTexto] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [videoFile, setVideoFile] = useState<{ file: File; preview: string; duration: number } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [linkPreview, setLinkPreview] = useState<any>(null);
   const [fetchingPreview, setFetchingPreview] = useState(false);
@@ -45,6 +57,9 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const effectiveUserId = user?.id || sessionUserId;
 
   const lastFetchedUrl = useRef<string | null>(null);
+  
+  const postsLimitReached = postsDiaCount >= limites.posts_dia;
+  const canUploadVideo = temAcesso('video_seg');
 
   const handleTextChange = (value: string) => {
     setTexto(value);
@@ -98,9 +113,34 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
       reader.readAsDataURL(file);
     });
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isVideoFile(file)) {
+      toast.error('Formato de vídeo não suportado');
+      return;
+    }
+
+    const result = await validateVideo(file, limites.video_seg, limites.video_max_mb);
+    
+    if (!result.valid) {
+      toast.error(result.error || 'Vídeo não permitido');
+      return;
+    }
+
+    const preview = URL.createObjectURL(file);
+    setVideoFile({ file, preview, duration: result.duration });
+    // Remove images if adding video
+    setImages([]);
+
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
     }
   };
 
@@ -108,14 +148,26 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeVideo = () => {
+    if (videoFile) {
+      URL.revokeObjectURL(videoFile.preview);
+      setVideoFile(null);
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!texto.trim() && images.length === 0) {
-      toast.error('Escreva algo ou adicione uma imagem');
+    if (!texto.trim() && images.length === 0 && !videoFile) {
+      toast.error('Escreva algo, adicione uma imagem ou vídeo');
       return;
     }
 
     if (!effectiveUserId) {
       toast.error('Você precisa estar logado');
+      return;
+    }
+
+    if (postsLimitReached) {
+      toast.error(`Você atingiu o limite de ${limites.posts_dia} publicação(ões) por dia no plano ${PLANOS[plano].nome}`);
       return;
     }
 
@@ -150,10 +202,17 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
         imageUrls.push(url);
       }
 
+      // Upload video if present
+      let videoUrl: string | undefined;
+      if (videoFile) {
+        videoUrl = await uploadPostVideo(videoFile.file, effectiveUserId);
+      }
+
       // Create post
       const postData: any = {
         texto: texto.trim(),
         imagens_urls: imageUrls,
+        video_url: videoUrl,
         link_preview: linkPreview || null,
       };
       if (perfilRedeId) {
@@ -166,6 +225,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
       // Reset form
       setTexto('');
       setImages([]);
+      removeVideo();
       setLinkPreview(null);
     } catch (error: any) {
       console.error('[CreatePostForm] Error:', error);
@@ -181,6 +241,19 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
     <> 
     <Card className="shadow-md" style={accentColor ? { borderColor: `${accentColor}50`, borderWidth: 2 } : { border: 'none' }}>
       <CardContent className="pt-4">
+        {/* Posts limit indicator */}
+        {postsLimitReached && (
+          <div className="mb-3 flex items-center gap-2 p-2.5 rounded-lg bg-muted/80 border border-dashed border-muted-foreground/20">
+            <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+            <div className="text-xs text-muted-foreground flex-1">
+              Limite de {limites.posts_dia} publicação(ões)/dia atingido.{' '}
+              <button onClick={() => navigate(carreiraPath('/planos'))} className="text-primary underline font-medium">
+                Fazer upgrade
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3">
           <Avatar className="w-10 h-10 flex-shrink-0">
             {(perfil?.foto_url || perfilRedeFoto) ? (
@@ -193,11 +266,12 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
           
           <div className="flex-1 space-y-3">
             <Textarea
-              placeholder="O que está acontecendo na sua jornada esportiva?"
+              placeholder={postsLimitReached ? `Limite de posts diários atingido (${limites.posts_dia}/${limites.posts_dia})` : "O que está acontecendo na sua jornada esportiva?"}
               value={texto}
               onChange={(e) => handleTextChange(e.target.value)}
               rows={3}
               className="resize-none border-0 p-0 focus-visible:ring-0 text-base"
+              disabled={postsLimitReached}
             />
 
             {/* Link Preview */}
@@ -206,6 +280,28 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
               <div className="relative">
                 <LinkPreviewCard preview={linkPreview} />
                 <button onClick={() => setLinkPreview(null)} className="absolute top-2 right-2 bg-background/80 rounded-full p-1"><X className="w-3 h-3" /></button>
+              </div>
+            )}
+
+            {/* Video Preview */}
+            {videoFile && (
+              <div className="relative rounded-lg overflow-hidden bg-muted">
+                <video
+                  src={videoFile.preview}
+                  controls
+                  className="w-full max-h-64 object-contain"
+                  preload="metadata"
+                />
+                <button
+                  type="button"
+                  onClick={removeVideo}
+                  className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black/80 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
+                  {Math.ceil(videoFile.duration)}s • {(videoFile.file.size / (1024 * 1024)).toFixed(1)} MB
+                </div>
               </div>
             )}
 
@@ -238,17 +334,17 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
 
             {/* Actions */}
             <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={images.length >= 3 || isSubmitting}
-                  className="gap-2"
+                  disabled={images.length >= 3 || isSubmitting || !!videoFile || postsLimitReached}
+                  className="gap-1.5"
                 >
                   <Image className="w-4 h-4" />
-                  <span className="hidden sm:inline">Foto</span>
+                  <span className="hidden sm:inline text-xs">Foto</span>
                 </Button>
                 <input
                   ref={fileInputRef}
@@ -258,6 +354,40 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
                   onChange={handleImageSelect}
                   className="hidden"
                 />
+
+                {/* Video button */}
+                {canUploadVideo ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => videoInputRef.current?.click()}
+                    disabled={isSubmitting || !!videoFile || images.length > 0 || postsLimitReached}
+                    className="gap-1.5"
+                  >
+                    <Video className="w-4 h-4" />
+                    <span className="hidden sm:inline text-xs">Vídeo</span>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(carreiraPath('/planos'))}
+                    className="gap-1.5 text-muted-foreground"
+                  >
+                    <Video className="w-4 h-4" />
+                    <Lock className="w-3 h-3" />
+                  </Button>
+                )}
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept={VIDEO_ACCEPT}
+                  onChange={handleVideoSelect}
+                  className="hidden"
+                />
+
                 {images.length > 0 && (
                   <span className="text-xs text-muted-foreground">
                     {images.length}/3 imagens
@@ -265,24 +395,31 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
                 )}
               </div>
 
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting || (!texto.trim() && images.length === 0)}
-                size="sm"
-                className="gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Publicando...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Publicar
-                  </>
+              <div className="flex items-center gap-2">
+                {!postsLimitReached && limites.posts_dia < 99 && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {postsDiaCount}/{limites.posts_dia}
+                  </span>
                 )}
-              </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || postsLimitReached || (!texto.trim() && images.length === 0 && !videoFile)}
+                  size="sm"
+                  className="gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Publicando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Publicar
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
