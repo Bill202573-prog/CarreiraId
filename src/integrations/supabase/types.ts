@@ -1332,6 +1332,7 @@ export type Database = {
           id: string
           solicitante_id: string
           status: string
+          unidade_nome: string | null
           updated_at: string
         }
         Insert: {
@@ -1340,6 +1341,7 @@ export type Database = {
           id?: string
           solicitante_id: string
           status?: string
+          unidade_nome?: string | null
           updated_at?: string
         }
         Update: {
@@ -1348,6 +1350,7 @@ export type Database = {
           id?: string
           solicitante_id?: string
           status?: string
+          unidade_nome?: string | null
           updated_at?: string
         }
         Relationships: []
