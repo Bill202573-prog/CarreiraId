@@ -533,7 +533,7 @@ export default function CarreiraExplorarPage() {
                           className="text-xs font-medium truncate cursor-pointer hover:underline"
                           onClick={() => navigate(carreiraPath(`/perfil/${person.user_id}`))}
                         >
-                          {person.nome}
+                          {person.tipo === 'dono_escola' && person.dados_perfil?.nome_escola ? person.dados_perfil.nome_escola : person.nome}
                         </p>
                         <p className="text-[10px] text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
                       </div>

@@ -181,15 +181,52 @@ export function PerfilLayout({ perfil, isOwnProfile, currentUserId, onEditProfil
 
             <div className="mt-3 flex items-center gap-3 justify-center sm:justify-start flex-wrap">
               <ConexoesCount userId={perfil.user_id} />
-              {!isOwnProfile && currentUserId && (
+              {/* For non-escola profiles, show connect button here */}
+              {!isOwnProfile && currentUserId && perfil.tipo !== 'dono_escola' && (
                 <ConectarButton
                   targetUserId={perfil.user_id}
                   currentUserId={currentUserId}
-                  isDono={perfil.tipo === 'dono_escola'}
-                  unidades={perfil.tipo === 'dono_escola' && perfil.dados_perfil?.unidades ? perfil.dados_perfil.unidades : undefined}
                 />
               )}
             </div>
+
+            {/* Escola units with per-unit connect buttons */}
+            {perfil.tipo === 'dono_escola' && (() => {
+              const nomeEscola = perfil.dados_perfil?.nome_escola || perfil.nome;
+              const endereco = perfil.dados_perfil?.endereco || '';
+              const localizacao = perfil.dados_perfil?.localizacao || '';
+              const unidades = Array.isArray(perfil.dados_perfil?.unidades) ? perfil.dados_perfil.unidades : [];
+              const allUnits = [
+                { nome: nomeEscola, endereco, bairro: localizacao, referencia: '' },
+                ...unidades,
+              ];
+
+              return (
+                <div className="mt-3 space-y-2 w-full">
+                  {allUnits.map((u: any, idx: number) => (
+                    <div key={idx} className="rounded-md border border-border p-2.5 bg-muted/20 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{u.nome || `Unidade ${idx + 1}`}</p>
+                        {u.bairro && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="w-3 h-3 shrink-0" />{u.bairro}
+                          </p>
+                        )}
+                        {u.endereco && <p className="text-xs text-muted-foreground">{u.endereco}</p>}
+                      </div>
+                      {!isOwnProfile && currentUserId && (
+                        <ConectarButton
+                          targetUserId={perfil.user_id}
+                          currentUserId={currentUserId}
+                          accentColor={accentColor}
+                          unidadeNome={u.nome || nomeEscola}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Owner action button - single unified edit */}
             {isOwnProfile && onEditProfile && (
