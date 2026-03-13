@@ -31,16 +31,20 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
   const [showUnidadeDialog, setShowUnidadeDialog] = useState(false);
 
   const { data: conexao, isLoading: statusLoading } = useQuery({
-    queryKey: ['conexao-status', currentUserId, targetUserId],
+    queryKey: ['conexao-status', currentUserId, targetUserId, preselectedUnidade || '__none__'],
     queryFn: async () => {
       if (!currentUserId) return null;
-      const { data } = await supabase
+      let query = supabase
         .from('rede_conexoes')
         .select('*')
         .or(
           `and(solicitante_id.eq.${currentUserId},destinatario_id.eq.${targetUserId}),and(solicitante_id.eq.${targetUserId},destinatario_id.eq.${currentUserId})`
-        )
-        .maybeSingle();
+        );
+      // When checking per-unit, filter by unidade_nome
+      if (preselectedUnidade) {
+        query = query.eq('unidade_nome', preselectedUnidade);
+      }
+      const { data } = await query.maybeSingle();
       return data;
     },
     enabled: !!currentUserId,
