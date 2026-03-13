@@ -72,7 +72,25 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Você é um moderador de conteúdo de uma rede social esportiva voltada para atletas e jovens. Analise o texto abaixo e responda APENAS com JSON no formato: {"aprovado": true/false, "motivo": "..."}. Reprove conteúdos que contenham: linguagem sexual explícita ou implícita, discurso de ódio, racismo, xingamentos, spam, links suspeitos, conteúdo inadequado para menores de 18 anos ou qualquer conteúdo que não seja adequado para um ambiente esportivo profissional. Texto para analisar:`;
+    const systemPrompt = `Você é um moderador de conteúdo de uma rede social esportiva voltada para atletas e jovens. Analise o texto abaixo e responda APENAS com JSON no formato: {"aprovado": true/false, "motivo": "..."}.
+
+REGRAS DE APROVAÇÃO:
+- Links de plataformas conhecidas como YouTube, Vimeo, Instagram, Twitter/X, TikTok, Kwai, Facebook e sites de notícias esportivas são SEMPRE permitidos, mesmo que o conteúdo contenha apenas um link.
+- Conteúdo sobre futebol, esportes, treinos, jogos, campeonatos, escolinhas e carreira esportiva é SEMPRE permitido.
+- Emojis e gírias comuns do esporte são permitidos.
+
+REGRAS DE REPROVAÇÃO (só reprove se claramente violar):
+- Linguagem sexual explícita ou implícita
+- Discurso de ódio, racismo, homofobia
+- Xingamentos graves e ofensas pessoais
+- Spam repetitivo ou golpes financeiros
+- Links para sites maliciosos, phishing ou conteúdo adulto
+- Conteúdo inadequado para menores de 18 anos
+- Conteúdo completamente fora do contexto esportivo E que seja prejudicial
+
+NA DÚVIDA, APROVE. É melhor permitir conteúdo legítimo do que bloquear usuários indevidamente.
+
+Texto para analisar:`;
 
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
