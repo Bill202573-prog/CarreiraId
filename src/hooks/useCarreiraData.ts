@@ -141,13 +141,14 @@ export function usePerfilAtletaBySlug(slug: string) {
   });
 }
 
-// Hook to get public activities for a profile
+// Hook to get public activities for a profile (merges own + synced from Atleta ID)
 export function useAtividadesPublicas(criancaId: string | null | undefined) {
   return useQuery({
     queryKey: ['atividades-publicas', criancaId],
     queryFn: async () => {
       if (!criancaId) return [];
 
+      // Original activities (tornar_publico = true)
       const { data, error } = await supabase
         .from('atividades_externas')
         .select(`
@@ -161,7 +162,34 @@ export function useAtividadesPublicas(criancaId: string | null | undefined) {
         .order('data', { ascending: false });
 
       if (error) throw error;
-      return data as AtividadeExternaPublica[];
+      const original = (data || []) as AtividadeExternaPublica[];
+
+      // Synced activities from Atleta ID
+      const { data: syncData } = await supabase
+        .from('atividades_externas_sync')
+        .select('*')
+        .eq('crianca_id', criancaId);
+
+      const synced = (syncData || []).map((s: any) => ({
+        id: s.id,
+        crianca_id: s.crianca_id,
+        tipo: s.tipo,
+        tipo_outro_descricao: s.tipo_outro_descricao,
+        data: s.data,
+        data_fim: s.data_fim,
+        local_atividade: s.local_atividade,
+        profissional_instituicao: s.profissional_instituicao,
+        torneio_nome: s.torneio_nome,
+        torneio_abrangencia: s.torneio_abrangencia,
+        observacoes: s.observacoes,
+        fotos_urls: s.fotos_urls,
+        created_at: s.created_at,
+      } as AtividadeExternaPublica));
+
+      // Merge and sort by date descending
+      return [...original, ...synced].sort((a, b) => 
+        new Date(b.data).getTime() - new Date(a.data).getTime()
+      );
     },
     enabled: !!criancaId,
   });
