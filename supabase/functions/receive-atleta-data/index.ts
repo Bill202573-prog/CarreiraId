@@ -67,6 +67,20 @@ Deno.serve(async (req) => {
         })
     }
 
+    // Mark perfil_atleta as linked after successful sync
+    const { error: updateError } = await supabase
+      .from('perfil_atleta')
+      .update({
+        atleta_id_vinculado: true,
+        atleta_id_sync_at: new Date().toISOString(),
+      })
+      .eq('crianca_id', criancaId)
+      .eq('atleta_id_vinculado', false)
+
+    if (updateError) {
+      console.error('Error updating atleta_id_vinculado:', updateError)
+    }
+
     return new Response(JSON.stringify({ success: true, result }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
