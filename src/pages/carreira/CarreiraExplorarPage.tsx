@@ -235,8 +235,8 @@ function useSearchPeopleExplorar(query: string) {
       const atletaUserIds = new Set((atletaResults || []).map((a: any) => a.user_id));
       const { data: redeResults } = await supabase
         .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url, slug')
-        .ilike('nome', searchTerm)
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .or(`nome.ilike.${searchTerm},dados_perfil->>nome_escola.ilike.${searchTerm}`)
         .limit(10);
       // Filter out rede profiles that already have an athlete profile
       const filteredRede = (redeResults || []).filter((r: any) => !atletaUserIds.has(r.user_id));

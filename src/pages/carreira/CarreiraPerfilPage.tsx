@@ -134,11 +134,11 @@ function useSearchPeople(query: string) {
       if (!query || query.length < 2) return { rede: [] as any[], atletas: [] as any[] };
       const searchTerm = `%${query}%`;
       
-      // Search in perfis_rede
+      // Search in perfis_rede (also match school name in dados_perfil)
       const { data: redeResults } = await supabase
         .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url, slug')
-        .ilike('nome', searchTerm)
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .or(`nome.ilike.${searchTerm},dados_perfil->>nome_escola.ilike.${searchTerm}`)
         .limit(10);
 
       // Search in perfil_atleta
