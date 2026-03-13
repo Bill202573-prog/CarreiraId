@@ -30,7 +30,7 @@ const formatCpf = (value: string) => {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 };
 
-export function CarreiraPaywall({ limitResult, childName, criancaId, onClose, onSubscribed }: CarreiraPaywallProps) {
+export function CarreiraPaywall({ limitResult, childName, criancaId, planoSelecionado, onClose, onSubscribed }: CarreiraPaywallProps) {
   const { user } = useAuth();
   const [step, setStep] = useState<PaywallStep>('info');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
