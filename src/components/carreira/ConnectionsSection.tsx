@@ -252,6 +252,11 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate cursor-pointer hover:underline" onClick={() => navigate(carreiraPath(`/perfil/${person.user_id}`))}>{person.nome}</p>
                   <p className="text-xs text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
+                  {person.unidade_nome && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                      <MapPin className="w-2.5 h-2.5" />{person.unidade_nome}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-1">
                   <Button size="sm" variant="default" className="h-8" disabled={respondingId === person.connectionId} onClick={() => person.connectionId && handleAccept(person.connectionId)}>
