@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, Star, Zap, Trophy, Copy, CheckCircle, Loader2, CreditCard, QrCode } from 'lucide-react';
+import { Lock, Star, Zap, Trophy, Copy, CheckCircle, Loader2, CreditCard, QrCode, Crown } from 'lucide-react';
 import { CarreiraLimitResult } from '@/hooks/useCarreiraFreemium';
+import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -35,6 +36,9 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
   const [step, setStep] = useState<PaywallStep>('info');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
   const [cpfInput, setCpfInput] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<CarreiraPlano>(
+    (planoSelecionado as CarreiraPlano) || 'competidor'
+  );
   const [pixData, setPixData] = useState<{
     paymentId: string;
     subscriptionId: string;
@@ -48,24 +52,17 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
 
   const cpfDigits = cpfInput.replace(/\D/g, '');
   const cpfValid = cpfDigits.length === 11;
-
-  // Debug: log render state
-  console.log('[CarreiraPaywall] render state:', { 
-    step, cpfInput, cpfDigits: cpfDigits.length, cpfValid, 
-    hasUser: !!user, criancaId, paymentMethod,
-    buttonDisabled: step === 'loading' || !cpfValid
-  });
+  const planInfo = PLANOS[selectedPlan];
+  const isElite = selectedPlan === 'elite';
 
   const generatePix = async () => {
     const cleanCpf = cpfInput.replace(/\D/g, '');
     
-    // Always get session directly to avoid stale useAuth context in dialogs
     const { data: sessionData } = await supabase.auth.getSession();
     const sessionUser = sessionData.session?.user;
     const resolvedUser = user || (sessionUser ? { id: sessionUser.id, name: sessionUser.user_metadata?.nome || sessionUser.user_metadata?.full_name || 'Usuário', email: sessionUser.email || '' } : null);
     
     if (!resolvedUser || !criancaId || cleanCpf.length !== 11) {
-      console.error('[CarreiraPaywall] generatePix blocked:', { hasUser: !!resolvedUser, criancaId, cpfLen: cleanCpf.length });
       toast.error(!criancaId ? 'Atleta não identificado' : !resolvedUser ? 'Sessão expirada. Faça login novamente.' : 'Informe um CPF válido para gerar o pagamento');
       return;
     }
@@ -73,15 +70,14 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     setStep('loading');
 
     try {
-      const userId = resolvedUser.id;
-
       const { data, error } = await supabase.functions.invoke('generate-carreira-pix', {
         body: {
-          user_id: userId,
+          user_id: resolvedUser.id,
           crianca_id: criancaId,
           cpf: cleanCpf,
           nome: resolvedUser.name,
           email: resolvedUser.email,
+          plano: selectedPlan,
         },
       });
 
@@ -100,13 +96,11 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
   const generateCheckout = async () => {
     const cleanCpf = cpfInput.replace(/\D/g, '');
     
-    // Always get session directly to avoid stale useAuth context in dialogs
     const { data: sessionData } = await supabase.auth.getSession();
     const sessionUser = sessionData.session?.user;
     const resolvedUser = user || (sessionUser ? { id: sessionUser.id, name: sessionUser.user_metadata?.nome || sessionUser.user_metadata?.full_name || 'Usuário', email: sessionUser.email || '' } : null);
     
     if (!resolvedUser || !criancaId || cleanCpf.length !== 11) {
-      console.error('[CarreiraPaywall] generateCheckout blocked:', { hasUser: !!resolvedUser, criancaId, cpfLen: cleanCpf.length });
       toast.error(!criancaId ? 'Atleta não identificado' : !resolvedUser ? 'Sessão expirada. Faça login novamente.' : 'Informe um CPF válido');
       return;
     }
@@ -114,16 +108,15 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     setStep('loading');
 
     try {
-      const userId = resolvedUser.id;
-
       const { data, error } = await supabase.functions.invoke('create-carreira-checkout', {
         body: {
-          user_id: userId,
+          user_id: resolvedUser.id,
           crianca_id: criancaId,
           cpf: cleanCpf,
           nome: resolvedUser.name,
           email: resolvedUser.email,
           callback_url: window.location.href,
+          plano: selectedPlan,
         },
       });
 
@@ -146,7 +139,6 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
   };
 
   const handleSubscribe = () => {
-    console.log('[CarreiraPaywall] handleSubscribe called', { paymentMethod, cpfValid, cpfInput, criancaId, step });
     if (paymentMethod === 'pix') {
       generatePix();
     } else {
@@ -209,7 +201,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
         </div>
         <h3 className="text-lg font-bold">Assinatura ativada! 🎉</h3>
         <p className="text-sm text-muted-foreground">
-          Agora você pode registrar atividades ilimitadas{childName && <> para <strong>{childName}</strong></>}.
+          Plano <strong>{planInfo.nome}</strong> ativado{childName && <> para <strong>{childName}</strong></>}.
         </p>
         {onClose && (
           <Button className="w-full" onClick={onClose}>
@@ -268,12 +260,15 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     );
   }
 
+  const preco = planInfo.preco;
+
   return (
     <div className="space-y-4 py-2">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="mx-auto w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-          <Lock className="w-7 h-7 text-amber-600 dark:text-amber-400" />
+        <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: `${planInfo.cor}15` }}>
+          <Lock className="w-7 h-7" style={{ color: planInfo.cor }} />
         </div>
         <h3 className="text-lg font-bold">Limite atingido</h3>
         <p className="text-sm text-muted-foreground">
@@ -282,30 +277,51 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
         </p>
       </div>
 
+      {/* Plan selector */}
+      <div className="grid grid-cols-2 gap-2">
+        {(['competidor', 'elite'] as CarreiraPlano[]).map((p) => {
+          const info = PLANOS[p];
+          const isSelected = selectedPlan === p;
+          return (
+            <button
+              key={p}
+              onClick={() => setSelectedPlan(p)}
+              className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${
+                isSelected ? 'ring-1' : 'opacity-70 hover:opacity-100'
+              }`}
+              style={{
+                borderColor: isSelected ? info.cor : 'transparent',
+                backgroundColor: isSelected ? `${info.cor}08` : undefined,
+                ringColor: info.cor,
+              }}
+            >
+              <span className="text-lg">{info.icone}</span>
+              <span className="text-sm font-bold">{info.nome}</span>
+              <span className="text-xs font-semibold" style={{ color: info.cor }}>
+                R$ {info.preco.toFixed(2).replace('.', ',')}/mês
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Upgrade Card */}
-      <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
+      <Card className="border-2" style={{ borderColor: `${planInfo.cor}30`, background: `linear-gradient(135deg, ${planInfo.cor}05, ${planInfo.cor}10)` }}>
         <CardContent className="pt-4 pb-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">
-              <Star className="w-3 h-3 mr-1" />
-              PRO
+            <Badge style={{ backgroundColor: planInfo.cor }} className="text-white">
+              {isElite ? <Crown className="w-3 h-3 mr-1" /> : <Star className="w-3 h-3 mr-1" />}
+              {planInfo.nome}
             </Badge>
-            <span className="text-sm font-medium">Carreira ID Pro</span>
           </div>
 
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <span>Atividades externas <strong>ilimitadas</strong></span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <span>Currículo esportivo completo</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <span>Perfil público turbinado</span>
-            </li>
+          <ul className="space-y-1.5 text-sm">
+            {planInfo.destaques.slice(0, 5).map((d, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5 flex-shrink-0" style={{ color: planInfo.cor }} />
+                <span>{d}</span>
+              </li>
+            ))}
           </ul>
 
           {/* CPF Input */}
@@ -330,8 +346,8 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
                 onClick={() => setPaymentMethod('cartao')}
                 className={`flex items-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all ${
                   paymentMethod === 'cartao'
-                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
-                    : 'border-border hover:border-amber-300'
+                    ? 'ring-1 border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/40'
                 }`}
               >
                 <CreditCard className="w-4 h-4 flex-shrink-0" />
@@ -345,8 +361,8 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
                 onClick={() => setPaymentMethod('pix')}
                 className={`flex items-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-all ${
                   paymentMethod === 'pix'
-                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
-                    : 'border-border hover:border-amber-300'
+                    ? 'ring-1 border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/40'
                 }`}
               >
                 <QrCode className="w-4 h-4 flex-shrink-0" />
@@ -360,7 +376,8 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
 
           <Button
             type="button"
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-2"
+            className="w-full text-white gap-2"
+            style={{ backgroundColor: planInfo.cor }}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -378,8 +395,8 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
             {step === 'loading'
               ? 'Processando...'
               : paymentMethod === 'cartao'
-                ? 'Assinar por R$ 19,90/mês'
-                : 'Pagar R$ 19,90 via PIX'}
+                ? `Assinar por R$ ${preco.toFixed(2).replace('.', ',')}/mês`
+                : `Pagar R$ ${preco.toFixed(2).replace('.', ',')} via PIX`}
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
