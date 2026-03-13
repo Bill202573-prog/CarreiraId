@@ -848,10 +848,6 @@ export default function CarreiraPerfilPage() {
               </Card>
             )}
 
-            {/* Assinatura — owner only, athletes only */}
-            {isOwner && perfil.type === 'atleta' && perfil.crianca_id && (
-              <AssinaturaCard userId={perfil.user_id} criancaId={perfil.crianca_id} accentColor={accentColor} />
-            )}
 
             {/* Gamificação — desktop only, athletes only (not scouts/técnicos) */}
             {isOwner && perfil.type === 'atleta' && (
