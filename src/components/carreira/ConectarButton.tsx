@@ -21,6 +21,8 @@ interface Props {
   unidades?: Unidade[];
   /** Whether the target profile is a dono_escola */
   isDono?: boolean;
+  /** Pre-selected unit name — skips the dialog */
+  unidadeNome?: string;
 }
 
 export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6', unidades, isDono }: Props) {
