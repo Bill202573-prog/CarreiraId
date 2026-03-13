@@ -10,7 +10,7 @@ interface CarreiraBottomNavProps {
   profileSlug?: string | null;
 }
 
-const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
+const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', 'empresario'];
 
 export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottomNavProps) {
   const navigate = useNavigate();
