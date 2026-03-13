@@ -13,8 +13,41 @@ export interface CarreiraPlanoResult {
   temPlano: (requerido: CarreiraPlano) => boolean;
 }
 
+/** Fetch dynamic plan limits from carreira_planos_config table */
+function useDynamicPlanLimits() {
+  return useQuery({
+    queryKey: ['carreira-planos-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carreira_planos_config')
+        .select('plano, nome, preco, cor, icone, descricao, jornada_mes, carreira_mes, posts_dia, video_seg, youtube, selo_elite, ver_views, prioridade_busca, destaque_listagem, stats_avancadas, liga_conexoes');
+      if (error) throw error;
+      const map: Record<string, PlanoLimites> = {};
+      (data || []).forEach((row: any) => {
+        map[row.plano] = {
+          jornada_mes: row.jornada_mes,
+          carreira_mes: row.carreira_mes,
+          posts_dia: row.posts_dia,
+          video_seg: row.video_seg,
+          youtube: row.youtube,
+          selo_elite: row.selo_elite,
+          ver_views: row.ver_views,
+          prioridade_busca: row.prioridade_busca,
+          destaque_listagem: row.destaque_listagem,
+          stats_avancadas: row.stats_avancadas,
+          liga_conexoes: row.liga_conexoes,
+        };
+      });
+      return map;
+    },
+    staleTime: 5 * 60_000, // 5 min cache
+    gcTime: 10 * 60_000,
+  });
+}
+
 export function useCarreiraPlano(criancaId: string | null): CarreiraPlanoResult {
   const { user } = useAuth();
+  const { data: dynamicLimits } = useDynamicPlanLimits();
 
   const { data: plano, isLoading } = useQuery({
     queryKey: ['carreira-plano', user?.id, criancaId],
@@ -49,26 +82,25 @@ export function useCarreiraPlano(criancaId: string | null): CarreiraPlanoResult 
 
       if (assinatura && assinatura.length > 0) {
         const sub = assinatura[0];
-        // Check if not expired
         if (!sub.expira_em || new Date(sub.expira_em) > new Date()) {
           const planoValue = (sub.plano || 'base') as string;
           if (planoValue === 'competidor' || planoValue === 'pro_mensal') return 'competidor';
           if (planoValue === 'elite') return 'elite';
-          // Legacy "mensal" plan maps to competidor
           if (planoValue === 'mensal') return 'competidor';
-          return 'competidor'; // any active sub = at least competidor
+          return 'competidor';
         }
       }
 
       return 'base';
     },
     enabled: !!criancaId,
-    staleTime: 60_000, // 1 minute cache
+    staleTime: 60_000,
     gcTime: 5 * 60_000,
   });
 
   const planoAtual = plano || 'base';
-  const limites = PLANOS[planoAtual].limites;
+  // Use dynamic limits from DB if available, fallback to static config
+  const limites = dynamicLimits?.[planoAtual] || PLANOS[planoAtual].limites;
 
   return {
     plano: planoAtual,

@@ -532,6 +532,78 @@ export type Database = {
         }
         Relationships: []
       }
+      carreira_planos_config: {
+        Row: {
+          ativo: boolean
+          carreira_mes: number
+          cor: string
+          created_at: string
+          descricao: string
+          destaque_listagem: boolean
+          icone: string
+          id: string
+          jornada_mes: number
+          liga_conexoes: boolean
+          nome: string
+          plano: string
+          posts_dia: number
+          preco: number
+          prioridade_busca: boolean
+          selo_elite: boolean
+          stats_avancadas: boolean
+          updated_at: string
+          ver_views: boolean
+          video_seg: number
+          youtube: boolean
+        }
+        Insert: {
+          ativo?: boolean
+          carreira_mes?: number
+          cor?: string
+          created_at?: string
+          descricao?: string
+          destaque_listagem?: boolean
+          icone?: string
+          id?: string
+          jornada_mes?: number
+          liga_conexoes?: boolean
+          nome: string
+          plano: string
+          posts_dia?: number
+          preco?: number
+          prioridade_busca?: boolean
+          selo_elite?: boolean
+          stats_avancadas?: boolean
+          updated_at?: string
+          ver_views?: boolean
+          video_seg?: number
+          youtube?: boolean
+        }
+        Update: {
+          ativo?: boolean
+          carreira_mes?: number
+          cor?: string
+          created_at?: string
+          descricao?: string
+          destaque_listagem?: boolean
+          icone?: string
+          id?: string
+          jornada_mes?: number
+          liga_conexoes?: boolean
+          nome?: string
+          plano?: string
+          posts_dia?: number
+          preco?: number
+          prioridade_busca?: boolean
+          selo_elite?: boolean
+          stats_avancadas?: boolean
+          updated_at?: string
+          ver_views?: boolean
+          video_seg?: number
+          youtube?: boolean
+        }
+        Relationships: []
+      }
       conquistas_coletivas_sync: {
         Row: {
           atleta_id_conquista_id: string
