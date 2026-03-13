@@ -54,14 +54,31 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get subscription value
+    // Get subscription value based on plan
+    const planoConfig: Record<string, { chave: string; fallback: number }> = {
+      competidor: { chave: 'carreira_valor_competidor', fallback: 15.90 },
+      elite: { chave: 'carreira_valor_elite', fallback: 29.90 },
+    };
+    const cfg = planoConfig[planoSelecionado] || planoConfig.competidor;
+    
     const { data: configValor } = await supabase
       .from('saas_config')
       .select('valor')
-      .eq('chave', 'carreira_valor_mensal')
+      .eq('chave', cfg.chave)
       .maybeSingle();
 
-    const valor = configValor ? parseFloat(configValor.valor) : 19.90;
+    // Fallback to legacy key
+    let valor = cfg.fallback;
+    if (configValor) {
+      valor = parseFloat(configValor.valor);
+    } else {
+      const { data: legacyConfig } = await supabase
+        .from('saas_config')
+        .select('valor')
+        .eq('chave', 'carreira_valor_mensal')
+        .maybeSingle();
+      if (legacyConfig) valor = parseFloat(legacyConfig.valor);
+    }
 
     // Find or create customer
     const cleanCpf = cpf.replace(/\D/g, '');
