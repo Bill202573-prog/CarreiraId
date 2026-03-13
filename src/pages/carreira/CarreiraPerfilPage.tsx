@@ -40,6 +40,7 @@ const TYPE_LABELS: Record<string, string> = {
   scout: 'Scout',
   agente_clube: 'Agente de Clube',
   fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor',
 };
 
 function useSuggestionsForProfile(userId?: string | null) {
