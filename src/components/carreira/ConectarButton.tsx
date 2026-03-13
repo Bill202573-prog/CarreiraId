@@ -85,8 +85,10 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
   };
 
   const handleClickConectar = () => {
-    // If it's a dono_escola with branches, show selection dialog
-    if (isDono && unidades && unidades.length > 0) {
+    // If a unit name is pre-selected, use it directly
+    if (preselectedUnidade) {
+      handleConectar(preselectedUnidade);
+    } else if (isDono && unidades && unidades.length > 0) {
       setShowUnidadeDialog(true);
     } else {
       handleConectar();
