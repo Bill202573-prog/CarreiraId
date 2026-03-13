@@ -136,6 +136,7 @@ type FormData = z.infer<typeof formSchema>;
 
 interface Unidade {
   nome: string;
+  endereco: string;
   bairro: string;
   referencia: string;
 }
