@@ -46,8 +46,17 @@ export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b
       } else {
         query = query.is('unidade_nome', null);
       }
-      const { data } = await query.limit(1).select('*');
-      return data && data.length > 0 ? data[0] : null;
+      const { data, error } = await query
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Erro ao buscar status da conexão:', error);
+        return null;
+      }
+
+      return data?.[0] ?? null;
     },
     enabled: !!currentUserId,
   });

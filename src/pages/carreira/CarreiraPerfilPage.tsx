@@ -461,10 +461,36 @@ export default function CarreiraPerfilPage() {
   const accentColor = perfil.type === 'rede'
     ? ((perfil.dados_perfil as any)?.cor_destaque || '#3b82f6')
     : (perfil.cor_destaque || '#3b82f6');
-  const modalidades = perfil.type === 'atleta' 
+  const modalidades = perfil.type === 'atleta'
     ? (perfil.modalidades?.length ? perfil.modalidades : [perfil.modalidade || 'Futebol'])
     : [];
   const isRedeProfile = perfil.type === 'rede';
+  const isDonoEscolaProfile = isRedeProfile && perfil.tipo === 'dono_escola';
+  const displayProfileName = isDonoEscolaProfile
+    ? (String(perfil.dados_perfil?.nome_escola || perfil.nome || '').trim() || perfil.nome)
+    : perfil.nome;
+  const modalidadesRede = isDonoEscolaProfile && Array.isArray(perfil.dados_perfil?.modalidades)
+    ? perfil.dados_perfil.modalidades.filter((item: any): item is string => typeof item === 'string' && item.trim().length > 0)
+    : [];
+  const unidadesPerfil = isDonoEscolaProfile && Array.isArray(perfil.dados_perfil?.unidades)
+    ? perfil.dados_perfil.unidades
+    : [];
+  const schoolUnitsForConnection = isDonoEscolaProfile
+    ? [
+        {
+          nome: displayProfileName,
+          bairro: perfil.dados_perfil?.localizacao || '',
+          endereco: perfil.dados_perfil?.endereco || '',
+        },
+        ...unidadesPerfil.map((u: any, idx: number) => ({
+          nome: String(u?.nome || `Unidade ${idx + 1}`).trim(),
+          bairro: u?.bairro || '',
+          endereco: u?.endereco || '',
+        })),
+      ].filter((u, idx, arr) =>
+        !!u.nome && arr.findIndex(other => other.nome.toLowerCase() === u.nome.toLowerCase()) === idx
+      )
+    : [];
   const instagramHandle = isRedeProfile
     ? (perfil.instagram || perfil.dados_perfil?.arroba || '').replace(/^@+/, '').trim()
     : '';
