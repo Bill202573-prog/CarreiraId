@@ -20,7 +20,7 @@ function useDynamicPlanLimits() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('carreira_planos_config')
-        .select('plano, nome, preco, cor, icone, descricao, jornada_mes, carreira_mes, posts_dia, video_seg, youtube, selo_elite, ver_views, prioridade_busca, destaque_listagem, stats_avancadas, liga_conexoes');
+        .select('plano, nome, preco, cor, icone, descricao, jornada_mes, carreira_mes, posts_dia, video_seg, video_max_mb, youtube, selo_elite, ver_views, prioridade_busca, destaque_listagem, stats_avancadas, liga_conexoes');
       if (error) throw error;
       const map: Record<string, PlanoLimites> = {};
       (data || []).forEach((row: any) => {
@@ -29,6 +29,7 @@ function useDynamicPlanLimits() {
           carreira_mes: row.carreira_mes,
           posts_dia: row.posts_dia,
           video_seg: row.video_seg,
+          video_max_mb: row.video_max_mb ?? 0,
           youtube: row.youtube,
           selo_elite: row.selo_elite,
           ver_views: row.ver_views,
@@ -40,7 +41,7 @@ function useDynamicPlanLimits() {
       });
       return map;
     },
-    staleTime: 5 * 60_000, // 5 min cache
+    staleTime: 5 * 60_000,
     gcTime: 10 * 60_000,
   });
 }
@@ -112,4 +113,27 @@ export function useCarreiraPlano(criancaId: string | null): CarreiraPlanoResult 
     },
     temPlano: (requerido: CarreiraPlano) => temAcessoAoPlano(planoAtual, requerido),
   };
+}
+
+/** Hook to check daily posts count for the current user */
+export function usePostsDiaCount(autorId: string | undefined) {
+  return useQuery({
+    queryKey: ['posts-dia-count', autorId],
+    queryFn: async () => {
+      if (!autorId) return 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { count, error } = await supabase
+        .from('posts_atleta')
+        .select('*', { count: 'exact', head: true })
+        .eq('autor_id', autorId)
+        .gte('created_at', today.toISOString());
+      
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!autorId,
+    staleTime: 30_000,
+  });
 }
