@@ -60,6 +60,9 @@ Deno.serve(async (req) => {
       case 'campeonato_convocacao':
         result = await handleCampeonatoConvocacao(supabase, acao, dados, criancaId, userId)
         break
+      case 'experiencia_escolinha':
+        result = await handleExperienciaEscolinha(supabase, acao, dados, criancaId, userId)
+        break
       default:
         return new Response(JSON.stringify({ error: `Unknown tipo: ${tipo}` }), {
           status: 400,
