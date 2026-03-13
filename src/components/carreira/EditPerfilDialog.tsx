@@ -456,7 +456,7 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
           </TabsContent>
 
           <TabsContent value="responsavel" className="mt-4">
-            <ResponsavelTab userId={perfil.user_id} />
+            <ResponsavelTab userId={perfil.user_id} criancaId={perfil.crianca_id || undefined} />
           </TabsContent>
         </Tabs>
 
