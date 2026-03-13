@@ -25,7 +25,7 @@ interface Props {
   unidadeNome?: string;
 }
 
-export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6', unidades, isDono }: Props) {
+export function ConectarButton({ targetUserId, currentUserId, accentColor = '#3b82f6', unidades, isDono, unidadeNome: preselectedUnidade }: Props) {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [showUnidadeDialog, setShowUnidadeDialog] = useState(false);
