@@ -175,7 +175,7 @@ export default function PerfilPage() {
         >
         {(() => {
           const redeAccent = (redeProfile.dados_perfil as any)?.cor_destaque || '#3b82f6';
-          const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube'];
+          const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', 'empresario'];
           const showDescobrir = isOwnProfile && (SCOUTING_TYPES.includes(redeProfile.tipo) || redeProfile.tipo === 'torcedor');
           const NON_HISTORICO_TYPES = ['atleta_filho', 'pai_responsavel', 'influenciador', 'torcedor'];
           const showHistorico = !NON_HISTORICO_TYPES.includes(redeProfile.tipo);
