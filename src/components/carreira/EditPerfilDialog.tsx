@@ -472,7 +472,7 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
 }
 
 /* --- Responsável Tab inside EditPerfilDialog --- */
-function ResponsavelTab({ userId }: { userId: string }) {
+function ResponsavelTab({ userId, criancaId }: { userId: string; criancaId?: string }) {
   const queryClient = useQueryClient();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
