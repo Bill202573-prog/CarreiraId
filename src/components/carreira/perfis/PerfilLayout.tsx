@@ -10,7 +10,7 @@ import type { ProfileType } from '../ProfileTypeSelector';
 const TYPE_CONFIG: Record<ProfileType, { label: string; icon: string; color: string }> = {
   professor: { label: 'Professor / Treinador', icon: '👨‍🏫', color: 'bg-blue-500/10 text-blue-700 border-blue-200' },
   tecnico: { label: 'Técnico de Futebol', icon: '⚽', color: 'bg-green-500/10 text-green-700 border-green-200' },
-  dono_escola: { label: 'Dono de Escola', icon: '🏫', color: 'bg-purple-500/10 text-purple-700 border-purple-200' },
+  dono_escola: { label: 'Escola de Esportes', icon: '🏫', color: 'bg-purple-500/10 text-purple-700 border-purple-200' },
   preparador_fisico: { label: 'Preparador Físico', icon: '💪', color: 'bg-orange-500/10 text-orange-700 border-orange-200' },
   empresario: { label: 'Empresário', icon: '💼', color: 'bg-slate-500/10 text-slate-700 border-slate-200' },
   influenciador: { label: 'Influenciador', icon: '⭐', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-200' },
