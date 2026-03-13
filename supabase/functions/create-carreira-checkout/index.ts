@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
       .insert({
         user_id,
         crianca_id,
-        plano: 'pro_mensal',
+        plano: planoSelecionado,
         status: 'pendente',
         valor,
         gateway: 'asaas_sandbox',
