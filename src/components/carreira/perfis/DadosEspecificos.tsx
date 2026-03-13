@@ -160,6 +160,7 @@ export function DadosEspecificos({ tipo, dados }: Props) {
               {unidades.map((u: any, idx: number) => (
                 <div key={idx} className="rounded-md border border-border p-2.5 bg-muted/20">
                   {u.nome && <p className="text-sm font-medium text-foreground">{u.nome}</p>}
+                  {u.endereco && <p className="text-xs text-muted-foreground">🏠 {u.endereco}</p>}
                   {u.bairro && <p className="text-xs text-muted-foreground">📍 {u.bairro}</p>}
                   {u.referencia && <p className="text-xs text-muted-foreground">{u.referencia}</p>}
                 </div>

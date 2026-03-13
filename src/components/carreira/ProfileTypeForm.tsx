@@ -671,6 +671,12 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
                   maxLength={100}
                 />
                 <Input
+                  value={unidade.endereco || ''}
+                  onChange={(e) => updateUnidade(idx, 'endereco', e.target.value)}
+                  placeholder="Endereço (ex: Rua das Flores, 123)"
+                  maxLength={200}
+                />
+                <Input
                   value={unidade.bairro}
                   onChange={(e) => updateUnidade(idx, 'bairro', e.target.value)}
                   placeholder="Bairro (ex: Tijuca)"
