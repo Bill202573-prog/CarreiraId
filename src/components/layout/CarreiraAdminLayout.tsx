@@ -78,8 +78,12 @@ export default function CarreiraAdminLayout({ children }: { children: ReactNode 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'admin')) {
-      navigate('/', { replace: true });
+    if (!isLoading) {
+      if (!user) {
+        navigate('/auth', { replace: true });
+      } else if (user.role !== 'admin') {
+        navigate('/', { replace: true });
+      }
     }
   }, [user, isLoading, navigate]);
 
