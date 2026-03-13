@@ -239,47 +239,35 @@ export default function CarreiraCadastroPage() {
     try {
       const basePath = carreiraPath('/cadastro');
       const inviteQuery = inviteCode ? `?convite=${inviteCode}` : '';
+      const redirectUrl = `${window.location.origin}${basePath}${inviteQuery}`;
 
-      // Detect if we're on a custom domain (production) vs Lovable preview
+      // On custom domains, let Supabase handle the redirect natively
+      // skipBrowserRedirect causes "OAuth state not found" on mobile
       const isCustomDomain =
         !window.location.hostname.includes('lovable.app') &&
         !window.location.hostname.includes('lovableproject.com') &&
         !window.location.hostname.includes('localhost');
 
-      const redirectUrl = `${window.location.origin}${basePath}${inviteQuery}`;
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (error) throw error;
-      if (!data?.url) throw new Error('Não foi possível iniciar o login com Google');
-
-      // Validate that the OAuth URL points to Google (prevent auth-bridge redirect)
-      const oauthUrl = new URL(data.url);
-      const allowedHosts = [
-        'accounts.google.com',
-        'fppsotlycinwqsjpoybg.supabase.co',
-      ];
-      const isDirectOAuth = allowedHosts.some((host) => oauthUrl.hostname.includes(host));
-
-      if (isDirectOAuth) {
-        // Direct OAuth URL — safe to redirect
-        window.location.href = data.url;
+      if (isCustomDomain) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+          },
+        });
+        if (error) throw error;
       } else {
-        // URL goes through auth-bridge or unknown host — bypass by constructing direct URL
-        console.warn('[GoogleOAuth] Unexpected URL host:', oauthUrl.hostname, '— attempting direct redirect');
-        // Try opening in new tab to bypass iframe restrictions
-        const popup = window.open(data.url, '_blank', 'noopener,noreferrer');
-        if (!popup) {
-          window.location.href = data.url;
-        } else {
-          toast.info('Conclua o login na nova aba e volte para continuar.');
-        }
+        // Preview environment — use skipBrowserRedirect to avoid auth-bridge issues
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (!data?.url) throw new Error('Não foi possível iniciar o login com Google');
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Google login error:', error);
