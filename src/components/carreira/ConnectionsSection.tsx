@@ -37,13 +37,15 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rede_conexoes')
-        .select('solicitante_id, destinatario_id')
+        .select('solicitante_id, destinatario_id, unidade_nome')
         .or(`solicitante_id.eq.${userId},destinatario_id.eq.${userId}`)
         .eq('status', 'aceita');
       if (error) throw error;
-      const connectedUserIds = (data || []).map(c =>
-        c.solicitante_id === userId ? c.destinatario_id : c.solicitante_id
-      );
+      const connectionDetails = (data || []).map(c => ({
+        connectedUserId: c.solicitante_id === userId ? c.destinatario_id : c.solicitante_id,
+        unidade_nome: (c as any).unidade_nome || null,
+      }));
+      const connectedUserIds = [...new Set(connectionDetails.map(c => c.connectedUserId))];
       if (connectedUserIds.length === 0) return [];
       const { data: redeProfiles } = await supabase
         .from('perfis_rede')
@@ -54,8 +56,6 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
         .select('id, user_id, nome, foto_url, slug')
         .eq('is_public', true)
         .in('user_id', connectedUserIds);
-      // Build a map keyed by user_id, using perfis_rede as primary identity
-      // and perfil_atleta foto_url as fallback for photo only
       const userMap = new Map<string, any>();
       for (const p of (redeProfiles || [])) {
         userMap.set(p.user_id, p);
@@ -63,17 +63,20 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
       for (const p of (atletaProfiles || [])) {
         const existing = userMap.get(p.user_id);
         if (!existing) {
-          // User only has perfil_atleta (no perfis_rede) — show as Atleta
           userMap.set(p.user_id, { ...p, tipo: 'Atleta' });
         } else {
-          // User has both — keep perfis_rede identity, use atleta photo as fallback
           userMap.set(p.user_id, {
             ...existing,
             foto_url: existing.foto_url || p.foto_url,
           });
         }
       }
-      return Array.from(userMap.values());
+      // Build final list with unidade_nome attached
+      return connectionDetails.map(cd => {
+        const profile = userMap.get(cd.connectedUserId);
+        if (!profile) return null;
+        return { ...profile, unidade_nome: cd.unidade_nome };
+      }).filter(Boolean);
     },
   });
 
