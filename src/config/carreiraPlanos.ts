@@ -29,7 +29,7 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
   base: {
     nome: 'Base',
     preco: 0,
-    cor: '#6b7280', // gray
+    cor: '#6b7280',
     icone: '⚽',
     descricao: 'Comece sua jornada esportiva',
     limites: {
@@ -44,20 +44,23 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
       prioridade_busca: false,
       destaque_listagem: false,
       stats_avancadas: false,
-      liga_conexoes: false,
+      liga_conexoes: true,
     },
     destaques: [
-      'Perfil público do atleta',
-      '1 registro de jornada por mês',
-      '1 publicação por dia',
-      'Conexões na plataforma',
-      'Visível para scouts e clubes',
+      'Perfil público do atleta (foto e informações básicas: posição, idade, pé dominante)',
+      'Histórico de carreira (Escolinhas e Clubes) — 1 registro por mês',
+      'Registro da Jornada — Participação em jogos e conquistas (1 por mês)',
+      'Publicações no feed (texto e fotos) — 1 por dia',
+      'Conexões na plataforma (atletas, escolas e clubes)',
+      'Perfil visível para scouts, captadores e clubes',
+      'Participação na comunidade e notificações da plataforma',
+      'Participação na Liga de Conexões do Atleta',
     ],
   },
   competidor: {
     nome: 'Competidor',
-    preco: 15.90,
-    cor: '#f59e0b', // amber
+    preco: 17.90,
+    cor: '#f59e0b',
     icone: '🏆',
     descricao: 'Acelere sua carreira esportiva',
     limites: {
@@ -76,17 +79,16 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
     },
     destaques: [
       'Tudo do Base',
-      '3 registros de jornada por mês',
-      '3 registros de carreira por mês',
-      'Vídeos de até 20 segundos (20 MB)',
-      'Perfil esportivo completo',
-      'Liga de Conexões do Atleta',
+      'Registro ampliado da Jornada (3 registros por mês)',
+      'Histórico de carreira (Escolinhas e Clubes) — até 3 registros por mês',
+      'Publicações com mais recursos (texto, foto e vídeos de até 20 segundos)',
+      'Perfil esportivo mais completo (mais campos de informação e histórico)',
     ],
   },
   elite: {
     nome: 'Elite',
     preco: 29.90,
-    cor: '#8b5cf6', // violet
+    cor: '#8b5cf6',
     icone: '👑',
     descricao: 'Máxima visibilidade e recursos',
     limites: {
@@ -105,14 +107,15 @@ export const PLANOS: Record<CarreiraPlano, PlanoInfo> = {
     },
     destaques: [
       'Tudo do Competidor',
-      'Jornada ilimitada',
-      'Vídeos de até 1 minuto (40 MB)',
-      'Publicação de vídeos do YouTube',
-      'Prioridade nas buscas',
+      'Registro ilimitado da Jornada Esportiva',
+      'Publicações com mais recursos (texto, foto e vídeos de até 1 minuto)',
+      'Publicação de vídeos da plataforma YouTube (treinos, jogos e highlights)',
+      'Prioridade nas buscas para scouts e clubes',
       'Selo de perfil Elite',
+      'Destaque em listagens de atletas',
       'Estatísticas avançadas',
-      'Ver quem visualizou o perfil',
-      'Acesso antecipado a novos recursos',
+      'Verifica quem visualizou o perfil',
+      'Acesso antecipado a novos recursos da plataforma',
     ],
   },
 };
