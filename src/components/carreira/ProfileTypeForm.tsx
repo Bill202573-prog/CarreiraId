@@ -63,6 +63,7 @@ function getFields(type: ProfileType): FieldDef[] {
     case 'dono_escola':
       return [
         { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text', required: true, placeholder: 'Ex: Escola de Futebol Gol de Placa' },
+        { key: 'endereco', label: 'Endereço da Sede', type: 'text', placeholder: 'Ex: Rua das Flores, 123 - Centro' },
         { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text', required: true, placeholder: 'Ex: São Paulo, SP' },
         { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', required: true, options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
         { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
