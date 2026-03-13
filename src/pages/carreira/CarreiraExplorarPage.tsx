@@ -235,8 +235,8 @@ function useSearchPeopleExplorar(query: string) {
       const atletaUserIds = new Set((atletaResults || []).map((a: any) => a.user_id));
       const { data: redeResults } = await supabase
         .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url, slug')
-        .ilike('nome', searchTerm)
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .or(`nome.ilike.${searchTerm},dados_perfil->>nome_escola.ilike.${searchTerm}`)
         .limit(10);
       // Filter out rede profiles that already have an athlete profile
       const filteredRede = (redeResults || []).filter((r: any) => !atletaUserIds.has(r.user_id));
@@ -417,8 +417,12 @@ export default function CarreiraExplorarPage() {
                       onClick={() => { navigate(carreiraPath(`/${r.slug || `perfil/${r.user_id}`}`)); setSearchOpen(false); setSearchQuery(''); }}>
                       {r.foto_url ? <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" /> : <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground">{r.nome?.[0]}</div>}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{r.nome}</p>
-                        <p className="text-xs text-muted-foreground">{TYPE_LABELS[r.tipo] || r.tipo}</p>
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {r.tipo === 'dono_escola' && r.dados_perfil?.nome_escola ? r.dados_perfil.nome_escola : r.nome}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {r.tipo === 'dono_escola' && r.dados_perfil?.nome_escola ? `${r.nome} • ` : ''}{TYPE_LABELS[r.tipo] || r.tipo}
+                        </p>
                       </div>
                     </div>
                   ))}
