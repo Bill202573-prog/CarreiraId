@@ -675,12 +675,12 @@ export default function CarreiraPerfilPage() {
                 style={{ '--tw-ring-color': accentColor } as any}
               >
                 {perfil.foto_url ? (
-                  <AvatarImage src={perfil.foto_url} alt={perfil.nome} className="object-cover" />
+                  <AvatarImage src={perfil.foto_url} alt={displayProfileName} className="object-cover" />
                 ) : null}
                 <AvatarFallback className="text-xl"><User className="w-8 h-8" /></AvatarFallback>
               </Avatar>
 
-              <h2 className="font-bold text-foreground text-sm">{perfil.nome}</h2>
+              <h2 className="font-bold text-foreground text-sm">{displayProfileName}</h2>
               
               {/* Athlete subtitle: "Atleta Sub X" + managed by guardian */}
               {!isRedeProfile && sidebarCategoria && (
@@ -705,10 +705,21 @@ export default function CarreiraPerfilPage() {
                 ))}
               </div>
               )}
-              
+
               {/* Type label (rede only) */}
               {isRedeProfile && perfil.tipo && (
                 <p className="text-xs text-muted-foreground mt-1">{TYPE_LABELS[perfil.tipo] || perfil.tipo}</p>
+              )}
+
+              {/* Modalidades tags for escola profile */}
+              {isDonoEscolaProfile && modalidadesRede.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-1 mt-1.5">
+                  {modalidadesRede.map((mod: string) => (
+                    <Badge key={mod} variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {mod}
+                    </Badge>
+                  ))}
+                </div>
               )}
 
               {/* Location */}
