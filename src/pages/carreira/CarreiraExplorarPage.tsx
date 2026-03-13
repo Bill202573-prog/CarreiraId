@@ -194,7 +194,7 @@ function useSuggestions(userId?: string | null) {
 
       const { data: redeData } = await supabase
         .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url')
+        .select('id, user_id, nome, tipo, foto_url, dados_perfil')
         .limit(30);
       const { data: atletaData } = await supabase
         .from('perfil_atleta')
