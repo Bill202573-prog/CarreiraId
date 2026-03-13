@@ -7,26 +7,32 @@ import {
   GraduationCap, 
   Trophy, 
   Calendar, 
-  MapPin, 
   ChevronDown, 
   ChevronUp,
   Plus,
   Dumbbell,
   Target,
-  Award
+  Award,
+  Pencil,
+  Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AtividadeExternaPublica, PerfilAtleta, EscolinhaCarreira } from '@/hooks/useCarreiraData';
 import { TIPO_ATIVIDADE_LABELS, ABRANGENCIA_LABELS } from '@/hooks/useAtividadesExternasData';
+import { CarreiraExperiencia } from '@/hooks/useCarreiraExperienciasData';
 
 interface ExperienciaSectionProps {
   perfil: PerfilAtleta;
   escolinhas?: EscolinhaCarreira[];
   atividades?: AtividadeExternaPublica[];
+  experiencias?: CarreiraExperiencia[];
   isOwner?: boolean;
   onAddExperiencia?: () => void;
+  onEditExperiencia?: (exp: CarreiraExperiencia) => void;
+  onDeleteExperiencia?: (id: string) => void;
   accentColor?: string;
 }
 
@@ -52,8 +58,11 @@ export function ExperienciaSection({
   perfil,
   escolinhas = [],
   atividades = [],
+  experiencias = [],
   isOwner = false,
   onAddExperiencia,
+  onEditExperiencia,
+  onDeleteExperiencia,
   accentColor = '#3b82f6',
 }: ExperienciaSectionProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -68,8 +77,8 @@ export function ExperienciaSection({
     setExpandedItems(newExpanded);
   };
 
-  // Combine escolinhas and atividades into a timeline
-  const experiencias = [
+  // Combine escolinhas, carreira_experiencias, and atividades into a timeline
+  const allExperiencias = [
     ...escolinhas.map(esc => ({
       type: 'escolinha' as const,
       id: `esc-${esc.id}`,
@@ -80,8 +89,27 @@ export function ExperienciaSection({
       endDate: esc.data_fim,
       isActive: esc.ativo,
       details: null as string | null,
+      isSynced: false,
+      carreiraExp: null as CarreiraExperiencia | null,
       data: esc,
     })),
+    ...experiencias
+      // Filter out carreira_experiencias that already have a matching escolinha entry
+      .filter(exp => !escolinhas.some(esc => exp.escolinha_id && esc.id === exp.escolinha_id))
+      .map(exp => ({
+        type: 'carreira_exp' as const,
+        id: `cexp-${exp.id}`,
+        title: exp.nome_escola,
+        subtitle: [exp.tipo_instituicao, exp.categoria_instituicao, exp.posicao_jogada].filter(Boolean).join(' · ') || null,
+        logo: null as string | null,
+        startDate: exp.data_inicio,
+        endDate: exp.data_fim,
+        isActive: exp.atual,
+        details: exp.observacoes,
+        isSynced: !!exp.escolinha_id,
+        carreiraExp: exp,
+        data: exp,
+      })),
     ...atividades.map(atv => ({
       type: 'atividade' as const,
       id: `atv-${atv.id}`,
@@ -93,11 +121,12 @@ export function ExperienciaSection({
       endDate: atv.data_fim,
       isActive: false,
       details: atv.observacoes,
+      isSynced: false,
+      carreiraExp: null as CarreiraExperiencia | null,
       abrangencia: atv.torneio_abrangencia,
       data: atv,
     })),
   ].sort((a, b) => {
-    // Sort by most recent start date
     const dateA = new Date(a.startDate || '1900-01-01');
     const dateB = new Date(b.startDate || '1900-01-01');
     return dateB.getTime() - dateA.getTime();
@@ -105,22 +134,16 @@ export function ExperienciaSection({
 
   const formatDateRange = (start?: string, end?: string | null, isActive?: boolean) => {
     if (!start) return '';
-    
     const startFormatted = format(new Date(start), "MMM yyyy", { locale: ptBR });
-    
-    if (isActive) {
-      return `${startFormatted} - Atual`;
-    }
-    
+    if (isActive) return `${startFormatted} - Atual`;
     if (end) {
       const endFormatted = format(new Date(end), "MMM yyyy", { locale: ptBR });
       return `${startFormatted} - ${endFormatted}`;
     }
-    
     return startFormatted;
   };
 
-  if (experiencias.length === 0 && !isOwner) {
+  if (allExperiencias.length === 0 && !isOwner) {
     return null;
   }
 
@@ -146,7 +169,7 @@ export function ExperienciaSection({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {experiencias.length === 0 ? (
+        {allExperiencias.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <Building2 className="w-10 h-10 mx-auto mb-2 opacity-40" />
             <p className="text-sm">Nenhuma experiência registrada</p>
@@ -161,18 +184,18 @@ export function ExperienciaSection({
             {/* Timeline line */}
             <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
 
-            {experiencias.map((exp, idx) => (
+            {allExperiencias.map((exp) => (
               <div key={exp.id} className="relative pl-12 pb-4 last:pb-0">
                 {/* Timeline dot */}
-                <div className={`absolute left-3 w-5 h-5 rounded-full border-2 flex items-center justify-center`}
-                  style={exp.type === 'escolinha' 
+                <div className="absolute left-3 w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                  style={exp.type === 'escolinha' || exp.type === 'carreira_exp'
                     ? { backgroundColor: `${accentColor}18`, borderColor: accentColor, color: accentColor }
                     : { backgroundColor: 'hsl(var(--secondary))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--muted-foreground))' }
                   }
                 >
-                  {exp.type === 'escolinha' 
-                    ? <GraduationCap className="w-3 h-3" />
-                    : getActivityIcon((exp.data as AtividadeExternaPublica).tipo)
+                  {exp.type === 'atividade'
+                    ? getActivityIcon((exp.data as AtividadeExternaPublica).tipo)
+                    : <GraduationCap className="w-3 h-3" />
                   }
                 </div>
 
@@ -199,27 +222,62 @@ export function ExperienciaSection({
                               >
                                 {exp.title}
                               </Link>
-                            ) : exp.title}
+                            ) : (
+                              <span style={exp.type !== 'atividade' ? { color: accentColor } : undefined}>
+                                {exp.title}
+                              </span>
+                            )}
                           </h4>
-                          {exp.type === 'atividade' && exp.abrangencia && (
+                          {exp.isSynced && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <RefreshCw className="w-3 h-3" />
+                              Atleta ID
+                            </Badge>
+                          )}
+                          {exp.type === 'atividade' && (exp as any).abrangencia && (
                             <Badge variant="outline" className="text-xs">
-                              {ABRANGENCIA_LABELS[exp.abrangencia as keyof typeof ABRANGENCIA_LABELS] || exp.abrangencia}
+                              {ABRANGENCIA_LABELS[(exp as any).abrangencia as keyof typeof ABRANGENCIA_LABELS] || (exp as any).abrangencia}
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {exp.subtitle}
-                        </p>
+                        {exp.subtitle && (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {exp.subtitle}
+                          </p>
+                        )}
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDateRange(exp.startDate, exp.endDate, exp.isActive)}
                         </p>
                       </div>
-                      <button className="text-muted-foreground hover:text-foreground p-1">
-                        {expandedItems.has(exp.id) 
-                          ? <ChevronUp className="w-4 h-4" /> 
-                          : <ChevronDown className="w-4 h-4" />
-                        }
-                      </button>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {/* Edit/Delete for manual carreira_experiencias (not synced) */}
+                        {isOwner && exp.type === 'carreira_exp' && !exp.isSynced && exp.carreiraExp && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => { e.stopPropagation(); onEditExperiencia?.(exp.carreiraExp!); }}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              onClick={(e) => { e.stopPropagation(); onDeleteExperiencia?.(exp.carreiraExp!.id); }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
+                        )}
+                        <button className="text-muted-foreground hover:text-foreground p-1">
+                          {expandedItems.has(exp.id) 
+                            ? <ChevronUp className="w-4 h-4" /> 
+                            : <ChevronDown className="w-4 h-4" />
+                          }
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -228,6 +286,18 @@ export function ExperienciaSection({
                     <div className="mt-2 pt-2 border-t text-sm text-muted-foreground">
                       {exp.details}
                     </div>
+                  )}
+
+                  {/* Location for carreira_experiencias */}
+                  {expandedItems.has(exp.id) && exp.type === 'carreira_exp' && exp.carreiraExp && (
+                    (() => {
+                      const loc = [exp.carreiraExp!.bairro, exp.carreiraExp!.cidade, exp.carreiraExp!.estado].filter(Boolean).join(', ');
+                      return loc ? (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          📍 {loc}
+                        </div>
+                      ) : null;
+                    })()
                   )}
 
                   {/* Photos for atividades */}
