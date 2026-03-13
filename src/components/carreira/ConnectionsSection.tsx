@@ -86,7 +86,7 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
       if (!isOwnProfile) return [];
       const { data, error } = await supabase
         .from('rede_conexoes')
-        .select('id, solicitante_id')
+        .select('id, solicitante_id, unidade_nome')
         .eq('destinatario_id', userId)
         .eq('status', 'pendente');
       if (error) throw error;
@@ -116,11 +116,16 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
           });
         }
       }
-      const allSenders = Array.from(senderMap.values());
-      return allSenders.map(p => ({
-        ...p,
-        connectionId: data.find(r => r.solicitante_id === p.user_id)?.id,
-      }));
+      // Return one entry per connection row (not per user) so unit info is preserved
+      return data.map(r => {
+        const profile = senderMap.get(r.solicitante_id);
+        if (!profile) return null;
+        return {
+          ...profile,
+          connectionId: r.id,
+          unidade_nome: (r as any).unidade_nome || null,
+        };
+      }).filter(Boolean);
     },
     enabled: isOwnProfile,
   });
