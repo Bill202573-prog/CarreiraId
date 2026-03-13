@@ -160,11 +160,12 @@ const TYPE_LABELS: Record<ProfileType, string> = {
 
 interface Unidade {
   nome: string;
+  endereco: string;
   bairro: string;
   referencia: string;
 }
 
-const EMPTY_UNIDADE: Unidade = { nome: '', bairro: '', referencia: '' };
+const EMPTY_UNIDADE: Unidade = { nome: '', endereco: '', bairro: '', referencia: '' };
 
 export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack, onComplete }: Props) {
   const fields = getFields(type);
