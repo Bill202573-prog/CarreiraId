@@ -296,6 +296,11 @@ export function ConnectionsSection({ userId, currentUserId }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{person.nome}</p>
                   <p className="text-xs text-muted-foreground">{TYPE_LABELS[person.tipo] || person.tipo}</p>
+                  {person.unidade_nome && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                      <MapPin className="w-2.5 h-2.5" />{person.unidade_nome}
+                    </p>
+                  )}
                 </div>
               </Card>
             ))}
