@@ -40,6 +40,7 @@ const TYPE_LABELS: Record<string, string> = {
   scout: 'Scout',
   agente_clube: 'Agente de Clube',
   fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor',
 };
 
 function useSuggestionsForProfile(userId?: string | null) {
@@ -134,13 +135,6 @@ function useSearchPeople(query: string) {
       if (!query || query.length < 2) return { rede: [] as any[], atletas: [] as any[] };
       const searchTerm = `%${query}%`;
       
-      // Search in perfis_rede (also match school name in dados_perfil)
-      const { data: redeResults } = await supabase
-        .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
-        .or(`nome.ilike.${searchTerm},dados_perfil->>nome_escola.ilike.${searchTerm}`)
-        .limit(10);
-
       // Search in perfil_atleta
       const { data: atletaResults } = await supabase
         .from('perfil_atleta')
@@ -149,8 +143,36 @@ function useSearchPeople(query: string) {
         .ilike('nome', searchTerm)
         .limit(10);
 
+      // Search in perfis_rede by name
+      const { data: redeByName } = await supabase
+        .from('perfis_rede')
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .ilike('nome', searchTerm)
+        .limit(15);
+
+      // Also fetch dono_escola profiles broadly to match escola name client-side
+      const { data: redeEscolas } = await supabase
+        .from('perfis_rede')
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .eq('tipo', 'dono_escola')
+        .limit(50);
+
+      // Merge and deduplicate
+      const redeMap = new Map<string, any>();
+      (redeByName || []).forEach((r: any) => redeMap.set(r.id, r));
+
+      // Client-side filter escola names
+      const lowerQuery = query.toLowerCase();
+      (redeEscolas || []).forEach((r: any) => {
+        if (redeMap.has(r.id)) return;
+        const nomeEscola = r.dados_perfil?.nome_escola || '';
+        if (nomeEscola.toLowerCase().includes(lowerQuery)) {
+          redeMap.set(r.id, r);
+        }
+      });
+
       return {
-        rede: redeResults || [],
+        rede: Array.from(redeMap.values()).slice(0, 10),
         atletas: atletaResults || [],
       };
     },
@@ -582,20 +604,24 @@ export default function CarreiraPerfilPage() {
                       </div>
                     </div>
                   ))}
-                  {searchResults.rede.map((r) => (
+                  {searchResults.rede.map((r) => {
+                    const isDono = r.tipo === 'dono_escola';
+                    const nomeEscola = isDono ? (r.dados_perfil?.nome_escola || r.nome) : r.nome;
+                    const modalidades = isDono && Array.isArray(r.dados_perfil?.modalidades) ? r.dados_perfil.modalidades : [];
+                    return (
                     <div key={`r-${r.id}`} className="flex items-center gap-3 p-2.5 hover:bg-muted/50 rounded-lg cursor-pointer"
                       onClick={() => { navigate(carreiraPath(`/${r.slug || `perfil/${r.user_id}`}`)); setSearchOpen(false); setSearchQuery(''); }}>
-                      {r.foto_url ? <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" /> : <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground">{r.nome?.[0]}</div>}
+                      {r.foto_url ? <img src={r.foto_url} alt="" className="w-9 h-9 rounded-full object-cover" /> : <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground">{(isDono ? nomeEscola : r.nome)?.[0]}</div>}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {r.tipo === 'dono_escola' && r.dados_perfil?.nome_escola ? r.dados_perfil.nome_escola : r.nome}
-                        </p>
+                        <p className="text-sm font-semibold text-foreground truncate">{nomeEscola}</p>
                         <p className="text-xs text-muted-foreground">
-                          {r.tipo === 'dono_escola' && r.dados_perfil?.nome_escola ? `${r.nome} • ` : ''}{TYPE_LABELS[r.tipo] || r.tipo}
+                          {isDono ? 'Escola de Esportes' : (TYPE_LABELS[r.tipo] || r.tipo)}
+                          {isDono && modalidades.length > 0 ? ` • ${modalidades.join(', ')}` : ''}
                         </p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </>
               )}
             </Card>

@@ -26,6 +26,7 @@ const TYPE_LABELS: Record<string, string> = {
   scout: 'Scout',
   agente_clube: 'Agente de Clube',
   fotografo: 'Fotógrafo',
+  torcedor: 'Torcedor',
 };
 
 // Hook to get current Supabase session user (independent of institutional AuthContext)
@@ -233,13 +234,37 @@ function useSearchPeopleExplorar(query: string) {
         .limit(10);
       // Collect user_ids already covered by athlete profiles to avoid duplicates
       const atletaUserIds = new Set((atletaResults || []).map((a: any) => a.user_id));
-      const { data: redeResults } = await supabase
+
+      // Fetch rede profiles by name match
+      const { data: redeByName } = await supabase
         .from('perfis_rede')
         .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
-        .or(`nome.ilike.${searchTerm},dados_perfil->>nome_escola.ilike.${searchTerm}`)
-        .limit(10);
+        .ilike('nome', searchTerm)
+        .limit(15);
+
+      // Also fetch dono_escola profiles broadly to match escola name client-side
+      const { data: redeEscolas } = await supabase
+        .from('perfis_rede')
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .eq('tipo', 'dono_escola')
+        .limit(50);
+
+      // Merge and deduplicate
+      const redeMap = new Map<string, any>();
+      (redeByName || []).forEach((r: any) => redeMap.set(r.id, r));
+
+      // Client-side filter escola names
+      const lowerQuery = query.toLowerCase();
+      (redeEscolas || []).forEach((r: any) => {
+        if (redeMap.has(r.id)) return;
+        const nomeEscola = r.dados_perfil?.nome_escola || '';
+        if (nomeEscola.toLowerCase().includes(lowerQuery)) {
+          redeMap.set(r.id, r);
+        }
+      });
+
       // Filter out rede profiles that already have an athlete profile
-      const filteredRede = (redeResults || []).filter((r: any) => !atletaUserIds.has(r.user_id));
+      const filteredRede = Array.from(redeMap.values()).filter((r: any) => !atletaUserIds.has(r.user_id)).slice(0, 10);
       return { rede: filteredRede, atletas: atletaResults || [] };
     },
     enabled: query.length >= 2,
