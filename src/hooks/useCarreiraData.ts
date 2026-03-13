@@ -52,6 +52,7 @@ export interface PostAtleta {
   perfil_rede_id?: string | null;
   texto: string;
   imagens_urls: string[];
+  video_url?: string | null;
   visibilidade: string;
   likes_count: number;
   comments_count: number;
