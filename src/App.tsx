@@ -84,6 +84,7 @@ const App = () => (
               <Route path="/carreira/admin/perfis" element={<CarreiraAdminPerfisPage />} />
               <Route path="/carreira/admin/posts" element={<CarreiraAdminPostsPage />} />
               <Route path="/carreira/admin/assinaturas" element={<CarreiraAdminAssinaturasPage />} />
+              <Route path="/carreira/admin/planos" element={<CarreiraAdminPlanosPage />} />
               <Route path="/carreira/admin/atividades" element={<CarreiraAdminAtividadesPage />} />
               <Route path="/carreira/admin/gamificacao" element={<CarreiraAdminGamificacaoPage />} />
               <Route path="/carreira/admin/performance" element={<CarreiraAdminPerformancePage />} />
