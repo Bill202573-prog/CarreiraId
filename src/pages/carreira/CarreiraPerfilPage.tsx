@@ -135,13 +135,6 @@ function useSearchPeople(query: string) {
       if (!query || query.length < 2) return { rede: [] as any[], atletas: [] as any[] };
       const searchTerm = `%${query}%`;
       
-      // Search in perfis_rede (also match school name in dados_perfil)
-      const { data: redeResults } = await supabase
-        .from('perfis_rede')
-        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
-        .or(`nome.ilike.${searchTerm},dados_perfil->>nome_escola.ilike.${searchTerm}`)
-        .limit(10);
-
       // Search in perfil_atleta
       const { data: atletaResults } = await supabase
         .from('perfil_atleta')
@@ -150,8 +143,36 @@ function useSearchPeople(query: string) {
         .ilike('nome', searchTerm)
         .limit(10);
 
+      // Search in perfis_rede by name
+      const { data: redeByName } = await supabase
+        .from('perfis_rede')
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .ilike('nome', searchTerm)
+        .limit(15);
+
+      // Also fetch dono_escola profiles broadly to match escola name client-side
+      const { data: redeEscolas } = await supabase
+        .from('perfis_rede')
+        .select('id, user_id, nome, tipo, foto_url, slug, dados_perfil')
+        .eq('tipo', 'dono_escola')
+        .limit(50);
+
+      // Merge and deduplicate
+      const redeMap = new Map<string, any>();
+      (redeByName || []).forEach((r: any) => redeMap.set(r.id, r));
+
+      // Client-side filter escola names
+      const lowerQuery = query.toLowerCase();
+      (redeEscolas || []).forEach((r: any) => {
+        if (redeMap.has(r.id)) return;
+        const nomeEscola = r.dados_perfil?.nome_escola || '';
+        if (nomeEscola.toLowerCase().includes(lowerQuery)) {
+          redeMap.set(r.id, r);
+        }
+      });
+
       return {
-        rede: redeResults || [],
+        rede: Array.from(redeMap.values()).slice(0, 10),
         atletas: atletaResults || [],
       };
     },
