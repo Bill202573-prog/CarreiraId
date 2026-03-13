@@ -50,16 +50,18 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
 
           {/* Ações */}
           <div className="flex items-center gap-2">
-            {/* Voltar para o app da escolinha */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBackToDashboard}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1.5" />
-              <span className="hidden sm:inline">Voltar ao App</span>
-            </Button>
+            {/* Voltar para o app da escolinha — só mostra para quem tem vínculo */}
+            {user && (user.role === 'guardian' || user.role === 'school' || user.role === 'teacher') && user.escolinhaId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToDashboard}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Voltar ao App</span>
+              </Button>
+            )}
 
             {/* Menu do usuário */}
             {user && (
