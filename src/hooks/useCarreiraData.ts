@@ -724,6 +724,26 @@ export async function uploadPostImage(file: File, userId: string): Promise<strin
   return publicUrl;
 }
 
+// Upload video for post
+export async function uploadPostVideo(file: File, userId: string): Promise<string> {
+  const fileExt = file.name.split('.').pop() || 'mp4';
+  const fileName = `${userId}/video-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('atleta-posts')
+    .upload(fileName, file, {
+      contentType: file.type || 'video/mp4',
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('atleta-posts')
+    .getPublicUrl(fileName);
+
+  return publicUrl;
+}
+
 // Upload profile photo
 export async function uploadProfilePhoto(file: File, userId: string): Promise<string> {
   const { compressImage } = await import('@/lib/image-compressor');
