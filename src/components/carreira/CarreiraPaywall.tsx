@@ -292,7 +292,6 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
               style={{
                 borderColor: isSelected ? info.cor : 'transparent',
                 backgroundColor: isSelected ? `${info.cor}08` : undefined,
-                ringColor: info.cor,
               }}
             >
               <span className="text-lg">{info.icone}</span>
