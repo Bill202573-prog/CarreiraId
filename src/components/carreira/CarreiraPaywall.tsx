@@ -14,6 +14,7 @@ interface CarreiraPaywallProps {
   limitResult: CarreiraLimitResult;
   childName?: string;
   criancaId?: string;
+  planoSelecionado?: string;
   onClose?: () => void;
   onSubscribed?: () => void;
 }

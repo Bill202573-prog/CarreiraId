@@ -16,7 +16,26 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function CarreiraPlanos() {
   const navigate = useNavigate();
-  const { perfil, crianca } = useCarreiraData();
+  const { user } = useAuth();
+
+  const { data: perfil } = useQuery({
+    queryKey: ['perfil-atleta-planos', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('perfil_atleta').select('crianca_id, nome').eq('user_id', user!.id).limit(1);
+      return data?.[0] || null;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: crianca } = useQuery({
+    queryKey: ['crianca-planos', perfil?.crianca_id],
+    queryFn: async () => {
+      const { data } = await supabase.from('criancas').select('nome').eq('id', perfil!.crianca_id!).single();
+      return data;
+    },
+    enabled: !!perfil?.crianca_id,
+  });
+
   const criancaId = perfil?.crianca_id || null;
   const { plano: planoAtual } = useCarreiraPlano(criancaId);
   const [selectedPlano, setSelectedPlano] = useState<CarreiraPlano | null>(null);
