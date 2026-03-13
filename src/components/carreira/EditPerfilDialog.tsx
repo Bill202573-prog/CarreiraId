@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PerfilAtleta, useUpdatePerfilAtleta } from '@/hooks/useCarreiraData';
 import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { AssinaturaCard } from './AssinaturaCard';
 import { toast } from 'sonner';
 
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
