@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, UserPlus, Check, X, Users } from 'lucide-react';
+import { Loader2, UserPlus, Check, X, Users, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
