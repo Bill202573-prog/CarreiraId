@@ -36,8 +36,11 @@ const Auth = () => {
     if (user && user.role) {
       if (user.role === 'admin') {
         navigate('/carreira/admin');
-      } else {
+      } else if (['guardian', 'school', 'teacher'].includes(user.role) && user.escolinhaId) {
         navigate('/dashboard');
+      } else {
+        // Usuários sem escolinha (Carreira ID puro) vão para /minha
+        navigate('/minha');
       }
     }
   }, [user, navigate]);
