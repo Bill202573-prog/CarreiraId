@@ -4,10 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { ComoJogarButton } from '@/components/carreira/ComoJogarButton';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
+import { TabelaPontos } from '@/components/carreira/TabelaPontos';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Trophy, User, Zap } from 'lucide-react';
+import { Loader2, Trophy, User, Zap, TableProperties } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
@@ -122,6 +123,15 @@ export default function CarreiraGamerPage() {
       <main className="container max-w-2xl px-4 py-6 pb-24 space-y-4">
         <TutorialAutoShow tipoPerfil="atleta_filho" />
         <GamificacaoHeroCard accentColor={accentColor} />
+
+        {/* Tabela de Pontos */}
+        <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <TableProperties className="w-4 h-4" style={{ color: accentColor }} />
+            Tabela de Pontos
+          </h3>
+          <TabelaPontos accentColor={accentColor} />
+        </Card>
 
         {/* Ranking */}
         {ranking && ranking.length > 0 && (
