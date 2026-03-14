@@ -181,18 +181,16 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
             {/* Core info next to avatar */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{perfil.nome}</h1>
-                {temAcesso('selo_elite') ? (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400">
-                    <Crown className="w-3 h-3" /> Elite
-                  </span>
-                ) : plano !== 'base' && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                    <Trophy className="w-3 h-3" /> Competidor
-                  </span>
-                )}
-              </div>
+              <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{perfil.nome}</h1>
+              {temAcesso('selo_elite') ? (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400 w-fit">
+                  <Crown className="w-3 h-3" /> Elite
+                </span>
+              ) : plano !== 'base' && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 w-fit">
+                  <Trophy className="w-3 h-3" /> Competidor
+                </span>
+              )}
               
               {categoriaDisplay && (
                 <p className="text-xs font-medium mt-0.5" style={{ color: perfil.cor_destaque || '#3b82f6' }}>

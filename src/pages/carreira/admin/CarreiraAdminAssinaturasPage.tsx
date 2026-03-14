@@ -144,10 +144,10 @@ export default function CarreiraAdminAssinaturasPage() {
                         <p className="text-sm font-medium">{ass.user_nome}</p>
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="text-xs text-muted-foreground">{ass.user_email}</p>
-                          {ass.user_telefone !== '—' && <p className="text-xs text-muted-foreground">{ass.user_telefone}</p>}
-                        </div>
+                        <p className="text-xs text-muted-foreground">{ass.user_email}</p>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-xs text-muted-foreground">{ass.user_telefone !== '—' ? ass.user_telefone : '—'}</p>
                       </TableCell>
                       <TableCell><Badge variant="outline" className="text-xs capitalize">{ass.plano}</Badge></TableCell>
                       <TableCell className="text-sm font-medium">{ass.valor ? `R$ ${Number(ass.valor).toFixed(2).replace('.', ',')}` : '—'}</TableCell>
@@ -164,7 +164,13 @@ export default function CarreiraAdminAssinaturasPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(ass.inicio_em), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{ass.expira_em ? format(new Date(ass.expira_em), 'dd/MM/yyyy', { locale: ptBR }) : '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {ass.status === 'cancelada' && ass.cancelada_em
+                          ? <span className="text-destructive">{format(new Date(ass.cancelada_em), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                          : ass.expira_em
+                            ? format(new Date(ass.expira_em), 'dd/MM/yyyy', { locale: ptBR })
+                            : '—'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
