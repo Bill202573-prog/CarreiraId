@@ -59,6 +59,7 @@ function useAdminAssinaturas(search: string) {
         crianca_nascimento: criancasMap[a.crianca_id]?.data_nascimento || null,
         atleta_slug: perfilAtletaMap[a.crianca_id]?.slug || null,
         atleta_posicao: perfilAtletaMap[a.crianca_id]?.posicao_principal || null,
+        cancelada_em: a.cancelada_em || null,
       }));
 
       if (search) {
