@@ -211,7 +211,7 @@ export default function CarreiraPlanos() {
 
       {/* Checkout Dialog */}
       <Dialog open={!!selectedPlano} onOpenChange={(open) => !open && setSelectedPlano(null)}>
-        <DialogContent className="max-w-md bg-[hsl(220,15%,10%)] border-white/10 text-white">
+        <DialogContent className="max-w-md bg-[hsl(220,15%,10%)] border-white/10 text-white max-h-[90vh] overflow-y-auto">
           {selectedPlano && (
             <CarreiraPaywall
               limitResult={{ status: 'limit_reached', source: 'freemium', count: 0, limit: 0 }}
