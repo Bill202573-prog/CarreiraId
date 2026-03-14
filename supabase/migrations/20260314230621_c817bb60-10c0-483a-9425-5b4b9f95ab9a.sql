@@ -1,0 +1,1 @@
+UPDATE perfil_atleta SET is_public = false WHERE id != '9d96bc6e-2aab-4540-8d04-c125fdd94c65'
