@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
+import { ComoJogarButton } from '@/components/carreira/ComoJogarButton';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
