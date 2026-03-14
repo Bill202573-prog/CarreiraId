@@ -9,6 +9,7 @@ import { CarreiraLimitResult } from '@/hooks/useCarreiraFreemium';
 import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 interface CarreiraPaywallProps {
