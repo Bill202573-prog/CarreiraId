@@ -49,7 +49,11 @@ export default function CarreiraLinkedinPage() {
               {planoInfo.icone} {planoInfo.nome}
             </button>
           )}
+          </div>
         </div>
+
+        {/* Tutorial auto-show para novos usuários */}
+        {perfil && <TutorialAutoShow tipoPerfil="atleta_filho" />}
 
         {/* Upgrade banner */}
         {showUpgradeBanner && (
