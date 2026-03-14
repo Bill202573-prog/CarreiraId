@@ -273,13 +273,6 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
             {/* Actions */}
             <div className="flex gap-1.5 mt-3 flex-wrap justify-center">
-              {isOwner && (
-                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
-                  style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}
-                  onClick={() => setEditDialogOpen(true)}>
-                  <Pencil className="w-3 h-3 mr-1" />Editar Perfil
-                </Button>
-              )}
               {!isOwner && user && (
                 <>
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={user.id} />
