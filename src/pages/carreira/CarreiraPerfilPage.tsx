@@ -556,15 +556,10 @@ export default function CarreiraPerfilPage() {
           <div className="flex items-center gap-2">
             {currentUserId && (
               <>
-                {isOwner && (
-                  <Button variant="outline" size="sm" className="h-8 text-xs hidden lg:flex gap-1" style={{ borderColor: `${accentColor}50`, color: accentColor }} onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-3 h-3" />
-                    Editar Perfil
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" className="h-8 text-xs"
-                  style={{ borderColor: `${accentColor}50`, color: accentColor }}
-                  onClick={async () => {
+                <div className="flex items-center gap-1.5">
+                  <Button variant="outline" size="sm" className="h-8 text-xs"
+                    style={{ borderColor: `${accentColor}50`, color: accentColor }}
+                    onClick={async () => {
                   if (mySlug) {
                     navigate(carreiraPath(`/${mySlug}`));
                   } else {
