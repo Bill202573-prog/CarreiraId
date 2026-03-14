@@ -885,6 +885,10 @@ export default function CarreiraPerfilPage() {
                 }}
               />
             )}
+            {/* Expiry reminder for PIX subscriptions */}
+            {perfil.type === 'atleta' && isOwner && perfil.crianca_id && (
+              <AssinaturaExpiryReminder criancaId={perfil.crianca_id} />
+            )}
             {/* Mobile-only: full PerfilHeader */}
             {perfil.type === 'atleta' && (
               <div className="lg:hidden">
