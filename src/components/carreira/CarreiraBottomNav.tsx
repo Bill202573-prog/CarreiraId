@@ -121,7 +121,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       label: 'Meu Perfil',
       onClick: goToProfile,
       active: !!profileSlug && location.pathname === carreiraPath(`/${profileSlug}`),
-      badge: 0,
+      badge: unreadComunicados || 0,
     },
     {
       icon: LogOut,
