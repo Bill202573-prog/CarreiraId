@@ -267,6 +267,11 @@ export default function CarreiraAdminGamificacaoPage() {
             <PontosTipoManager pontosTipo={pontosTipo} onSave={() => { refetchPontosTipo(); queryClient.invalidateQueries({ queryKey: ['gamificacao-pontos-tipo'] }); }} />
           </TabsContent>
 
+          {/* TAB: Ações */}
+          <TabsContent value="acoes">
+            <AcoesConfigManager acoes={acoesConfig} onSave={() => { refetchAcoesConfig(); queryClient.invalidateQueries({ queryKey: ['acoes-config-publico'] }); }} />
+          </TabsContent>
+
           {/* TAB: Desafios */}
           <TabsContent value="desafios">
             <DesafiosManager desafios={desafios} onSave={() => { refetchDesafios(); queryClient.invalidateQueries({ queryKey: ['desafios-ativos'] }); }} />
