@@ -10,6 +10,8 @@ import { PLANOS } from '@/config/carreiraPlanos';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { Button } from '@/components/ui/button';
 import { Loader2, Crown, Zap } from 'lucide-react';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
+import { TutorialHelpButton } from '@/components/carreira/TutorialHelpButton';
 
 export default function CarreiraLinkedinPage() {
   const { user, isLoading: authLoading } = useAuth();
