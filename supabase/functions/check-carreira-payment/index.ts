@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ASAAS_SANDBOX_URL = 'https://sandbox.asaas.com/api/v3';
+const ASAAS_API_URL = 'https://api.asaas.com/v3';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const ASAAS_API_KEY = Deno.env.get('ASAAS_SANDBOX_API_KEY');
+    const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
 
     console.log('Checking Carreira payment:', payment_id, 'subscription:', subscription_id);
 
-    // Check payment status with Asaas Sandbox
-    const response = await fetch(`${ASAAS_SANDBOX_URL}/payments/${payment_id}`, {
+    // Check payment status with Asaas Production
+    const response = await fetch(`${ASAAS_API_URL}/payments/${payment_id}`, {
       headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
     });
 
@@ -48,7 +48,6 @@ Deno.serve(async (req) => {
     const isPaid = paidStatuses.includes(paymentData.status);
 
     if (isPaid) {
-      // Try to activate subscription by ID or by gateway_subscription_id (checkout flow)
       const expiraEm = new Date();
       expiraEm.setDate(expiraEm.getDate() + 30);
 
@@ -69,8 +68,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Also check by gateway_subscription_id (used by checkout flow where payment_id is stored there)
-      const { data: pendingSub, error: findError } = await supabase
+      const { data: pendingSub } = await supabase
         .from('carreira_assinaturas')
         .select('id')
         .eq('gateway_subscription_id', payment_id)
