@@ -300,6 +300,9 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
             </>
           )}
         </Button>
+
+        {/* Como Jogar button */}
+        <ComoJogarButton variant="card" accentColor={accentColor} />
       </CardContent>
     </Card>
   );
