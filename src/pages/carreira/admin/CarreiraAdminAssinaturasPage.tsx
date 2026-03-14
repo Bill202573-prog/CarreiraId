@@ -119,15 +119,16 @@ export default function CarreiraAdminAssinaturasPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Atleta</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Pagamento</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Início</TableHead>
-                    <TableHead>Expiração</TableHead>
+                     <TableHead>Atleta</TableHead>
+                     <TableHead>Responsável</TableHead>
+                     <TableHead>Email</TableHead>
+                     <TableHead>WhatsApp</TableHead>
+                     <TableHead>Plano</TableHead>
+                     <TableHead>Valor</TableHead>
+                     <TableHead>Pagamento</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead>Início</TableHead>
+                     <TableHead>Vencimento / Cancel.</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
