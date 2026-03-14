@@ -133,6 +133,7 @@ export default function PerfilPage() {
       </header>
 
       <main className="container max-w-lg px-4 py-6">
+        {isOwnProfile && <TutorialAutoShow tipoPerfil={redeProfile.tipo} />}
         {isOwnProfile && redeProfile.tipo === 'pai_responsavel' && (
           <div className="mb-4">
             <MigrarPerfilBanner
