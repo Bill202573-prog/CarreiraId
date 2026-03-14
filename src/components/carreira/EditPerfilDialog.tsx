@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, X, Eye, Instagram, Palette, Lock, Trash2, UserCircle, Save } from 'lucide-react';
+import { Loader2, X, Eye, Instagram, Palette, Lock, Trash2, UserCircle, Save, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -220,11 +220,15 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         </DialogHeader>
 
         <Tabs defaultValue="perfil" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="perfil">Dados do Atleta</TabsTrigger>
             <TabsTrigger value="responsavel" className="flex items-center gap-1.5">
               <UserCircle className="w-3.5 h-3.5" />
               Responsável
+            </TabsTrigger>
+            <TabsTrigger value="assinatura" className="flex items-center gap-1.5">
+              <CreditCard className="w-3.5 h-3.5" />
+              Assinatura
             </TabsTrigger>
           </TabsList>
 
@@ -459,6 +463,14 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
           <TabsContent value="responsavel" className="mt-4">
             <ResponsavelTab userId={perfil.user_id} criancaId={perfil.crianca_id || undefined} />
           </TabsContent>
+
+          <TabsContent value="assinatura" className="mt-4">
+            {perfil.crianca_id ? (
+              <AssinaturaCard userId={perfil.user_id} criancaId={perfil.crianca_id} />
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">Assinatura disponível apenas para perfis de atleta.</p>
+            )}
+          </TabsContent>
         </Tabs>
 
         <DeleteAccountDialog
@@ -593,13 +605,7 @@ function ResponsavelTab({ userId, criancaId }: { userId: string; criancaId?: str
         </Button>
       </div>
 
-      {/* Assinatura do atleta — gerenciada pelo responsável */}
-      {criancaId && (
-        <>
-          <Separator className="my-4" />
-          <AssinaturaCard userId={userId} criancaId={criancaId} />
-        </>
-      )}
+      {/* Assinatura movida para aba própria */}
     </div>
   );
 }
