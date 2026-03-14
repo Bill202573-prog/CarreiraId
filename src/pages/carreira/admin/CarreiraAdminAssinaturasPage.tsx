@@ -112,19 +112,40 @@ const METODO_LABEL: Record<string, string> = {
 
 export default function CarreiraAdminAssinaturasPage() {
   const [search, setSearch] = useState('');
+  const [renewLoading, setRenewLoading] = useState(false);
+  const queryClient = useQueryClient();
   const { data: assinaturas, isLoading } = useAdminAssinaturas(search);
   const ativas = assinaturas?.filter((a: any) => a.status === 'ativa').length || 0;
   const total = assinaturas?.length || 0;
 
+  const handleManualRenewal = async () => {
+    setRenewLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('renew-carreira-pix');
+      if (error) throw error;
+      const result = data as any;
+      toast.success(`Renovação executada: ${result.processed || 0} de ${result.total || 0} processadas`);
+      queryClient.invalidateQueries({ queryKey: ['carreira-admin-assinaturas'] });
+    } catch (err: any) {
+      toast.error('Erro ao executar renovação: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      setRenewLoading(false);
+    }
+  };
+
   return (
     <CarreiraAdminLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h1 className="text-2xl font-bold">Assinaturas</h1>
             <p className="text-muted-foreground text-sm">Gerencie assinaturas do Carreira ID</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <Button variant="outline" size="sm" onClick={handleManualRenewal} disabled={renewLoading} className="gap-1.5 text-xs">
+              <RefreshCw className={`w-3.5 h-3.5 ${renewLoading ? 'animate-spin' : ''}`} />
+              Gerar PIX Renovação
+            </Button>
             <Badge variant="outline">{total} total</Badge>
             <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">{ativas} ativas</Badge>
           </div>

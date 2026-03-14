@@ -605,13 +605,7 @@ function ResponsavelTab({ userId, criancaId }: { userId: string; criancaId?: str
         </Button>
       </div>
 
-      {/* Assinatura do atleta — gerenciada pelo responsável */}
-      {criancaId && (
-        <>
-          <Separator className="my-4" />
-          <AssinaturaCard userId={userId} criancaId={criancaId} />
-        </>
-      )}
+      {/* Assinatura movida para aba própria */}
     </div>
   );
 }
