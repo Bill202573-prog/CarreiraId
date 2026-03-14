@@ -338,7 +338,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
 
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Forma de pagamento</Label>
+            <Label className="text-xs font-medium text-foreground">Forma de pagamento</Label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
