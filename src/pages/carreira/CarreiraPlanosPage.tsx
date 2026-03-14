@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CarreiraPaywall } from '@/components/carreira/CarreiraPaywall';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
 
 export default function CarreiraPlanos() {
   const navigate = useNavigate();
