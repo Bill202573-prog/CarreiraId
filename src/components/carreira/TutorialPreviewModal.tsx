@@ -30,7 +30,9 @@ export function TutorialPreviewModal({ open, onClose, tutorial }: TutorialPrevie
         {/* Header */}
         <div className="px-6 pt-6 pb-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-[hsl(0,0%,95%)]">{tutorial.titulo}</h2>
+            <h2 className="text-lg font-bold text-[hsl(0,0%,95%)]">
+              {tutorial.titulo}
+            </h2>
             <button onClick={onClose} className="text-[hsl(0,0%,50%)] hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
