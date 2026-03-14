@@ -1,0 +1,1 @@
+ALTER TABLE public.carreira_tutoriais ADD COLUMN target_user_ids uuid[] DEFAULT NULL;

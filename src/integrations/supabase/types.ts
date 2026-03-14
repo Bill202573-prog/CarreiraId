@@ -719,6 +719,7 @@ export type Database = {
           id: string
           ordem: number
           slides: Json
+          target_user_ids: string[] | null
           tipo_perfil: string
           titulo: string
           updated_at: string
@@ -730,6 +731,7 @@ export type Database = {
           id?: string
           ordem?: number
           slides?: Json
+          target_user_ids?: string[] | null
           tipo_perfil?: string
           titulo: string
           updated_at?: string
@@ -741,6 +743,7 @@ export type Database = {
           id?: string
           ordem?: number
           slides?: Json
+          target_user_ids?: string[] | null
           tipo_perfil?: string
           titulo?: string
           updated_at?: string
