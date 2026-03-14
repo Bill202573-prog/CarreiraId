@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Loader2, CreditCard } from 'lucide-react';
+import { Search, Loader2, CreditCard, QrCode } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CarreiraAdminLayout from '@/components/layout/CarreiraAdminLayout';
@@ -14,39 +14,81 @@ function useAdminAssinaturas(search: string) {
   return useQuery({
     queryKey: ['carreira-admin-assinaturas', search],
     queryFn: async () => {
-      const { data, error } = await supabase.from('carreira_assinaturas').select('*').order('created_at', { ascending: false }).limit(200);
+      const { data, error } = await supabase
+        .from('carreira_assinaturas')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
       if (error) throw error;
+
       const userIds = [...new Set((data || []).map((a: any) => a.user_id))];
       const criancaIds = [...new Set((data || []).map((a: any) => a.crianca_id))];
+
       let profilesMap: Record<string, any> = {};
-      let criancasMap: Record<string, string> = {};
+      let criancasMap: Record<string, any> = {};
+      let perfilAtletaMap: Record<string, any> = {};
+
       if (userIds.length > 0) {
-        const { data: profiles } = await supabase.from('profiles').select('user_id, email, nome').in('user_id', userIds);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, email, nome, telefone')
+          .in('user_id', userIds);
         if (profiles) profiles.forEach((p: any) => { profilesMap[p.user_id] = p; });
       }
+
       if (criancaIds.length > 0) {
-        const { data: criancas } = await supabase.from('criancas').select('id, nome').in('id', criancaIds);
-        if (criancas) criancas.forEach((c: any) => { criancasMap[c.id] = c.nome; });
+        const { data: criancas } = await supabase
+          .from('criancas')
+          .select('id, nome, data_nascimento')
+          .in('id', criancaIds);
+        if (criancas) criancas.forEach((c: any) => { criancasMap[c.id] = c; });
+
+        const { data: perfis } = await supabase
+          .from('perfil_atleta')
+          .select('crianca_id, slug, categoria, posicao_principal')
+          .in('crianca_id', criancaIds);
+        if (perfis) perfis.forEach((p: any) => { perfilAtletaMap[p.crianca_id] = p; });
       }
+
       let result = (data || []).map((a: any) => ({
         ...a,
         user_email: profilesMap[a.user_id]?.email || '—',
         user_nome: profilesMap[a.user_id]?.nome || '—',
-        crianca_nome: criancasMap[a.crianca_id] || '—',
+        user_telefone: profilesMap[a.user_id]?.telefone || '—',
+        crianca_nome: criancasMap[a.crianca_id]?.nome || '—',
+        crianca_nascimento: criancasMap[a.crianca_id]?.data_nascimento || null,
+        atleta_slug: perfilAtletaMap[a.crianca_id]?.slug || null,
+        atleta_posicao: perfilAtletaMap[a.crianca_id]?.posicao_principal || null,
       }));
+
       if (search) {
         const s = search.toLowerCase();
-        result = result.filter((a: any) => a.user_email?.toLowerCase().includes(s) || a.user_nome?.toLowerCase().includes(s) || a.crianca_nome?.toLowerCase().includes(s));
+        result = result.filter((a: any) =>
+          a.user_email?.toLowerCase().includes(s) ||
+          a.user_nome?.toLowerCase().includes(s) ||
+          a.crianca_nome?.toLowerCase().includes(s)
+        );
       }
       return result;
     },
   });
 }
 
+const METODO_ICON: Record<string, React.ReactNode> = {
+  cartao_credito: <CreditCard className="w-3.5 h-3.5" />,
+  pix: <QrCode className="w-3.5 h-3.5" />,
+};
+
+const METODO_LABEL: Record<string, string> = {
+  cartao_credito: 'Cartão',
+  pix: 'PIX',
+};
+
 export default function CarreiraAdminAssinaturasPage() {
   const [search, setSearch] = useState('');
   const { data: assinaturas, isLoading } = useAdminAssinaturas(search);
   const ativas = assinaturas?.filter((a: any) => a.status === 'ativa').length || 0;
+  const total = assinaturas?.length || 0;
 
   return (
     <CarreiraAdminLayout>
@@ -56,7 +98,10 @@ export default function CarreiraAdminAssinaturasPage() {
             <h1 className="text-2xl font-bold">Assinaturas</h1>
             <p className="text-muted-foreground text-sm">Gerencie assinaturas do Carreira ID</p>
           </div>
-          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">{ativas} ativas</Badge>
+          <div className="flex gap-2">
+            <Badge variant="outline">{total} total</Badge>
+            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">{ativas} ativas</Badge>
+          </div>
         </div>
 
         <div className="relative">
@@ -74,34 +119,51 @@ export default function CarreiraAdminAssinaturasPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Responsável</TableHead>
                     <TableHead>Atleta</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>Contato</TableHead>
                     <TableHead>Plano</TableHead>
                     <TableHead>Valor</TableHead>
+                    <TableHead>Pagamento</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Início</TableHead>
                     <TableHead>Expiração</TableHead>
-                    <TableHead>Gateway</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {assinaturas.map((ass: any) => (
                     <TableRow key={ass.id}>
                       <TableCell>
-                        <div><p className="font-medium text-sm">{ass.user_nome}</p><p className="text-xs text-muted-foreground">{ass.user_email}</p></div>
+                        <div>
+                          <p className="font-medium text-sm">{ass.crianca_nome}</p>
+                          {ass.atleta_posicao && <p className="text-[10px] text-muted-foreground">{ass.atleta_posicao}</p>}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-sm">{ass.crianca_nome}</TableCell>
+                      <TableCell>
+                        <p className="text-sm font-medium">{ass.user_nome}</p>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{ass.user_email}</p>
+                          {ass.user_telefone !== '—' && <p className="text-xs text-muted-foreground">{ass.user_telefone}</p>}
+                        </div>
+                      </TableCell>
                       <TableCell><Badge variant="outline" className="text-xs capitalize">{ass.plano}</Badge></TableCell>
                       <TableCell className="text-sm font-medium">{ass.valor ? `R$ ${Number(ass.valor).toFixed(2).replace('.', ',')}` : '—'}</TableCell>
                       <TableCell>
+                        <div className="flex items-center gap-1 text-xs">
+                          {METODO_ICON[ass.metodo_pagamento] || null}
+                          <span>{METODO_LABEL[ass.metodo_pagamento] || ass.metodo_pagamento || '—'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={ass.status === 'ativa' ? 'default' : 'secondary'}
                           className={ass.status === 'ativa' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : ''}>
-                          {ass.status === 'ativa' ? 'Ativa' : ass.status === 'cancelada' ? 'Cancelada' : ass.status}
+                          {ass.status === 'ativa' ? 'Ativa' : ass.status === 'cancelada' ? 'Cancelada' : ass.status === 'pendente' ? 'Pendente' : ass.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(ass.inicio_em), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{ass.expira_em ? format(new Date(ass.expira_em), 'dd/MM/yyyy', { locale: ptBR }) : '—'}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs">{ass.gateway || '—'}</Badge></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

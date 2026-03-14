@@ -183,9 +183,13 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{perfil.nome}</h1>
-                {temAcesso('selo_elite') && (
+                {temAcesso('selo_elite') ? (
                   <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400">
                     <Crown className="w-3 h-3" /> Elite
+                  </span>
+                ) : planoInfo.plano !== 'base' && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                    <Trophy className="w-3 h-3" /> Competidor
                   </span>
                 )}
               </div>
