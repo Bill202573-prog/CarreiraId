@@ -20,6 +20,8 @@ import logoAtletaId from '@/assets/logo-atleta-id.png';
 import logoCarreiraId from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import PwaInstallButton from '@/components/shared/PwaInstallButton';
+import { PwaInstallPopup } from '@/components/shared/PwaInstallPopup';
+import { trackCompleteRegistration, trackProfileCreated, trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
 
 type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form' | 'invites';
 
