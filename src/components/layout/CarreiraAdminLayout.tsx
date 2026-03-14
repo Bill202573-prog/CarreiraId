@@ -26,6 +26,7 @@ const navItems = [
   { title: 'Gamificação', url: '/carreira/admin/gamificacao', icon: Trophy },
   { title: 'Performance', url: '/carreira/admin/performance', icon: Trophy },
   { title: 'Moderação', url: '/carreira/admin/moderacao', icon: Shield },
+  { title: 'Tutoriais', url: '/carreira/admin/tutoriais', icon: GraduationCap },
 ];
 
 function CarreiraAdminSidebar() {
