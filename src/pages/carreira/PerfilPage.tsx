@@ -18,6 +18,7 @@ import { PostCard } from '@/components/carreira/PostCard';
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { usePostsRede } from '@/hooks/useCarreiraData';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { useEffect, useState } from 'react';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { toast } from 'sonner';
