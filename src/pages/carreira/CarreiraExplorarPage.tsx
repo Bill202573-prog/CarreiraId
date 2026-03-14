@@ -380,6 +380,7 @@ export default function CarreiraExplorarPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <NotificacoesBell />
             <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}>
               <Users className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Conexões</span>
