@@ -59,6 +59,14 @@ export default function CarreiraAdminGamificacaoPage() {
     },
   });
 
+  const { data: acoesConfig = [], refetch: refetchAcoesConfig } = useQuery({
+    queryKey: ['admin-acoes-config'],
+    queryFn: async () => {
+      const { data } = await supabase.from('gamificacao_acoes_config' as any).select('*').order('categoria').order('pontos', { ascending: false });
+      return (data as any[]) || [];
+    },
+  });
+
   const { data: desafios = [], refetch: refetchDesafios } = useQuery({
     queryKey: ['admin-desafios'],
     queryFn: async () => {
