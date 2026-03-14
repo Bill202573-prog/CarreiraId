@@ -498,7 +498,7 @@ export function CarreiraLandingV2() {
                 ))}
               </ul>
               <Link
-                to={cadastroLink}
+                to={`${cadastroLink}?plano=competidor`}
                 className="mt-6 block text-center bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 rounded-xl transition"
               >
                 Assinar Competidor
