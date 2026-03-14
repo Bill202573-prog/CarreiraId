@@ -325,7 +325,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
 
           {/* CPF Input */}
           <div className="space-y-1.5">
-            <Label htmlFor="cpf-paywall" className="text-xs font-medium">CPF do responsável</Label>
+            <Label htmlFor="cpf-paywall" className="text-xs font-medium text-foreground">CPF do responsável</Label>
             <Input
               id="cpf-paywall"
               placeholder="000.000.000-00"
