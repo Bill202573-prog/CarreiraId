@@ -18,6 +18,7 @@ import { PostCard } from '@/components/carreira/PostCard';
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { usePostsRede } from '@/hooks/useCarreiraData';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { useEffect, useState } from 'react';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { toast } from 'sonner';
@@ -132,6 +133,7 @@ export default function PerfilPage() {
       </header>
 
       <main className="container max-w-lg px-4 py-6">
+        {isOwnProfile && <TutorialAutoShow tipoPerfil={redeProfile.tipo} />}
         {isOwnProfile && redeProfile.tipo === 'pai_responsavel' && (
           <div className="mb-4">
             <MigrarPerfilBanner
