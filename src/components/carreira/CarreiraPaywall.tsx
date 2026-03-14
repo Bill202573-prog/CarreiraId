@@ -9,6 +9,7 @@ import { CarreiraLimitResult } from '@/hooks/useCarreiraFreemium';
 import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 interface CarreiraPaywallProps {
@@ -33,6 +34,7 @@ const formatCpf = (value: string) => {
 
 export function CarreiraPaywall({ limitResult, childName, criancaId, planoSelecionado, onClose, onSubscribed }: CarreiraPaywallProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<PaywallStep>('info');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
   const [cpfInput, setCpfInput] = useState('');
@@ -169,6 +171,9 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       if (data?.data?.isPaid) {
         setStep('success');
         toast.success('Pagamento confirmado! Assinatura ativada.');
+        // Invalidate plano and limit caches so badges and features update instantly
+        queryClient.invalidateQueries({ queryKey: ['carreira-plano'] });
+        queryClient.invalidateQueries({ queryKey: ['carreira-atividade-limit'] });
         onSubscribed?.();
         return true;
       }
@@ -230,13 +235,23 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
         <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
           <CheckCircle className="w-8 h-8 text-emerald-600" />
         </div>
-        <h3 className="text-lg font-bold text-foreground">Assinatura ativada! 🎉</h3>
+        <h3 className="text-lg font-bold text-foreground">Pagamento confirmado! 🎉</h3>
         <p className="text-sm text-muted-foreground">
           Obrigado pela confiança! O plano <strong className="text-foreground">{planInfo.nome}</strong> já está ativo{childName && <> para <strong className="text-foreground">{childName}</strong></>}.
         </p>
         <p className="text-xs text-muted-foreground">
           Todas as funcionalidades do plano já estão disponíveis.
         </p>
+        {paymentMethod === 'pix' && (
+          <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+            💡 Em <strong>30 dias</strong> será gerado um novo PIX para renovação. Fique atento ao seu e-mail!
+          </p>
+        )}
+        {paymentMethod === 'cartao' && (
+          <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+            💳 Sua assinatura é <strong>recorrente</strong>. A cobrança será feita automaticamente no seu cartão a cada mês.
+          </p>
+        )}
         {onClose && (
           <Button className="w-full" onClick={onClose}>
             Continuar

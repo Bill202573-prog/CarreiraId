@@ -59,6 +59,7 @@ function useAdminAssinaturas(search: string) {
         crianca_nascimento: criancasMap[a.crianca_id]?.data_nascimento || null,
         atleta_slug: perfilAtletaMap[a.crianca_id]?.slug || null,
         atleta_posicao: perfilAtletaMap[a.crianca_id]?.posicao_principal || null,
+        cancelada_em: a.cancelada_em || null,
       }));
 
       if (search) {
@@ -119,15 +120,16 @@ export default function CarreiraAdminAssinaturasPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Atleta</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Pagamento</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Início</TableHead>
-                    <TableHead>Expiração</TableHead>
+                     <TableHead>Atleta</TableHead>
+                     <TableHead>Responsável</TableHead>
+                     <TableHead>Email</TableHead>
+                     <TableHead>WhatsApp</TableHead>
+                     <TableHead>Plano</TableHead>
+                     <TableHead>Valor</TableHead>
+                     <TableHead>Pagamento</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead>Início</TableHead>
+                     <TableHead>Vencimento / Cancel.</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -143,10 +145,10 @@ export default function CarreiraAdminAssinaturasPage() {
                         <p className="text-sm font-medium">{ass.user_nome}</p>
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="text-xs text-muted-foreground">{ass.user_email}</p>
-                          {ass.user_telefone !== '—' && <p className="text-xs text-muted-foreground">{ass.user_telefone}</p>}
-                        </div>
+                        <p className="text-xs text-muted-foreground">{ass.user_email}</p>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-xs text-muted-foreground">{ass.user_telefone !== '—' ? ass.user_telefone : '—'}</p>
                       </TableCell>
                       <TableCell><Badge variant="outline" className="text-xs capitalize">{ass.plano}</Badge></TableCell>
                       <TableCell className="text-sm font-medium">{ass.valor ? `R$ ${Number(ass.valor).toFixed(2).replace('.', ',')}` : '—'}</TableCell>
@@ -163,7 +165,13 @@ export default function CarreiraAdminAssinaturasPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{format(new Date(ass.inicio_em), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{ass.expira_em ? format(new Date(ass.expira_em), 'dd/MM/yyyy', { locale: ptBR }) : '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {ass.status === 'cancelada' && ass.cancelada_em
+                          ? <span className="text-destructive">{format(new Date(ass.cancelada_em), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                          : ass.expira_em
+                            ? format(new Date(ass.expira_em), 'dd/MM/yyyy', { locale: ptBR })
+                            : '—'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
