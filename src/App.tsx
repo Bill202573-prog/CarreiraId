@@ -41,6 +41,7 @@ const CarreiraAdminAtividadesPage = lazy(() => import("./pages/carreira/admin/Ca
 const CarreiraAdminGamificacaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminGamificacaoPage"));
 const CarreiraAdminPerformancePage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerformancePage"));
 const CarreiraAdminModeracaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminModeracaoPage"));
+const CarreiraAdminComunicadosPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminComunicadosPage"));
 const ResetPasswordPage = lazy(() => import("./pages/carreira/ResetPasswordPage"));
 const CarreiraPlanosPage = lazy(() => import("./pages/carreira/CarreiraPlanosPage"));
 
