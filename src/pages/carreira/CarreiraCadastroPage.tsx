@@ -549,6 +549,75 @@ export default function CarreiraCadastroPage() {
           </div>
         )}
       </main>
+
+      {/* Subscription popup after profile creation */}
+      {hasPaidPlan && (
+        <Dialog 
+          open={showSubscriptionPopup} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowSubscriptionPopup(false);
+              if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+            }
+          }}
+        >
+          <DialogContent className="max-w-md border" style={{ backgroundColor: 'hsl(220 15% 10%)', borderColor: 'hsl(220 10% 20%)', color: 'hsl(0 0% 95%)' }}>
+            <DialogTitle className="sr-only">Assinar plano</DialogTitle>
+            <DialogDescription className="sr-only">Escolha assinar o plano selecionado</DialogDescription>
+            
+            {!createdCriancaId ? (
+              // Pre-checkout: Ask if they want to subscribe
+              <div className="text-center space-y-4 py-4">
+                <Rocket className="w-12 h-12 mx-auto" style={{ color: PLANOS[planoParam!].cor }} />
+                <h3 className="text-xl font-bold">Perfil criado com sucesso! 🎉</h3>
+                <p className="text-sm" style={{ color: 'hsl(0 0% 60%)' }}>
+                  Deseja ativar o plano <strong style={{ color: PLANOS[planoParam!].cor }}>{PLANOS[planoParam!].icone} {PLANOS[planoParam!].nome}</strong> agora para turbinar o perfil do atleta?
+                </p>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    style={{ borderColor: 'hsl(220 10% 25%)', color: 'hsl(0 0% 70%)' }}
+                    onClick={() => {
+                      setShowSubscriptionPopup(false);
+                      if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+                    }}
+                  >
+                    Agora não
+                  </Button>
+                  <Button
+                    className="flex-1 font-bold text-white"
+                    style={{ backgroundColor: PLANOS[planoParam!].cor }}
+                    onClick={() => {
+                      // Keep popup open, switch to paywall
+                      setCreatedCriancaId(createdCriancaId);
+                    }}
+                  >
+                    Sim, quero assinar!
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Paywall checkout
+              <CarreiraPaywall
+                limitResult={{ status: 'limit_reached', source: 'freemium', count: 0, limit: 0 }}
+                childName={createdChildName || undefined}
+                criancaId={createdCriancaId}
+                planoSelecionado={planoParam!}
+                onClose={() => {
+                  setShowSubscriptionPopup(false);
+                  if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+                }}
+                onSubscribed={() => {
+                  setShowSubscriptionPopup(false);
+                  toast.success('Assinatura ativada! 🎉');
+                  if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
