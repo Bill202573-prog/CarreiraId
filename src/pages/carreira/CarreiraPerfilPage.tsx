@@ -525,6 +525,8 @@ export default function CarreiraPerfilPage() {
 
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
+      {/* Auto-subscribe to push notifications for logged-in users */}
+      {isOwner && <CarreiraPushAutoSubscribe />}
       {/* Accent top bar */}
       <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
 
