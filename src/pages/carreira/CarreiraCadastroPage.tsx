@@ -287,11 +287,19 @@ export default function CarreiraCadastroPage() {
     if (userId) {
       const { data: perfilAtleta } = await supabase
         .from('perfil_atleta')
-        .select('slug')
+        .select('slug, crianca_id, nome')
         .eq('user_id', userId)
         .maybeSingle();
 
       if (perfilAtleta?.slug) {
+        // If user came from a paid plan button, show subscription popup
+        if (hasPaidPlan && perfilAtleta.crianca_id) {
+          setProfileSlug(perfilAtleta.slug);
+          setCreatedCriancaId(perfilAtleta.crianca_id);
+          setCreatedChildName(perfilAtleta.nome);
+          setShowSubscriptionPopup(true);
+          return;
+        }
         navigate(carreiraPath(`/${perfilAtleta.slug}`));
         return;
       }
