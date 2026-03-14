@@ -13,7 +13,7 @@ import {
 import { NavLink } from '@/components/NavLink';
 import logoCarreira from '@/assets/logo-carreira-id.png';
 
-import { Settings2, Megaphone } from 'lucide-react';
+import { Settings2, Megaphone, GraduationCap } from 'lucide-react';
 
 const navItems = [
   { title: 'Dashboard', url: '/carreira/admin', icon: LayoutDashboard },
