@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, QrCode, Crown, Trophy, Zap, ArrowUp, ArrowDown, Loader2, CheckCircle2 } from 'lucide-react';
+import { CreditCard, QrCode, Crown, Trophy, Zap, ArrowUp, ArrowDown, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { PLANOS, CarreiraPlano, planoNivel } from '@/config/carreiraPlanos';
 import { toast } from 'sonner';
 import { useState } from 'react';
