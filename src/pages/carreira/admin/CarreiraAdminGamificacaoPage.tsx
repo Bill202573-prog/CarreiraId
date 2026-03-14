@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Trophy, Zap, TrendingUp, Gift, Crown, Target, Settings, Swords, Plus, Save, Trash2, Pencil } from 'lucide-react';
+import { Users, Trophy, Zap, TrendingUp, Gift, Crown, Target, Settings, Swords, Plus, Save, Trash2, Pencil, TableProperties } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format } from 'date-fns';
