@@ -47,24 +47,52 @@ Deno.serve(async (req) => {
     const paidStatuses = ['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH'];
     const isPaid = paidStatuses.includes(paymentData.status);
 
-    if (isPaid && subscription_id) {
-      // Activate subscription
+    if (isPaid) {
+      // Try to activate subscription by ID or by gateway_subscription_id (checkout flow)
       const expiraEm = new Date();
       expiraEm.setDate(expiraEm.getDate() + 30);
 
-      const { error: updateError } = await supabase
-        .from('carreira_assinaturas')
-        .update({
-          status: 'ativa',
-          inicio_em: new Date().toISOString().split('T')[0],
-          expira_em: expiraEm.toISOString().split('T')[0],
-        })
-        .eq('id', subscription_id);
+      if (subscription_id) {
+        const { error: updateError } = await supabase
+          .from('carreira_assinaturas')
+          .update({
+            status: 'ativa',
+            inicio_em: new Date().toISOString().split('T')[0],
+            expira_em: expiraEm.toISOString().split('T')[0],
+          })
+          .eq('id', subscription_id);
 
-      if (updateError) {
-        console.error('Error activating subscription:', updateError);
-      } else {
-        console.log('Subscription activated:', subscription_id);
+        if (updateError) {
+          console.error('Error activating subscription by id:', updateError);
+        } else {
+          console.log('Subscription activated by id:', subscription_id);
+        }
+      }
+
+      // Also check by gateway_subscription_id (used by checkout flow where payment_id is stored there)
+      const { data: pendingSub, error: findError } = await supabase
+        .from('carreira_assinaturas')
+        .select('id')
+        .eq('gateway_subscription_id', payment_id)
+        .eq('status', 'pendente')
+        .maybeSingle();
+
+      if (pendingSub) {
+        const { error: updateError2 } = await supabase
+          .from('carreira_assinaturas')
+          .update({
+            status: 'ativa',
+            metodo_pagamento: paymentData.billingType === 'PIX' ? 'pix' : 'cartao_credito',
+            inicio_em: new Date().toISOString().split('T')[0],
+            expira_em: expiraEm.toISOString().split('T')[0],
+          })
+          .eq('id', pendingSub.id);
+
+        if (updateError2) {
+          console.error('Error activating subscription by gateway_id:', updateError2);
+        } else {
+          console.log('Subscription activated by gateway_subscription_id:', pendingSub.id);
+        }
       }
     }
 
