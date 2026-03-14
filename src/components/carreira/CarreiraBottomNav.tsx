@@ -1,9 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut, Gamepad2, Search } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2, Search, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
+import { useUnreadCarreiraComunicados } from '@/hooks/useCarreiraComunicadosData';
 
 interface CarreiraBottomNavProps {
   currentUserId?: string | null;
