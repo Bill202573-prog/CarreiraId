@@ -305,7 +305,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       </div>
 
       {/* Upgrade Card */}
-      <Card className="border-2" style={{ borderColor: `${planInfo.cor}30`, background: `linear-gradient(135deg, ${planInfo.cor}05, ${planInfo.cor}10)` }}>
+      <Card className="border-2 bg-card" style={{ borderColor: `${planInfo.cor}30` }}>
         <CardContent className="pt-4 pb-4 space-y-3">
           <div className="flex items-center gap-2">
             <Badge style={{ backgroundColor: planInfo.cor }} className="text-white">
@@ -318,14 +318,14 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
             {planInfo.destaques.slice(0, 5).map((d, i) => (
               <li key={i} className="flex items-center gap-2">
                 <Zap className="w-3.5 h-3.5 flex-shrink-0" style={{ color: planInfo.cor }} />
-                <span>{d}</span>
+                <span className="text-foreground">{d}</span>
               </li>
             ))}
           </ul>
 
           {/* CPF Input */}
           <div className="space-y-1.5">
-            <Label htmlFor="cpf-paywall" className="text-xs font-medium">CPF do responsável</Label>
+            <Label htmlFor="cpf-paywall" className="text-xs font-medium text-foreground">CPF do responsável</Label>
             <Input
               id="cpf-paywall"
               placeholder="000.000.000-00"
@@ -338,7 +338,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
 
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Forma de pagamento</Label>
+            <Label className="text-xs font-medium text-foreground">Forma de pagamento</Label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"

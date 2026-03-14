@@ -1,0 +1,1 @@
+INSERT INTO saas_config (chave, valor) VALUES ('carreira_valor_competidor', '17.90'), ('carreira_valor_elite', '29.90') ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor;
