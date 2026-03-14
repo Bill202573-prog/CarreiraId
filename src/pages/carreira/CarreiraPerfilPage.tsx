@@ -18,6 +18,7 @@ import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { FansSection } from '@/components/carreira/FansSection';
 import { AssinaturaExpiryReminder } from '@/components/carreira/AssinaturaExpiryReminder';
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
+import { CarreiraPushAutoSubscribe } from '@/components/carreira/CarreiraPushAutoSubscribe';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
@@ -524,6 +525,8 @@ export default function CarreiraPerfilPage() {
 
   return (
     <div className="min-h-screen bg-background" data-theme="dark-orange">
+      {/* Auto-subscribe to push notifications for logged-in users */}
+      {isOwner && <CarreiraPushAutoSubscribe />}
       {/* Accent top bar */}
       <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
 

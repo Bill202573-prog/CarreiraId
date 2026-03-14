@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useMyCarreiraComunicados, useMarkComunicadoRead, useUnreadCarreiraComunicados } from '@/hooks/useCarreiraComunicadosData';
@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useBadgeNotification } from '@/hooks/useBadgeNotification';
+import { useCarreiraPushNotifications } from '@/hooks/useCarreiraPushNotifications';
+import { toast } from 'sonner';
 
 const TIPO_ICONS: Record<string, string> = {
   informativo: '📘',
@@ -20,6 +22,7 @@ export function NotificacoesBell({ accentColor }: { accentColor?: string }) {
   const { unreadCount } = useUnreadCarreiraComunicados();
   const markRead = useMarkComunicadoRead();
   const [userId, setUserId] = useState<string | null>(null);
+  const { isSupported, permission, isSubscribed, isLoading: pushLoading, subscribe } = useCarreiraPushNotifications();
 
   useBadgeNotification(unreadCount);
 
@@ -32,6 +35,15 @@ export function NotificacoesBell({ accentColor }: { accentColor?: string }) {
   const handleMarkRead = (comunicadoId: string) => {
     if (!userId) return;
     markRead.mutate({ comunicadoId, userId });
+  };
+
+  const handleEnablePush = async () => {
+    const result = await subscribe();
+    if (result) {
+      toast.success('Notificações push ativadas!');
+    } else if (permission === 'denied') {
+      toast.error('Notificações bloqueadas pelo navegador. Verifique as configurações.');
+    }
   };
 
   return (
@@ -47,8 +59,25 @@ export function NotificacoesBell({ accentColor }: { accentColor?: string }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0 max-h-96 overflow-y-auto" align="end">
-        <div className="p-3 border-b">
+        <div className="p-3 border-b flex items-center justify-between">
           <h3 className="font-semibold text-sm">Notificações</h3>
+          {isSupported && !isSubscribed && permission !== 'denied' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] gap-1"
+              onClick={handleEnablePush}
+              disabled={pushLoading}
+            >
+              <BellRing className="w-3 h-3" />
+              {pushLoading ? 'Ativando...' : 'Ativar Push'}
+            </Button>
+          )}
+          {isSubscribed && (
+            <Badge variant="outline" className="text-[10px] text-green-600 border-green-300">
+              <BellRing className="w-2.5 h-2.5 mr-0.5" /> Push ativo
+            </Badge>
+          )}
         </div>
         {comunicados.length === 0 ? (
           <div className="p-6 text-center text-xs text-muted-foreground">
