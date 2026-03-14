@@ -233,6 +233,8 @@ export default function CarreiraCadastroPage() {
             setIsLogin(true);
           }
         } else if (data.user) {
+          trackCompleteRegistration('email');
+          pushDataLayer('sign_up', { method: 'email' });
           if (data.session) {
             setUserId(data.user.id);
             setStep('profile-type');
