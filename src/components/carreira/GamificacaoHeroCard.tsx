@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { ComoJogarButton } from './ComoJogarButton';
 
 interface GamificacaoHeroCardProps {
   accentColor?: string;
@@ -300,6 +301,9 @@ export function GamificacaoHeroCard({ accentColor: propAccentColor }: Gamificaca
             </>
           )}
         </Button>
+
+        {/* Como Jogar button */}
+        <ComoJogarButton variant="card" accentColor={accentColor} />
       </CardContent>
     </Card>
   );

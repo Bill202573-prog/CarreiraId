@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
+import { ComoJogarButton } from '@/components/carreira/ComoJogarButton';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -111,10 +113,14 @@ export default function CarreiraGamerPage() {
             <img src={logoCarreira} alt="Carreira" className="h-16 lg:h-20" />
           </Link>
           <h1 className="ml-4 text-lg font-semibold text-foreground">Gamer</h1>
+          <div className="ml-auto">
+            <ComoJogarButton variant="inline" accentColor={accentColor} />
+          </div>
         </div>
       </header>
 
       <main className="container max-w-2xl px-4 py-6 pb-24 space-y-4">
+        <TutorialAutoShow tipoPerfil="atleta_filho" />
         <GamificacaoHeroCard accentColor={accentColor} />
 
         {/* Ranking */}
