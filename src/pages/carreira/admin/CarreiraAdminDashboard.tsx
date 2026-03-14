@@ -1,81 +1,369 @@
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
-import { Users, FileText, CreditCard, Activity, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Users, CreditCard, TrendingDown, DollarSign, Loader2, Calendar, Filter } from 'lucide-react';
 import CarreiraAdminLayout from '@/components/layout/CarreiraAdminLayout';
 
-function useCarreiraAdminStats() {
-  return useQuery({
-    queryKey: ['carreira-admin-stats'],
+type FilterMode = 'month' | 'custom';
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
+const MONTHS = [
+  { value: '0', label: 'Todos os meses' },
+  { value: '1', label: 'Janeiro' },
+  { value: '2', label: 'Fevereiro' },
+  { value: '3', label: 'Março' },
+  { value: '4', label: 'Abril' },
+  { value: '5', label: 'Maio' },
+  { value: '6', label: 'Junho' },
+  { value: '7', label: 'Julho' },
+  { value: '8', label: 'Agosto' },
+  { value: '9', label: 'Setembro' },
+  { value: '10', label: 'Outubro' },
+  { value: '11', label: 'Novembro' },
+  { value: '12', label: 'Dezembro' },
+];
+
+function useDateRange() {
+  const [filterMode, setFilterMode] = useState<FilterMode>('month');
+  const [year, setYear] = useState(String(CURRENT_YEAR));
+  const [month, setMonth] = useState('0');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+
+  const range = useMemo(() => {
+    if (filterMode === 'custom' && customStart && customEnd) {
+      return {
+        start: new Date(customStart + 'T00:00:00').toISOString(),
+        end: new Date(customEnd + 'T23:59:59').toISOString(),
+      };
+    }
+    const y = parseInt(year);
+    const m = parseInt(month);
+    if (m === 0) {
+      return {
+        start: new Date(y, 0, 1).toISOString(),
+        end: new Date(y, 11, 31, 23, 59, 59).toISOString(),
+      };
+    }
+    return {
+      start: new Date(y, m - 1, 1).toISOString(),
+      end: new Date(y, m, 0, 23, 59, 59).toISOString(),
+    };
+  }, [filterMode, year, month, customStart, customEnd]);
+
+  const label = useMemo(() => {
+    if (filterMode === 'custom' && customStart && customEnd) {
+      return `${customStart} a ${customEnd}`;
+    }
+    const m = parseInt(month);
+    if (m === 0) return year;
+    return `${MONTHS[m].label} ${year}`;
+  }, [filterMode, year, month, customStart, customEnd]);
+
+  return {
+    filterMode, setFilterMode,
+    year, setYear,
+    month, setMonth,
+    customStart, setCustomStart,
+    customEnd, setCustomEnd,
+    range, label,
+  };
+}
+
+function useAdminDashboardData(range: { start: string; end: string }) {
+  // Perfis — totals (no date filter, always current snapshot)
+  const perfisQuery = useQuery({
+    queryKey: ['admin-dash-perfis'],
     queryFn: async () => {
-      const [perfisRes, postsRes, assinaturasRes, atividadesRes, perfisRedeRes] = await Promise.all([
-        supabase.from('perfil_atleta').select('id, is_public, status_conta', { count: 'exact', head: true }),
-        supabase.from('posts_atleta').select('id', { count: 'exact', head: true }),
-        supabase.from('carreira_assinaturas').select('id, status', { count: 'exact', head: false }).eq('status', 'ativa'),
-        supabase.from('atividades_externas').select('id', { count: 'exact', head: true }),
+      const [atletaRes, redeRes] = await Promise.all([
+        supabase.from('perfil_atleta').select('id', { count: 'exact', head: true }),
         supabase.from('perfis_rede').select('id', { count: 'exact', head: true }),
       ]);
       return {
-        totalPerfisAtleta: perfisRes.count || 0,
-        totalPosts: postsRes.count || 0,
-        assinaturasAtivas: assinaturasRes.data?.length || 0,
-        totalAtividades: atividadesRes.count || 0,
-        totalPerfisRede: perfisRedeRes.count || 0,
+        atletas: atletaRes.count || 0,
+        rede: redeRes.count || 0,
       };
     },
+    staleTime: 60_000,
   });
+
+  // Financial data — filtered by date range
+  const financeQuery = useQuery({
+    queryKey: ['admin-dash-finance', range.start, range.end],
+    queryFn: async () => {
+      // Active subscriptions (snapshot — status=ativa now)
+      const { data: activeSubs } = await supabase
+        .from('carreira_assinaturas')
+        .select('plano, valor, status')
+        .eq('status', 'ativa');
+
+      const byPlan = { base: 0, competidor: 0, elite: 0 };
+      (activeSubs || []).forEach((s: any) => {
+        const p = normalizePlano(s.plano);
+        byPlan[p] = (byPlan[p] || 0) + 1;
+      });
+
+      // Cancelamentos no período
+      const { data: cancelados } = await supabase
+        .from('carreira_assinaturas')
+        .select('id, plano, valor, cancelada_em')
+        .not('cancelada_em', 'is', null)
+        .gte('cancelada_em', range.start)
+        .lte('cancelada_em', range.end);
+
+      // Receita por plano no período (assinaturas criadas no período com status ativa)
+      const { data: receitaSubs } = await supabase
+        .from('carreira_assinaturas')
+        .select('plano, valor')
+        .gte('inicio_em', range.start)
+        .lte('inicio_em', range.end)
+        .eq('status', 'ativa');
+
+      const receitaPorPlano = { competidor: 0, elite: 0 };
+      (receitaSubs || []).forEach((s: any) => {
+        const p = normalizePlano(s.plano);
+        if (p === 'competidor' || p === 'elite') {
+          receitaPorPlano[p] += Number(s.valor) || 0;
+        }
+      });
+
+      return {
+        ativas: byPlan,
+        totalAtivas: (activeSubs || []).length,
+        cancelamentos: (cancelados || []).length,
+        receita: receitaPorPlano,
+        receitaTotal: receitaPorPlano.competidor + receitaPorPlano.elite,
+      };
+    },
+    staleTime: 30_000,
+  });
+
+  return { perfisQuery, financeQuery };
+}
+
+function normalizePlano(plano: string): 'base' | 'competidor' | 'elite' {
+  if (plano === 'elite') return 'elite';
+  if (['competidor', 'mensal', 'pro_mensal'].includes(plano)) return 'competidor';
+  return 'base';
+}
+
+function formatCurrency(val: number) {
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 export default function CarreiraAdminDashboard() {
-  const { data: stats, isLoading } = useCarreiraAdminStats();
+  const dateRange = useDateRange();
+  const { perfisQuery, financeQuery } = useAdminDashboardData(dateRange.range);
 
-  const cards = [
-    { label: 'Perfis Atleta', value: stats?.totalPerfisAtleta, icon: Users, color: 'text-blue-600' },
-    { label: 'Perfis Rede', value: stats?.totalPerfisRede, icon: Users, color: 'text-violet-600' },
-    { label: 'Posts', value: stats?.totalPosts, icon: FileText, color: 'text-emerald-600' },
-    { label: 'Assinaturas Ativas', value: stats?.assinaturasAtivas, icon: CreditCard, color: 'text-amber-600' },
-    { label: 'Atividades Externas', value: stats?.totalAtividades, icon: Activity, color: 'text-rose-600' },
-  ];
+  const isLoading = perfisQuery.isLoading || financeQuery.isLoading;
+  const perfis = perfisQuery.data;
+  const finance = financeQuery.data;
 
   return (
     <CarreiraAdminLayout>
       <div className="space-y-6 animate-fade-in">
+        {/* Header */}
         <div>
           <h1 className="text-2xl font-bold">Dashboard — Carreira ID</h1>
           <p className="text-muted-foreground text-sm">Visão geral da plataforma</p>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {cards.map((c) => (
-              <Card key={c.label}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-muted">
-                      <c.icon className={`w-6 h-6 ${c.color}`} />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">{c.label}</p>
-                      <p className="text-2xl font-bold">{c.value ?? 0}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
+        {/* Filters */}
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            <p className="text-sm">
-              🔗 <strong>Sync Atleta ID → Carreira ID:</strong> Esqueleto preparado via campos <code>origem</code> e <code>atleta_app_id</code> na tabela <code>perfil_atleta</code>.
-              A Edge Function de sincronização será implementada quando os bancos forem separados.
-            </p>
+          <CardContent className="pt-6">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">Filtro financeiro:</span>
+              </div>
+
+              <div className="flex gap-1">
+                <Button
+                  variant={dateRange.filterMode === 'month' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => dateRange.setFilterMode('month')}
+                >
+                  <Calendar className="w-3.5 h-3.5 mr-1" />
+                  Mês/Ano
+                </Button>
+                <Button
+                  variant={dateRange.filterMode === 'custom' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => dateRange.setFilterMode('custom')}
+                >
+                  Personalizado
+                </Button>
+              </div>
+
+              {dateRange.filterMode === 'month' ? (
+                <>
+                  <Select value={dateRange.year} onValueChange={dateRange.setYear}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YEARS.map((y) => (
+                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={dateRange.month} onValueChange={dateRange.setMonth}>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="date"
+                      className="w-[150px]"
+                      value={dateRange.customStart}
+                      onChange={(e) => dateRange.setCustomStart(e.target.value)}
+                    />
+                    <span className="text-sm text-muted-foreground">até</span>
+                    <Input
+                      type="date"
+                      className="w-[150px]"
+                      value={dateRange.customEnd}
+                      onChange={(e) => dateRange.setCustomEnd(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
+
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
+            {/* Perfis Section */}
+            <div>
+              <h2 className="text-lg font-semibold mb-3">Perfis</h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <StatCard
+                  label="Perfis Atleta"
+                  value={perfis?.atletas ?? 0}
+                  icon={<Users className="w-5 h-5" />}
+                  color="text-blue-600 bg-blue-100"
+                />
+                <StatCard
+                  label="Demais Perfis (Rede)"
+                  value={perfis?.rede ?? 0}
+                  icon={<Users className="w-5 h-5" />}
+                  color="text-violet-600 bg-violet-100"
+                />
+                <StatCard
+                  label="Total de Perfis"
+                  value={(perfis?.atletas ?? 0) + (perfis?.rede ?? 0)}
+                  icon={<Users className="w-5 h-5" />}
+                  color="text-foreground bg-muted"
+                />
+              </div>
+            </div>
+
+            {/* Financeiro Section */}
+            <div>
+              <h2 className="text-lg font-semibold mb-1">Financeiro</h2>
+              <p className="text-xs text-muted-foreground mb-3">
+                Assinaturas ativas = snapshot atual · Cancelamentos e Receita = período: <strong>{dateRange.label}</strong>
+              </p>
+
+              {/* Assinaturas Ativas */}
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Assinaturas Ativas</h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+                <StatCard
+                  label="Total Ativas"
+                  value={finance?.totalAtivas ?? 0}
+                  icon={<CreditCard className="w-5 h-5" />}
+                  color="text-emerald-600 bg-emerald-100"
+                />
+                <StatCard
+                  label="Base (Free)"
+                  value={finance?.ativas.base ?? 0}
+                  icon={<CreditCard className="w-5 h-5" />}
+                  color="text-gray-600 bg-gray-100"
+                />
+                <StatCard
+                  label="⚡ Competidor"
+                  value={finance?.ativas.competidor ?? 0}
+                  icon={<CreditCard className="w-5 h-5" />}
+                  color="text-amber-600 bg-amber-100"
+                />
+                <StatCard
+                  label="👑 Elite"
+                  value={finance?.ativas.elite ?? 0}
+                  icon={<CreditCard className="w-5 h-5" />}
+                  color="text-violet-600 bg-violet-100"
+                />
+              </div>
+
+              {/* Cancelamentos + Receita */}
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Cancelamentos & Receita no período</h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                  label="Cancelamentos"
+                  value={finance?.cancelamentos ?? 0}
+                  icon={<TrendingDown className="w-5 h-5" />}
+                  color="text-red-600 bg-red-100"
+                />
+                <StatCard
+                  label="Receita Total"
+                  value={formatCurrency(finance?.receitaTotal ?? 0)}
+                  icon={<DollarSign className="w-5 h-5" />}
+                  color="text-emerald-600 bg-emerald-100"
+                />
+                <StatCard
+                  label="Receita Competidor"
+                  value={formatCurrency(finance?.receita.competidor ?? 0)}
+                  icon={<DollarSign className="w-5 h-5" />}
+                  color="text-amber-600 bg-amber-100"
+                />
+                <StatCard
+                  label="Receita Elite"
+                  value={formatCurrency(finance?.receita.elite ?? 0)}
+                  icon={<DollarSign className="w-5 h-5" />}
+                  color="text-violet-600 bg-violet-100"
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </CarreiraAdminLayout>
+  );
+}
+
+function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: React.ReactNode; color: string }) {
+  const [iconColor, iconBg] = color.split(' ');
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center justify-center w-11 h-11 rounded-xl ${iconBg} ${iconColor}`}>
+            {icon}
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-2xl font-bold">{value}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
