@@ -219,6 +219,7 @@ export default function CarreiraAdminGamificacaoPage() {
             <TabsTrigger value="convites"><Send className="w-4 h-4 mr-1" /> Convites</TabsTrigger>
             <TabsTrigger value="niveis"><Settings className="w-4 h-4 mr-1" /> Níveis</TabsTrigger>
             <TabsTrigger value="pontos"><Target className="w-4 h-4 mr-1" /> Pontos por Tipo</TabsTrigger>
+            <TabsTrigger value="acoes"><TableProperties className="w-4 h-4 mr-1" /> Ações</TabsTrigger>
             <TabsTrigger value="desafios"><Swords className="w-4 h-4 mr-1" /> Desafios</TabsTrigger>
           </TabsList>
 
