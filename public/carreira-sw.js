@@ -34,9 +34,9 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// ========== PUSH NOTIFICATIONS ==========
+// ========== PUSH NOTIFICATIONS (Carreira ID) ==========
 self.addEventListener('push', (event) => {
-  let data = { title: 'Bola Presente', body: 'Você tem uma nova notificação' };
+  let data = { title: 'Carreira ID', body: 'Você tem uma nova notificação' };
   
   try {
     if (event.data) {
@@ -50,36 +50,34 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || '',
-    icon: data.icon || '/pwa-icon-192.png',
-    badge: '/pwa-icon-192.png',
+    icon: data.icon || '/carreira-icon-512.png',
+    badge: '/carreira-icon-512.png',
     vibrate: [200, 100, 200],
-    tag: data.tag || 'default',
+    tag: data.tag || 'carreira',
     renotify: true,
     data: {
-      url: data.url || '/dashboard',
+      url: data.url || '/carreira',
     },
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Bola Presente', options)
+    self.registration.showNotification(data.title || 'Carreira ID', options)
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
-  const url = event.notification.data?.url || '/dashboard';
+  const url = event.notification.data?.url || '/carreira';
   
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Focus existing window if available
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(url);
           return client.focus();
         }
       }
-      // Open new window
       return self.clients.openWindow(url);
     })
   );
