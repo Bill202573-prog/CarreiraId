@@ -182,7 +182,11 @@ export default function CarreiraPlanos() {
                       <Button
                         className="w-full gap-1.5 text-white font-bold"
                         style={{ backgroundColor: info.cor }}
-                        onClick={() => setSelectedPlano(plano)}
+                        onClick={() => {
+                          trackInitiateCheckout(plano, info.preco);
+                          pushDataLayer('initiate_checkout', { plan: plano });
+                          setSelectedPlano(plano);
+                        }}
                       >
                         {plano === 'elite' ? (
                           <Crown className="w-4 h-4" />
