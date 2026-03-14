@@ -34,6 +34,7 @@ const formatCpf = (value: string) => {
 
 export function CarreiraPaywall({ limitResult, childName, criancaId, planoSelecionado, onClose, onSubscribed }: CarreiraPaywallProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<PaywallStep>('info');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cartao');
   const [cpfInput, setCpfInput] = useState('');
