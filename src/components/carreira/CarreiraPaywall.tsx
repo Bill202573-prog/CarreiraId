@@ -318,7 +318,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
             {planInfo.destaques.slice(0, 5).map((d, i) => (
               <li key={i} className="flex items-center gap-2">
                 <Zap className="w-3.5 h-3.5 flex-shrink-0" style={{ color: planInfo.cor }} />
-                <span>{d}</span>
+                <span className="text-foreground">{d}</span>
               </li>
             ))}
           </ul>
