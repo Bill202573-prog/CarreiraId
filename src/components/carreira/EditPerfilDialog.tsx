@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, X, Eye, Instagram, Palette, Lock, Trash2, UserCircle, Save } from 'lucide-react';
+import { Loader2, X, Eye, Instagram, Palette, Lock, Trash2, UserCircle, Save, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
