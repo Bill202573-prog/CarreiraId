@@ -868,6 +868,8 @@ export default function CarreiraPerfilPage() {
 
           {/* Center — Profile Header (mobile only) + Timeline */}
           <div className="space-y-4">
+            {/* Tutorial auto-show for profile owners */}
+            {isOwner && <TutorialAutoShow tipoPerfil={perfil.tipo || (perfil.type === 'atleta' ? 'atleta_filho' : undefined)} />}
             {/* Migration banner for pai_responsavel profiles */}
             {isOwner && isRedeProfile && perfil.tipo === 'pai_responsavel' && (
               <MigrarPerfilBanner
