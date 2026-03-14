@@ -300,15 +300,22 @@ export default function CarreiraCadastroPage() {
         .maybeSingle();
 
       if (perfilAtleta?.slug) {
+        trackProfileCreated('atleta');
+        pushDataLayer('profile_created', { type: 'atleta' });
+
+        // Show PWA install popup after profile creation
+        setProfileSlug(perfilAtleta.slug);
+
         // If user came from a paid plan button, show subscription popup
         if (hasPaidPlan && perfilAtleta.crianca_id) {
-          setProfileSlug(perfilAtleta.slug);
           setCreatedCriancaId(perfilAtleta.crianca_id);
           setCreatedChildName(perfilAtleta.nome);
           setShowSubscriptionPopup(true);
           return;
         }
-        navigate(carreiraPath(`/${perfilAtleta.slug}`));
+
+        // Show PWA popup before navigating
+        setShowPwaPopup(true);
         return;
       }
 
