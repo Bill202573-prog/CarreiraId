@@ -557,6 +557,7 @@ export default function CarreiraPerfilPage() {
           <div className="flex items-center gap-2">
             {currentUserId && (
               <>
+                <NotificacoesBell accentColor={accentColor} />
                 <div className="flex items-center gap-1.5">
                   <Button variant="outline" size="sm" className="h-8 text-xs"
                     style={{ borderColor: `${accentColor}50`, color: accentColor }}
