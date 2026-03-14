@@ -1081,6 +1081,45 @@ export type Database = {
         }
         Relationships: []
       }
+      gamificacao_acoes_config: {
+        Row: {
+          acao_tipo: string
+          ativo: boolean | null
+          categoria: string | null
+          created_at: string | null
+          descricao: string | null
+          icone: string | null
+          id: string
+          label: string
+          pontos: number
+          updated_at: string | null
+        }
+        Insert: {
+          acao_tipo: string
+          ativo?: boolean | null
+          categoria?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          label: string
+          pontos?: number
+          updated_at?: string | null
+        }
+        Update: {
+          acao_tipo?: string
+          ativo?: boolean | null
+          categoria?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          label?: string
+          pontos?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gamificacao_niveis: {
         Row: {
           cor: string
@@ -1798,6 +1837,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_acao_pontos: { Args: { p_acao_tipo: string }; Returns: number }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
