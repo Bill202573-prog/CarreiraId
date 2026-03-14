@@ -6,13 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, User, ArrowLeft, LogOut } from 'lucide-react';
+import { Loader2, Mail, Lock, User, ArrowLeft, LogOut, Rocket } from 'lucide-react';
 import { z } from 'zod';
 import { ProfileTypeSelector, type ProfileType } from '@/components/carreira/ProfileTypeSelector';
 import { ProfileTypeForm } from '@/components/carreira/ProfileTypeForm';
 import { AtletaFilhoForm } from '@/components/carreira/AtletaFilhoForm';
 import { OnboardingTutorial } from '@/components/carreira/OnboardingTutorial';
 import { InvitePage } from '@/components/carreira/InvitePage';
+import { CarreiraPaywall } from '@/components/carreira/CarreiraPaywall';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
 import logoAtletaId from '@/assets/logo-atleta-id.png';
 import logoCarreiraId from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
@@ -35,7 +38,8 @@ export default function CarreiraCadastroPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('convite');
-
+  const planoParam = searchParams.get('plano') as CarreiraPlano | null;
+  const hasPaidPlan = planoParam === 'competidor' || planoParam === 'elite';
   const [step, setStep] = useState<Step>('tutorial');
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
@@ -45,6 +49,11 @@ export default function CarreiraCadastroPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [selectedType, setSelectedType] = useState<ProfileType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [subscriptionConfirmed, setSubscriptionConfirmed] = useState(false);
+  const [createdCriancaId, setCreatedCriancaId] = useState<string | null>(null);
+  const [createdChildName, setCreatedChildName] = useState<string | null>(null);
+  const [profileSlug, setProfileSlug] = useState<string | null>(null);
 
   // Auth check + cross-domain session transfer
   useEffect(() => {
@@ -279,11 +288,19 @@ export default function CarreiraCadastroPage() {
     if (userId) {
       const { data: perfilAtleta } = await supabase
         .from('perfil_atleta')
-        .select('slug')
+        .select('slug, crianca_id, nome')
         .eq('user_id', userId)
         .maybeSingle();
 
       if (perfilAtleta?.slug) {
+        // If user came from a paid plan button, show subscription popup
+        if (hasPaidPlan && perfilAtleta.crianca_id) {
+          setProfileSlug(perfilAtleta.slug);
+          setCreatedCriancaId(perfilAtleta.crianca_id);
+          setCreatedChildName(perfilAtleta.nome);
+          setShowSubscriptionPopup(true);
+          return;
+        }
         navigate(carreiraPath(`/${perfilAtleta.slug}`));
         return;
       }
@@ -533,6 +550,72 @@ export default function CarreiraCadastroPage() {
           </div>
         )}
       </main>
+
+      {/* Subscription popup after profile creation */}
+      {hasPaidPlan && (
+        <Dialog 
+          open={showSubscriptionPopup} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowSubscriptionPopup(false);
+              if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+            }
+          }}
+        >
+          <DialogContent className="max-w-md border" style={{ backgroundColor: 'hsl(220 15% 10%)', borderColor: 'hsl(220 10% 20%)', color: 'hsl(0 0% 95%)' }}>
+            <DialogTitle className="sr-only">Assinar plano</DialogTitle>
+            <DialogDescription className="sr-only">Escolha assinar o plano selecionado</DialogDescription>
+            
+            {!subscriptionConfirmed ? (
+              // Pre-checkout: Ask if they want to subscribe
+              <div className="text-center space-y-4 py-4">
+                <Rocket className="w-12 h-12 mx-auto" style={{ color: PLANOS[planoParam!].cor }} />
+                <h3 className="text-xl font-bold">Perfil criado com sucesso! 🎉</h3>
+                <p className="text-sm" style={{ color: 'hsl(0 0% 60%)' }}>
+                  Deseja ativar o plano <strong style={{ color: PLANOS[planoParam!].cor }}>{PLANOS[planoParam!].icone} {PLANOS[planoParam!].nome}</strong> agora para turbinar o perfil do atleta?
+                </p>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    style={{ borderColor: 'hsl(220 10% 25%)', color: 'hsl(0 0% 70%)' }}
+                    onClick={() => {
+                      setShowSubscriptionPopup(false);
+                      if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+                    }}
+                  >
+                    Agora não
+                  </Button>
+                  <Button
+                    className="flex-1 font-bold text-white"
+                    style={{ backgroundColor: PLANOS[planoParam!].cor }}
+                    onClick={() => setSubscriptionConfirmed(true)}
+                  >
+                    Sim, quero assinar!
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Paywall checkout
+              <CarreiraPaywall
+                limitResult={{ status: 'limit_reached', source: 'freemium', count: 0, limit: 0 }}
+                childName={createdChildName || undefined}
+                criancaId={createdCriancaId || undefined}
+                planoSelecionado={planoParam!}
+                onClose={() => {
+                  setShowSubscriptionPopup(false);
+                  if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+                }}
+                onSubscribed={() => {
+                  setShowSubscriptionPopup(false);
+                  toast.success('Assinatura ativada! 🎉');
+                  if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
