@@ -220,11 +220,15 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
         </DialogHeader>
 
         <Tabs defaultValue="perfil" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="perfil">Dados do Atleta</TabsTrigger>
             <TabsTrigger value="responsavel" className="flex items-center gap-1.5">
               <UserCircle className="w-3.5 h-3.5" />
               Responsável
+            </TabsTrigger>
+            <TabsTrigger value="assinatura" className="flex items-center gap-1.5">
+              <CreditCard className="w-3.5 h-3.5" />
+              Assinatura
             </TabsTrigger>
           </TabsList>
 
