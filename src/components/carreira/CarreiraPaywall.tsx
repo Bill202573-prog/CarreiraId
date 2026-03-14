@@ -305,7 +305,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       </div>
 
       {/* Upgrade Card */}
-      <Card className="border-2" style={{ borderColor: `${planInfo.cor}30`, background: `linear-gradient(135deg, ${planInfo.cor}05, ${planInfo.cor}10)` }}>
+      <Card className="border-2 bg-card" style={{ borderColor: `${planInfo.cor}30` }}>
         <CardContent className="pt-4 pb-4 space-y-3">
           <div className="flex items-center gap-2">
             <Badge style={{ backgroundColor: planInfo.cor }} className="text-white">
