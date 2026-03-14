@@ -20,6 +20,8 @@ import logoAtletaId from '@/assets/logo-atleta-id.png';
 import logoCarreiraId from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import PwaInstallButton from '@/components/shared/PwaInstallButton';
+import { PwaInstallPopup } from '@/components/shared/PwaInstallPopup';
+import { trackCompleteRegistration, trackProfileCreated, trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
 
 type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form' | 'invites';
 
@@ -54,6 +56,7 @@ export default function CarreiraCadastroPage() {
   const [createdCriancaId, setCreatedCriancaId] = useState<string | null>(null);
   const [createdChildName, setCreatedChildName] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
+  const [showPwaPopup, setShowPwaPopup] = useState(false);
 
   // Auth check + cross-domain session transfer
   useEffect(() => {
@@ -181,6 +184,8 @@ export default function CarreiraCadastroPage() {
             toast.error(error.message);
           }
         } else if (data.user) {
+          trackCompleteRegistration('email');
+          pushDataLayer('login', { method: 'email' });
           setUserId(data.user.id);
           const { data: perfilAtleta } = await supabase
             .from('perfil_atleta')
@@ -228,6 +233,8 @@ export default function CarreiraCadastroPage() {
             setIsLogin(true);
           }
         } else if (data.user) {
+          trackCompleteRegistration('email');
+          pushDataLayer('sign_up', { method: 'email' });
           if (data.session) {
             setUserId(data.user.id);
             setStep('profile-type');
@@ -293,26 +300,36 @@ export default function CarreiraCadastroPage() {
         .maybeSingle();
 
       if (perfilAtleta?.slug) {
+        trackProfileCreated('atleta');
+        pushDataLayer('profile_created', { type: 'atleta' });
+
+        // Show PWA install popup after profile creation
+        setProfileSlug(perfilAtleta.slug);
+
         // If user came from a paid plan button, show subscription popup
         if (hasPaidPlan && perfilAtleta.crianca_id) {
-          setProfileSlug(perfilAtleta.slug);
           setCreatedCriancaId(perfilAtleta.crianca_id);
           setCreatedChildName(perfilAtleta.nome);
           setShowSubscriptionPopup(true);
           return;
         }
-        navigate(carreiraPath(`/${perfilAtleta.slug}`));
+
+        // Show PWA popup before navigating
+        setShowPwaPopup(true);
         return;
       }
 
       const { data: perfilRede } = await supabase
         .from('perfis_rede')
-        .select('slug')
+        .select('slug, tipo')
         .eq('user_id', userId)
         .maybeSingle();
       
       if (perfilRede?.slug) {
-        navigate(carreiraPath(`/${perfilRede.slug}`));
+        trackProfileCreated(perfilRede.tipo || 'rede');
+        pushDataLayer('profile_created', { type: perfilRede.tipo });
+        setProfileSlug(perfilRede.slug);
+        setShowPwaPopup(true);
         return;
       }
     }
@@ -589,7 +606,11 @@ export default function CarreiraCadastroPage() {
                   <Button
                     className="flex-1 font-bold text-white"
                     style={{ backgroundColor: PLANOS[planoParam!].cor }}
-                    onClick={() => setSubscriptionConfirmed(true)}
+                    onClick={() => {
+                      trackInitiateCheckout(planoParam!, PLANOS[planoParam!].preco);
+                      pushDataLayer('initiate_checkout', { plan: planoParam });
+                      setSubscriptionConfirmed(true);
+                    }}
                   >
                     Sim, quero assinar!
                   </Button>
@@ -607,6 +628,8 @@ export default function CarreiraCadastroPage() {
                   if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
                 }}
                 onSubscribed={() => {
+                  trackSubscribe(planoParam!, PLANOS[planoParam!].preco);
+                  pushDataLayer('purchase', { plan: planoParam });
                   setShowSubscriptionPopup(false);
                   toast.success('Assinatura ativada! 🎉');
                   if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
@@ -616,6 +639,17 @@ export default function CarreiraCadastroPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* PWA Install Popup after profile creation */}
+      <PwaInstallPopup
+        open={showPwaPopup}
+        onOpenChange={(open) => {
+          setShowPwaPopup(open);
+          if (!open && profileSlug) {
+            navigate(carreiraPath(`/${profileSlug}`));
+          }
+        }}
+      />
     </div>
   );
 }

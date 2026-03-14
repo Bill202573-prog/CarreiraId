@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CarreiraPaywall } from '@/components/carreira/CarreiraPaywall';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
 
 export default function CarreiraPlanos() {
   const navigate = useNavigate();
@@ -181,7 +182,11 @@ export default function CarreiraPlanos() {
                       <Button
                         className="w-full gap-1.5 text-white font-bold"
                         style={{ backgroundColor: info.cor }}
-                        onClick={() => setSelectedPlano(plano)}
+                        onClick={() => {
+                          trackInitiateCheckout(plano, info.preco);
+                          pushDataLayer('initiate_checkout', { plan: plano });
+                          setSelectedPlano(plano);
+                        }}
                       >
                         {plano === 'elite' ? (
                           <Crown className="w-4 h-4" />
@@ -220,6 +225,8 @@ export default function CarreiraPlanos() {
               planoSelecionado={selectedPlano}
               onClose={() => setSelectedPlano(null)}
               onSubscribed={() => {
+                trackSubscribe(selectedPlano, PLANOS[selectedPlano].preco);
+                pushDataLayer('purchase', { plan: selectedPlano });
                 setSelectedPlano(null);
                 navigate(-1);
               }}
