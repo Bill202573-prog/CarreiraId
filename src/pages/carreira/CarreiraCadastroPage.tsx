@@ -562,7 +562,7 @@ export default function CarreiraCadastroPage() {
             }
           }}
         >
-          <DialogContent className="max-w-md border" style={{ backgroundColor: 'hsl(220 15% 10%)', borderColor: 'hsl(220 10% 20%)', color: 'hsl(0 0% 95%)' }}>
+          <DialogContent className="max-w-md border max-h-[90vh] overflow-y-auto" style={{ backgroundColor: 'hsl(220 15% 10%)', borderColor: 'hsl(220 10% 20%)', color: 'hsl(0 0% 95%)' }}>
             <DialogTitle className="sr-only">Assinar plano</DialogTitle>
             <DialogDescription className="sr-only">Escolha assinar o plano selecionado</DialogDescription>
             

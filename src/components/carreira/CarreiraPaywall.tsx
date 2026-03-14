@@ -263,19 +263,33 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
   const preco = planInfo.preco;
 
   return (
-    <div className="space-y-4 py-2">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: `${planInfo.cor}15` }}>
-          <Lock className="w-7 h-7" style={{ color: planInfo.cor }} />
+    <div className="space-y-4 py-2 max-h-[80vh] overflow-y-auto">
+      {/* Header - only show limit info when there's a real limit */}
+      {limitResult.limit > 0 && (
+        <div className="text-center space-y-2">
+          <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: `${planInfo.cor}15` }}>
+            <Lock className="w-7 h-7" style={{ color: planInfo.cor }} />
+          </div>
+          <h3 className="text-lg font-bold text-foreground">Limite atingido</h3>
+          <p className="text-sm text-muted-foreground">
+            Você já registrou <strong>{limitResult.count}</strong> de <strong>{limitResult.limit}</strong> atividades gratuitas
+            {childName && <> para <strong>{childName}</strong></>}.
+          </p>
         </div>
-        <h3 className="text-lg font-bold">Limite atingido</h3>
-        <p className="text-sm text-muted-foreground">
-          Você já registrou <strong>{limitResult.count}</strong> de <strong>{limitResult.limit}</strong> atividades gratuitas
-          {childName && <> para <strong>{childName}</strong></>}.
-        </p>
-      </div>
+      )}
+      {limitResult.limit === 0 && (
+        <div className="text-center space-y-2">
+          <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: `${planInfo.cor}15` }}>
+            <Trophy className="w-7 h-7" style={{ color: planInfo.cor }} />
+          </div>
+          <h3 className="text-lg font-bold text-foreground">Turbine o perfil{childName && <> de {childName}</>}</h3>
+          <p className="text-sm text-muted-foreground">
+            Escolha o plano ideal e desbloqueie recursos exclusivos.
+          </p>
+        </div>
+      )}
 
       {/* Plan selector */}
       <div className="grid grid-cols-2 gap-2">
