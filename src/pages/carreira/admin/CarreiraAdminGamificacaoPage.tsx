@@ -723,3 +723,114 @@ function ConvitesManager() {
     </Card>
   );
 }
+
+// ===================== Ações Config Manager =====================
+interface AcaoConfig {
+  id: string;
+  acao_tipo: string;
+  label: string;
+  descricao: string | null;
+  pontos: number;
+  icone: string;
+  ativo: boolean;
+  categoria: string;
+}
+
+function AcoesConfigManager({ acoes, onSave }: { acoes: AcaoConfig[]; onSave: () => void }) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPontos, setEditPontos] = useState('');
+
+  const toggleAtivo = async (acao: AcaoConfig) => {
+    setSaving(acao.id);
+    try {
+      const { error } = await supabase
+        .from('gamificacao_acoes_config' as any)
+        .update({ ativo: !acao.ativo } as any)
+        .eq('id', acao.id);
+      if (error) throw error;
+      toast.success(`${acao.label} ${acao.ativo ? 'desativada' : 'ativada'}!`);
+      onSave();
+    } catch { toast.error('Erro ao atualizar'); }
+    setSaving(null);
+  };
+
+  const savePontos = async (acao: AcaoConfig) => {
+    const novosPontos = parseInt(editPontos);
+    if (isNaN(novosPontos) || novosPontos < 0) { toast.error('Valor inválido'); return; }
+    setSaving(acao.id);
+    try {
+      const { error } = await supabase
+        .from('gamificacao_acoes_config' as any)
+        .update({ pontos: novosPontos } as any)
+        .eq('id', acao.id);
+      if (error) throw error;
+      toast.success(`Pontos de "${acao.label}" atualizados para ${novosPontos}!`);
+      setEditingId(null);
+      onSave();
+    } catch { toast.error('Erro ao salvar'); }
+    setSaving(null);
+  };
+
+  const categorias = [...new Set(acoes.map(a => a.categoria))];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TableProperties className="w-5 h-5 text-blue-600" /> Ações que Geram Pontos
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-4">
+          Ative ou desative ações e configure quanto cada uma vale. Triggers automáticos computam os pontos.
+        </p>
+        {categorias.map(cat => (
+          <div key={cat} className="mb-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 capitalize">{cat}</h4>
+            <div className="space-y-2">
+              {acoes.filter(a => a.categoria === cat).map(acao => (
+                <div key={acao.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                  <span className="text-xl shrink-0">{acao.icone}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">{acao.label}</p>
+                    {acao.descricao && <p className="text-[10px] text-muted-foreground line-clamp-1">{acao.descricao}</p>}
+                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">tipo: {acao.acao_tipo}</p>
+                  </div>
+                  {editingId === acao.id ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        value={editPontos}
+                        onChange={e => setEditPontos(e.target.value)}
+                        className="w-20 h-8 text-xs"
+                      />
+                      <Button size="sm" variant="ghost" onClick={() => savePontos(acao)} disabled={saving === acao.id}>
+                        <Save className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>✕</Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs font-bold"
+                      onClick={() => { setEditingId(acao.id); setEditPontos(String(acao.pontos)); }}
+                    >
+                      {acao.pontos} XP
+                    </Button>
+                  )}
+                  <Switch
+                    checked={acao.ativo}
+                    onCheckedChange={() => toggleAtivo(acao)}
+                    disabled={saving === acao.id}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
