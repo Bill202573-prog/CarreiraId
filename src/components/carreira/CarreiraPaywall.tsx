@@ -227,16 +227,45 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
   if (step === 'success') {
     return (
       <div className="space-y-4 py-2 text-center">
-        <div className="mx-auto w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+        <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-emerald-600" />
         </div>
-        <h3 className="text-lg font-bold">Assinatura ativada! 🎉</h3>
+        <h3 className="text-lg font-bold text-foreground">Assinatura ativada! 🎉</h3>
         <p className="text-sm text-muted-foreground">
-          Plano <strong>{planInfo.nome}</strong> ativado{childName && <> para <strong>{childName}</strong></>}.
+          Obrigado pela confiança! O plano <strong className="text-foreground">{planInfo.nome}</strong> já está ativo{childName && <> para <strong className="text-foreground">{childName}</strong></>}.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Todas as funcionalidades do plano já estão disponíveis.
         </p>
         {onClose && (
           <Button className="w-full" onClick={onClose}>
             Continuar
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  if (step === 'checking') {
+    return (
+      <div className="space-y-4 py-2 text-center">
+        <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+          <CreditCard className="w-8 h-8 text-amber-600" />
+        </div>
+        <h3 className="text-lg font-bold text-foreground">Aguardando pagamento</h3>
+        <p className="text-sm text-muted-foreground">
+          Complete o pagamento na aba que foi aberta. Estamos verificando automaticamente.
+        </p>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Verificando pagamento...
+        </div>
+        <Button variant="outline" size="sm" className="w-full" onClick={() => checkPayment()}>
+          Já paguei, verificar agora
+        </Button>
+        {onClose && (
+          <Button variant="ghost" className="w-full" onClick={() => { setStep('info'); setCheckoutData(null); }}>
+            Cancelar
           </Button>
         )}
       </div>
