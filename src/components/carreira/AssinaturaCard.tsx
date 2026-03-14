@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, QrCode, Crown, Trophy, Zap, ArrowUp, ArrowDown, Loader2, CheckCircle2 } from 'lucide-react';
+import { CreditCard, QrCode, Crown, Trophy, Zap, ArrowUp, ArrowDown, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { PLANOS, CarreiraPlano, planoNivel } from '@/config/carreiraPlanos';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -281,6 +281,17 @@ export function AssinaturaCard({ userId, criancaId, accentColor = '#3b82f6' }: A
               </button>
             );
           })}
+
+          {/* Cancel subscription button */}
+          {currentPlano !== 'base' && assinatura && (
+            <button
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-destructive/30 p-2.5 hover:bg-destructive/5 transition-colors text-left"
+              onClick={() => setConfirmAction({ type: 'downgrade', target: 'base' })}
+            >
+              <XCircle className="w-3.5 h-3.5 text-destructive" />
+              <span className="text-xs font-medium text-destructive">Cancelar assinatura</span>
+            </button>
+          )}
         </div>
       )}
     </Card>
