@@ -10,6 +10,22 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CarreiraAdminLayout from '@/components/layout/CarreiraAdminLayout';
 
+const PLANO_DISPLAY: Record<string, string> = {
+  pro_mensal: 'Competidor',
+  mensal: 'Competidor',
+  competidor: 'Competidor',
+  elite: 'Elite',
+  base: 'Base',
+};
+
+const PLANO_PRECO: Record<string, number> = {
+  competidor: 17.90,
+  pro_mensal: 17.90,
+  mensal: 17.90,
+  elite: 29.90,
+  base: 0,
+};
+
 function useAdminAssinaturas(search: string) {
   return useQuery({
     queryKey: ['carreira-admin-assinaturas', search],
@@ -45,22 +61,29 @@ function useAdminAssinaturas(search: string) {
 
         const { data: perfis } = await supabase
           .from('perfil_atleta')
-          .select('crianca_id, slug, categoria, posicao_principal')
+          .select('crianca_id, slug, categoria, posicao_principal, telefone_whatsapp')
           .in('crianca_id', criancaIds);
         if (perfis) perfis.forEach((p: any) => { perfilAtletaMap[p.crianca_id] = p; });
       }
 
-      let result = (data || []).map((a: any) => ({
-        ...a,
-        user_email: profilesMap[a.user_id]?.email || '—',
-        user_nome: profilesMap[a.user_id]?.nome || '—',
-        user_telefone: profilesMap[a.user_id]?.telefone || '—',
-        crianca_nome: criancasMap[a.crianca_id]?.nome || '—',
-        crianca_nascimento: criancasMap[a.crianca_id]?.data_nascimento || null,
-        atleta_slug: perfilAtletaMap[a.crianca_id]?.slug || null,
-        atleta_posicao: perfilAtletaMap[a.crianca_id]?.posicao_principal || null,
-        cancelada_em: a.cancelada_em || null,
-      }));
+      let result = (data || []).map((a: any) => {
+        const normalizedPlano = PLANO_DISPLAY[a.plano] || a.plano;
+        const valorDisplay = a.valor || PLANO_PRECO[a.plano] || 0;
+        return {
+          ...a,
+          user_email: profilesMap[a.user_id]?.email || '—',
+          user_nome: profilesMap[a.user_id]?.nome || '—',
+          user_telefone: profilesMap[a.user_id]?.telefone || '—',
+          crianca_nome: criancasMap[a.crianca_id]?.nome || '—',
+          crianca_nascimento: criancasMap[a.crianca_id]?.data_nascimento || null,
+          atleta_slug: perfilAtletaMap[a.crianca_id]?.slug || null,
+          atleta_posicao: perfilAtletaMap[a.crianca_id]?.posicao_principal || null,
+          atleta_whatsapp: perfilAtletaMap[a.crianca_id]?.telefone_whatsapp || null,
+          plano_display: normalizedPlano,
+          valor_display: valorDisplay,
+          cancelada_em: a.cancelada_em || null,
+        };
+      });
 
       if (search) {
         const s = search.toLowerCase();
@@ -148,10 +171,12 @@ export default function CarreiraAdminAssinaturasPage() {
                         <p className="text-xs text-muted-foreground">{ass.user_email}</p>
                       </TableCell>
                       <TableCell>
-                        <p className="text-xs text-muted-foreground">{ass.user_telefone !== '—' ? ass.user_telefone : '—'}</p>
+                        <p className="text-xs text-muted-foreground">{ass.atleta_whatsapp || ass.user_telefone || '—'}</p>
                       </TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs capitalize">{ass.plano}</Badge></TableCell>
-                      <TableCell className="text-sm font-medium">{ass.valor ? `R$ ${Number(ass.valor).toFixed(2).replace('.', ',')}` : '—'}</TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs">{ass.plano_display}</Badge></TableCell>
+                      <TableCell className="text-sm font-medium">
+                        {ass.valor_display > 0 ? `R$ ${Number(ass.valor_display).toFixed(2).replace('.', ',')}` : '—'}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-xs">
                           {METODO_ICON[ass.metodo_pagamento] || null}

@@ -27,9 +27,10 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    const { user_id, crianca_id, cpf, nome, email } = await req.json();
+    const { user_id, crianca_id, cpf, nome, email, plano } = await req.json();
+    const planoSelecionado = plano || 'competidor';
 
-    console.log('Generating Carreira PIX for user:', user_id, 'crianca:', crianca_id);
+    console.log('Generating Carreira PIX for user:', user_id, 'crianca:', crianca_id, 'plano:', planoSelecionado);
 
     // Validate inputs
     if (!user_id || !crianca_id || !cpf || !nome || !email) {
@@ -55,14 +56,31 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get subscription value from saas_config
+    // Get subscription value based on selected plan
+    const planoConfig: Record<string, { chave: string; fallback: number }> = {
+      competidor: { chave: 'carreira_valor_competidor', fallback: 17.90 },
+      elite: { chave: 'carreira_valor_elite', fallback: 29.90 },
+    };
+    const cfg = planoConfig[planoSelecionado] || planoConfig.competidor;
+
     const { data: configValor } = await supabase
       .from('saas_config')
       .select('valor')
-      .eq('chave', 'carreira_valor_mensal')
+      .eq('chave', cfg.chave)
       .maybeSingle();
 
-    const valor = configValor ? parseFloat(configValor.valor) : 19.90;
+    let valor = cfg.fallback;
+    if (configValor) {
+      valor = parseFloat(configValor.valor);
+    } else {
+      // Fallback to legacy key
+      const { data: legacyConfig } = await supabase
+        .from('saas_config')
+        .select('valor')
+        .eq('chave', 'carreira_valor_mensal')
+        .maybeSingle();
+      if (legacyConfig) valor = parseFloat(legacyConfig.valor);
+    }
 
     // Step 1: Find or create customer in Asaas Sandbox
     const cleanCpf = cpf.replace(/\D/g, '');
@@ -105,6 +123,8 @@ Deno.serve(async (req) => {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 1); // Due tomorrow
 
+    const planoLabel = planoSelecionado.charAt(0).toUpperCase() + planoSelecionado.slice(1);
+
     const paymentResp = await fetch(`${ASAAS_SANDBOX_URL}/payments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
@@ -113,8 +133,8 @@ Deno.serve(async (req) => {
         billingType: 'PIX',
         value: valor,
         dueDate: dueDate.toISOString().split('T')[0],
-        description: `Carreira ID Pro - Assinatura mensal`,
-        externalReference: `carreira_${user_id}_${crianca_id}`,
+        description: `Carreira ID ${planoLabel} - Assinatura mensal`,
+        externalReference: `carreira_${planoSelecionado}_${user_id}_${crianca_id}`,
       }),
     });
 
@@ -151,9 +171,10 @@ Deno.serve(async (req) => {
       .insert({
         user_id,
         crianca_id,
-        plano: 'pro_mensal',
+        plano: planoSelecionado,
         status: 'pendente',
         valor,
+        metodo_pagamento: 'pix',
         gateway: 'asaas_sandbox',
         gateway_subscription_id: paymentResult.id,
         inicio_em: new Date().toISOString().split('T')[0],
