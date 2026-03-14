@@ -19,6 +19,7 @@ import { FansSection } from '@/components/carreira/FansSection';
 import { AssinaturaExpiryReminder } from '@/components/carreira/AssinaturaExpiryReminder';
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { CarreiraPushAutoSubscribe } from '@/components/carreira/CarreiraPushAutoSubscribe';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
@@ -867,6 +868,8 @@ export default function CarreiraPerfilPage() {
 
           {/* Center — Profile Header (mobile only) + Timeline */}
           <div className="space-y-4">
+            {/* Tutorial auto-show for profile owners */}
+            {isOwner && <TutorialAutoShow tipoPerfil={perfil.tipo || (perfil.type === 'atleta' ? 'atleta_filho' : undefined)} />}
             {/* Migration banner for pai_responsavel profiles */}
             {isOwner && isRedeProfile && perfil.tipo === 'pai_responsavel' && (
               <MigrarPerfilBanner
