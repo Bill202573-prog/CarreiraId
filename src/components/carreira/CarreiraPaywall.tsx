@@ -128,10 +128,12 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       if (data?.error) throw new Error(data.error);
 
       const checkoutUrl = data.data?.checkoutUrl;
-      if (checkoutUrl) {
+      const paymentId = data.data?.paymentId;
+      if (checkoutUrl && paymentId) {
         window.open(checkoutUrl, '_blank');
-        toast.success('Checkout aberto! Complete o pagamento na nova aba.');
-        setStep('info');
+        // Store checkout data and start polling
+        setCheckoutData({ paymentId, subscriptionId: '' });
+        setStep('checking');
       } else {
         throw new Error('URL de checkout não gerada');
       }
