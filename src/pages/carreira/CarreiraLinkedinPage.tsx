@@ -38,6 +38,8 @@ export default function CarreiraLinkedinPage() {
               Sua vitrine esportiva pública
             </p>
           </div>
+          <div className="flex items-center gap-2">
+            <TutorialHelpButton tipoPerfil="atleta_filho" />
           {perfil && !planoLoading && (
             <button
               onClick={() => navigate(carreiraPath('/planos'))}
