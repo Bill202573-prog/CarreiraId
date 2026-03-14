@@ -606,7 +606,11 @@ export default function CarreiraCadastroPage() {
                   <Button
                     className="flex-1 font-bold text-white"
                     style={{ backgroundColor: PLANOS[planoParam!].cor }}
-                    onClick={() => setSubscriptionConfirmed(true)}
+                    onClick={() => {
+                      trackInitiateCheckout(planoParam!, PLANOS[planoParam!].preco);
+                      pushDataLayer('initiate_checkout', { plan: planoParam });
+                      setSubscriptionConfirmed(true);
+                    }}
                   >
                     Sim, quero assinar!
                   </Button>
