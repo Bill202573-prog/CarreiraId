@@ -50,6 +50,7 @@ export default function CarreiraCadastroPage() {
   const [selectedType, setSelectedType] = useState<ProfileType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [subscriptionConfirmed, setSubscriptionConfirmed] = useState(false);
   const [createdCriancaId, setCreatedCriancaId] = useState<string | null>(null);
   const [createdChildName, setCreatedChildName] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
