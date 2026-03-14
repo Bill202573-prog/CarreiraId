@@ -47,6 +47,10 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     expiresAt: string;
     valor: number;
   } | null>(null);
+  const [checkoutData, setCheckoutData] = useState<{
+    paymentId: string;
+    subscriptionId: string;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
   const [pollCount, setPollCount] = useState(0);
 
