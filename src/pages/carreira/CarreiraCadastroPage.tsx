@@ -566,7 +566,7 @@ export default function CarreiraCadastroPage() {
             <DialogTitle className="sr-only">Assinar plano</DialogTitle>
             <DialogDescription className="sr-only">Escolha assinar o plano selecionado</DialogDescription>
             
-            {!createdCriancaId ? (
+            {!subscriptionConfirmed ? (
               // Pre-checkout: Ask if they want to subscribe
               <div className="text-center space-y-4 py-4">
                 <Rocket className="w-12 h-12 mx-auto" style={{ color: PLANOS[planoParam!].cor }} />
@@ -589,10 +589,7 @@ export default function CarreiraCadastroPage() {
                   <Button
                     className="flex-1 font-bold text-white"
                     style={{ backgroundColor: PLANOS[planoParam!].cor }}
-                    onClick={() => {
-                      // Keep popup open, switch to paywall
-                      setCreatedCriancaId(createdCriancaId);
-                    }}
+                    onClick={() => setSubscriptionConfirmed(true)}
                   >
                     Sim, quero assinar!
                   </Button>
@@ -603,7 +600,7 @@ export default function CarreiraCadastroPage() {
               <CarreiraPaywall
                 limitResult={{ status: 'limit_reached', source: 'freemium', count: 0, limit: 0 }}
                 childName={createdChildName || undefined}
-                criancaId={createdCriancaId}
+                criancaId={createdCriancaId || undefined}
                 planoSelecionado={planoParam!}
                 onClose={() => {
                   setShowSubscriptionPopup(false);
