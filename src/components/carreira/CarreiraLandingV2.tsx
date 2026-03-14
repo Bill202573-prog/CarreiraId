@@ -537,7 +537,7 @@ export function CarreiraLandingV2() {
                 ))}
               </ul>
               <Link
-                to={cadastroLink}
+                to={`${cadastroLink}?plano=elite`}
                 className="mt-6 block text-center bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition"
               >
                 Assinar Elite
