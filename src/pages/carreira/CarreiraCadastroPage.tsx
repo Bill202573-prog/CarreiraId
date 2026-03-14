@@ -321,12 +321,15 @@ export default function CarreiraCadastroPage() {
 
       const { data: perfilRede } = await supabase
         .from('perfis_rede')
-        .select('slug')
+        .select('slug, tipo')
         .eq('user_id', userId)
         .maybeSingle();
       
       if (perfilRede?.slug) {
-        navigate(carreiraPath(`/${perfilRede.slug}`));
+        trackProfileCreated(perfilRede.tipo || 'rede');
+        pushDataLayer('profile_created', { type: perfilRede.tipo });
+        setProfileSlug(perfilRede.slug);
+        setShowPwaPopup(true);
         return;
       }
     }
