@@ -43,7 +43,12 @@ export function TutorialAutoShow({ tipoPerfil }: { tipoPerfil?: string }) {
       }
 
       const { data } = await q;
-      return (data || []) as Tutorial[];
+      // Filter by target_user_ids if set
+      const filtered = (data || []).filter((t: any) => {
+        if (!t.target_user_ids || t.target_user_ids.length === 0) return true;
+        return t.target_user_ids.includes(user!.id);
+      });
+      return filtered as Tutorial[];
     },
     enabled: !!user,
   });
