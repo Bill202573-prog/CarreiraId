@@ -171,6 +171,9 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       if (data?.data?.isPaid) {
         setStep('success');
         toast.success('Pagamento confirmado! Assinatura ativada.');
+        // Invalidate plano and limit caches so badges and features update instantly
+        queryClient.invalidateQueries({ queryKey: ['carreira-plano'] });
+        queryClient.invalidateQueries({ queryKey: ['carreira-atividade-limit'] });
         onSubscribed?.();
         return true;
       }
