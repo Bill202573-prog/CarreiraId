@@ -463,6 +463,14 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
           <TabsContent value="responsavel" className="mt-4">
             <ResponsavelTab userId={perfil.user_id} criancaId={perfil.crianca_id || undefined} />
           </TabsContent>
+
+          <TabsContent value="assinatura" className="mt-4">
+            {perfil.crianca_id ? (
+              <AssinaturaCard userId={perfil.user_id} criancaId={perfil.crianca_id} />
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">Assinatura disponível apenas para perfis de atleta.</p>
+            )}
+          </TabsContent>
         </Tabs>
 
         <DeleteAccountDialog
