@@ -184,6 +184,8 @@ export default function CarreiraCadastroPage() {
             toast.error(error.message);
           }
         } else if (data.user) {
+          trackCompleteRegistration('email');
+          pushDataLayer('login', { method: 'email' });
           setUserId(data.user.id);
           const { data: perfilAtleta } = await supabase
             .from('perfil_atleta')
