@@ -16,6 +16,8 @@ const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', '
 export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { unreadCount: unreadComunicados } = useUnreadCarreiraComunicados();
+  const location = useLocation();
 
   // Count pending connection requests
   const { data: pendingCount } = useQuery({
