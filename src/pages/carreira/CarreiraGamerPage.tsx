@@ -124,6 +124,15 @@ export default function CarreiraGamerPage() {
         <TutorialAutoShow tipoPerfil="atleta_filho" />
         <GamificacaoHeroCard accentColor={accentColor} />
 
+        {/* Tabela de Pontos */}
+        <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <TableProperties className="w-4 h-4" style={{ color: accentColor }} />
+            Tabela de Pontos
+          </h3>
+          <TabelaPontos accentColor={accentColor} />
+        </Card>
+
         {/* Ranking */}
         {ranking && ranking.length > 0 && (
           <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
