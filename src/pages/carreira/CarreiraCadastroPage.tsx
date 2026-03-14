@@ -639,6 +639,17 @@ export default function CarreiraCadastroPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* PWA Install Popup after profile creation */}
+      <PwaInstallPopup
+        open={showPwaPopup}
+        onOpenChange={(open) => {
+          setShowPwaPopup(open);
+          if (!open && profileSlug) {
+            navigate(carreiraPath(`/${profileSlug}`));
+          }
+        }}
+      />
     </div>
   );
 }
