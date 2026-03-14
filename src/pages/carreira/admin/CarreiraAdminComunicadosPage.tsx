@@ -1,4 +1,5 @@
 import CarreiraAdminLayout from '@/components/layout/CarreiraAdminLayout';
+import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { useAdminCarreiraComunicados, useCreateCarreiraComunicado, useToggleCarreiraComunicado, useDeleteCarreiraComunicado } from '@/hooks/useCarreiraComunicadosData';
 import { useAuth } from '@/contexts/AuthContext';
