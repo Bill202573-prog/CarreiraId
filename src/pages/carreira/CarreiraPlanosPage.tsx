@@ -225,6 +225,8 @@ export default function CarreiraPlanos() {
               planoSelecionado={selectedPlano}
               onClose={() => setSelectedPlano(null)}
               onSubscribed={() => {
+                trackSubscribe(selectedPlano, PLANOS[selectedPlano].preco);
+                pushDataLayer('purchase', { plan: selectedPlano });
                 setSelectedPlano(null);
                 navigate(-1);
               }}
