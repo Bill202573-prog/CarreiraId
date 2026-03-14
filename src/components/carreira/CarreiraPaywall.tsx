@@ -152,14 +152,15 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     }
   };
 
-  const checkPayment = useCallback(async () => {
-    if (!pixData) return;
+  const checkPayment = useCallback(async (overridePaymentId?: string) => {
+    const paymentId = overridePaymentId || pixData?.paymentId || checkoutData?.paymentId;
+    if (!paymentId) return false;
 
     try {
       const { data, error } = await supabase.functions.invoke('check-carreira-payment', {
         body: {
-          payment_id: pixData.paymentId,
-          subscription_id: pixData.subscriptionId,
+          payment_id: paymentId,
+          subscription_id: pixData?.subscriptionId || '',
         },
       });
 
@@ -176,9 +177,9 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       console.error('Erro ao verificar pagamento:', err);
       return false;
     }
-  }, [pixData, onSubscribed]);
+  }, [pixData, checkoutData, onSubscribed]);
 
-  // Poll for payment
+  // Poll for PIX payment
   useEffect(() => {
     if (step !== 'pix' || !pixData) return;
 
@@ -190,6 +191,30 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
 
     return () => clearInterval(interval);
   }, [step, pixData, checkPayment]);
+
+  // Poll for checkout (card) payment
+  useEffect(() => {
+    if (step !== 'checking' || !checkoutData) return;
+
+    const interval = setInterval(async () => {
+      setPollCount(prev => prev + 1);
+      const paid = await checkPayment();
+      if (paid) clearInterval(interval);
+    }, 5000);
+
+    // Stop polling after 10 minutes
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (step === 'checking') {
+        toast.info('Tempo de verificação expirado. Use o botão para verificar manualmente.');
+      }
+    }, 10 * 60_000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [step, checkoutData, checkPayment]);
 
   const copyBrCode = () => {
     if (!pixData?.brCode) return;
