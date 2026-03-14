@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Loader2, Rss, UserPlus, Users, Copy, Check, Search, X } from 'lucide-react';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
+import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { CarreiraLandingPage } from '@/components/carreira/CarreiraLandingPage';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useState, useEffect } from 'react';
