@@ -475,6 +475,77 @@ export type Database = {
         }
         Relationships: []
       }
+      carreira_comunicados: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          criado_por: string
+          destinatario_filtro: Json | null
+          destinatario_tipo: string
+          enviar_push: boolean | null
+          id: string
+          mensagem: string
+          tipo: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          criado_por: string
+          destinatario_filtro?: Json | null
+          destinatario_tipo?: string
+          enviar_push?: boolean | null
+          id?: string
+          mensagem: string
+          tipo?: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          criado_por?: string
+          destinatario_filtro?: Json | null
+          destinatario_tipo?: string
+          enviar_push?: boolean | null
+          id?: string
+          mensagem?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      carreira_comunicados_leituras: {
+        Row: {
+          comunicado_id: string
+          id: string
+          lido_em: string | null
+          user_id: string
+        }
+        Insert: {
+          comunicado_id: string
+          id?: string
+          lido_em?: string | null
+          user_id: string
+        }
+        Update: {
+          comunicado_id?: string
+          id?: string
+          lido_em?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carreira_comunicados_leituras_comunicado_id_fkey"
+            columns: ["comunicado_id"]
+            isOneToOne: false
+            referencedRelation: "carreira_comunicados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carreira_experiencias: {
         Row: {
           atual: boolean

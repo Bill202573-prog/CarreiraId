@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Loader2, Rss, UserPlus, Users, Copy, Check, Search, X } from 'lucide-react';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
+import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { CarreiraLandingPage } from '@/components/carreira/CarreiraLandingPage';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useState, useEffect } from 'react';
@@ -379,6 +380,7 @@ export default function CarreiraExplorarPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <NotificacoesBell />
             <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}>
               <Users className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Conexões</span>

@@ -1,9 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut, Gamepad2, Search } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2, Search, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
+import { useUnreadCarreiraComunicados } from '@/hooks/useCarreiraComunicadosData';
 
 interface CarreiraBottomNavProps {
   currentUserId?: string | null;
@@ -15,6 +16,7 @@ const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', '
 export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { unreadCount: unreadComunicados } = useUnreadCarreiraComunicados();
 
   // Count pending connection requests
   const { data: pendingCount } = useQuery({
@@ -118,7 +120,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       label: 'Meu Perfil',
       onClick: goToProfile,
       active: !!profileSlug && location.pathname === carreiraPath(`/${profileSlug}`),
-      badge: 0,
+      badge: unreadComunicados || 0,
     },
     {
       icon: LogOut,
