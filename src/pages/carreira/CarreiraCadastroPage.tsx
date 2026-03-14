@@ -38,7 +38,8 @@ export default function CarreiraCadastroPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('convite');
-
+  const planoParam = searchParams.get('plano') as CarreiraPlano | null;
+  const hasPaidPlan = planoParam === 'competidor' || planoParam === 'elite';
   const [step, setStep] = useState<Step>('tutorial');
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
