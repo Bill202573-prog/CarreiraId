@@ -17,7 +17,6 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   const navigate = useNavigate();
   const location = useLocation();
   const { unreadCount: unreadComunicados } = useUnreadCarreiraComunicados();
-  const location = useLocation();
 
   // Count pending connection requests
   const { data: pendingCount } = useQuery({
