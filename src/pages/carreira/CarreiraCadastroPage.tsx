@@ -628,6 +628,8 @@ export default function CarreiraCadastroPage() {
                   if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
                 }}
                 onSubscribed={() => {
+                  trackSubscribe(planoParam!, PLANOS[planoParam!].preco);
+                  pushDataLayer('purchase', { plan: planoParam });
                   setShowSubscriptionPopup(false);
                   toast.success('Assinatura ativada! 🎉');
                   if (profileSlug) navigate(carreiraPath(`/${profileSlug}`));
