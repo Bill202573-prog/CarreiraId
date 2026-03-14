@@ -56,6 +56,7 @@ export default function CarreiraCadastroPage() {
   const [createdCriancaId, setCreatedCriancaId] = useState<string | null>(null);
   const [createdChildName, setCreatedChildName] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
+  const [showPwaPopup, setShowPwaPopup] = useState(false);
 
   // Auth check + cross-domain session transfer
   useEffect(() => {
