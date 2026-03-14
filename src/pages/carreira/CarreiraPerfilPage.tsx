@@ -17,6 +17,7 @@ import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { FansSection } from '@/components/carreira/FansSection';
 import { AssinaturaExpiryReminder } from '@/components/carreira/AssinaturaExpiryReminder';
+import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
