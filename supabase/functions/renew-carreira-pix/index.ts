@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const ASAAS_SANDBOX_URL = 'https://sandbox.asaas.com/api/v3';
+const ASAAS_API_URL = 'https://api.asaas.com/v3';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const ASAAS_API_KEY = Deno.env.get('ASAAS_SANDBOX_API_KEY');
+    const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -52,7 +52,6 @@ Deno.serve(async (req) => {
 
     for (const sub of (expiringSubs || [])) {
       try {
-        // Get user profile for CPF and customer data
         const { data: profile } = await supabase
           .from('profiles')
           .select('email, nome, telefone')
@@ -64,7 +63,6 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Get customer from Asaas using external reference or search
         const { data: perfil } = await supabase
           .from('perfil_atleta')
           .select('cpf_cnpj')
@@ -79,7 +77,7 @@ Deno.serve(async (req) => {
         }
 
         // Find customer in Asaas
-        const searchResp = await fetch(`${ASAAS_SANDBOX_URL}/customers?cpfCnpj=${cpf}`, {
+        const searchResp = await fetch(`${ASAAS_API_URL}/customers?cpfCnpj=${cpf}`, {
           headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
         });
         const searchResult = await searchResp.json();
@@ -90,16 +88,14 @@ Deno.serve(async (req) => {
         }
 
         const customerId = searchResult.data[0].id;
-
-        // Determine value
         const valor = sub.valor || 17.90;
         const planoLabel = (sub.plano || 'competidor').charAt(0).toUpperCase() + (sub.plano || 'competidor').slice(1);
 
-        // Create new PIX payment
+        // Create new PIX payment with notifications disabled
         const dueDate = new Date(sub.expira_em!);
         const dueDateStr = dueDate.toISOString().split('T')[0];
 
-        const paymentResp = await fetch(`${ASAAS_SANDBOX_URL}/payments`, {
+        const paymentResp = await fetch(`${ASAAS_API_URL}/payments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
           body: JSON.stringify({
@@ -109,6 +105,7 @@ Deno.serve(async (req) => {
             dueDate: dueDateStr,
             description: `Carreira ID ${planoLabel} - Renovação mensal`,
             externalReference: `carreira_renew_${sub.plano}_${sub.user_id}_${sub.crianca_id}`,
+            notificationDisabled: true,
           }),
         });
 
@@ -120,12 +117,12 @@ Deno.serve(async (req) => {
         }
 
         // Get PIX QR Code
-        const qrResp = await fetch(`${ASAAS_SANDBOX_URL}/payments/${paymentResult.id}/pixQrCode`, {
+        const qrResp = await fetch(`${ASAAS_API_URL}/payments/${paymentResult.id}/pixQrCode`, {
           headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
         });
         const qrResult = await qrResp.json();
 
-        // Update subscription with new payment ID for polling
+        // Update subscription with new payment ID
         await supabase
           .from('carreira_assinaturas')
           .update({
