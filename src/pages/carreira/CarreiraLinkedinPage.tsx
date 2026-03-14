@@ -10,6 +10,8 @@ import { PLANOS } from '@/config/carreiraPlanos';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { Button } from '@/components/ui/button';
 import { Loader2, Crown, Zap } from 'lucide-react';
+import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
+import { TutorialHelpButton } from '@/components/carreira/TutorialHelpButton';
 
 export default function CarreiraLinkedinPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -36,6 +38,8 @@ export default function CarreiraLinkedinPage() {
               Sua vitrine esportiva pública
             </p>
           </div>
+          <div className="flex items-center gap-2">
+            <TutorialHelpButton tipoPerfil="atleta_filho" />
           {perfil && !planoLoading && (
             <button
               onClick={() => navigate(carreiraPath('/planos'))}
@@ -45,7 +49,11 @@ export default function CarreiraLinkedinPage() {
               {planoInfo.icone} {planoInfo.nome}
             </button>
           )}
+          </div>
         </div>
+
+        {/* Tutorial auto-show para novos usuários */}
+        {perfil && <TutorialAutoShow tipoPerfil="atleta_filho" />}
 
         {/* Upgrade banner */}
         {showUpgradeBanner && (

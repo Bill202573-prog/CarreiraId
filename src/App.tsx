@@ -42,6 +42,7 @@ const CarreiraAdminGamificacaoPage = lazy(() => import("./pages/carreira/admin/C
 const CarreiraAdminPerformancePage = lazy(() => import("./pages/carreira/admin/CarreiraAdminPerformancePage"));
 const CarreiraAdminModeracaoPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminModeracaoPage"));
 const CarreiraAdminComunicadosPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminComunicadosPage"));
+const CarreiraAdminTutoriaisPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminTutoriaisPage"));
 const ResetPasswordPage = lazy(() => import("./pages/carreira/ResetPasswordPage"));
 const CarreiraPlanosPage = lazy(() => import("./pages/carreira/CarreiraPlanosPage"));
 
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/carreira/admin/performance" element={<CarreiraAdminPerformancePage />} />
               <Route path="/carreira/admin/moderacao" element={<CarreiraAdminModeracaoPage />} />
               <Route path="/carreira/admin/comunicados" element={<CarreiraAdminComunicadosPage />} />
+              <Route path="/carreira/admin/tutoriais" element={<CarreiraAdminTutoriaisPage />} />
               <Route path="/perfil/:userId" element={<PerfilPage />} />
               <Route path="/escola/:slug" element={<EscolaPerfilPage />} />
               {/* Atleta ID / escolinhas — rotas secundárias */}
