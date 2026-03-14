@@ -711,6 +711,71 @@ export type Database = {
         }
         Relationships: []
       }
+      carreira_tutoriais: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          ordem: number
+          slides: Json
+          tipo_perfil: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          slides?: Json
+          tipo_perfil?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          slides?: Json
+          tipo_perfil?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      carreira_tutorial_leituras: {
+        Row: {
+          id: string
+          tutorial_id: string
+          user_id: string
+          visto_em: string
+        }
+        Insert: {
+          id?: string
+          tutorial_id: string
+          user_id: string
+          visto_em?: string
+        }
+        Update: {
+          id?: string
+          tutorial_id?: string
+          user_id?: string
+          visto_em?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carreira_tutorial_leituras_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "carreira_tutoriais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conquistas_coletivas_sync: {
         Row: {
           atleta_id_conquista_id: string
