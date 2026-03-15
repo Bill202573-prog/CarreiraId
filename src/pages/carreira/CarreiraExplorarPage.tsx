@@ -313,7 +313,7 @@ export default function CarreiraExplorarPage() {
   }
 
   if (!sessionUserId || !hasProfile) {
-    return <CarreiraLandingPage />;
+    return <Navigate to={carreiraPath('/cadastro')} replace />;
   }
 
   const inviteLink = meuPerfilRede?.convite_codigo
