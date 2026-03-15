@@ -197,6 +197,8 @@ export default function CarreiraCadastroPage() {
             .from('perfil_atleta')
             .select('id, slug')
             .eq('user_id', data.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
           if (perfilAtleta?.slug) {
             navigate(carreiraPath(`/${perfilAtleta.slug}`), { replace: true });
