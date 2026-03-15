@@ -161,7 +161,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           origem: 'carreira',
         } as any);
 
-      if (perfilError) throw perfilError;
+      if (perfilError) { console.error('[AtletaFilhoForm] Erro perfil:', perfilError); throw perfilError; }
+      console.log('[AtletaFilhoForm] Perfil criado com slug:', slug);
 
       // 4. Handle invite code if present
       if (inviteCode) {
