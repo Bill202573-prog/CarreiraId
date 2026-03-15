@@ -392,8 +392,20 @@ export default function CarreiraExplorarPage() {
               )}
             </Button>
             <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
-              const { data: pa } = await supabase.from('perfil_atleta').select('slug').eq('user_id', sessionUserId!).maybeSingle();
-              const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', sessionUserId!).maybeSingle();
+              const { data: pa } = await supabase
+                .from('perfil_atleta')
+                .select('slug')
+                .eq('user_id', sessionUserId!)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              const { data: pr } = await supabase
+                .from('perfis_rede')
+                .select('slug')
+                .eq('user_id', sessionUserId!)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
               const slug = pa?.slug || pr?.slug;
               if (slug) navigate(carreiraPath(`/${slug}`));
               else navigate(carreiraPath(`/perfil/${sessionUserId}`));
