@@ -76,6 +76,7 @@ const App = () => (
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
               <Route path="/conexoes" element={<CarreiraConexoesPage />} />
               <Route path="/gamer" element={<CarreiraGamerPage />} />
+              <Route path="/gamer/pontos" element={<CarreiraGamerPontosPage />} />
               <Route path="/descobrir" element={<CarreiraDescobrirPage />} />
               <Route path="/termos" element={<TermosPage />} />
               <Route path="/privacidade" element={<PrivacidadePage />} />
