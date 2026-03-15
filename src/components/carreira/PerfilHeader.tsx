@@ -248,7 +248,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
 
               {(perfil.cidade || perfil.estado) && (
-                <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-muted-foreground mt-1.5">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5">
                   <MapPin className="w-3 h-3" />
                   <span>{[perfil.cidade, perfil.estado].filter(Boolean).join(', ')}</span>
                 </div>
