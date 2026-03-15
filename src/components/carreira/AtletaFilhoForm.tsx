@@ -164,7 +164,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           categoria: categoria || null,
           cidade: cidade || null,
           estado: estado || null,
-          bio: bio || null,
+          bio: null,
           foto_url: fotoUrl,
           crianca_id: criancaId,
           is_public: true,
