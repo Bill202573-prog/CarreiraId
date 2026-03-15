@@ -116,7 +116,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           ativo: true,
         });
 
-      if (criancaError) throw criancaError;
+      if (criancaError) { console.error('[AtletaFilhoForm] Erro crianca:', criancaError); throw criancaError; }
+      console.log('[AtletaFilhoForm] Crianca criada:', criancaId);
 
       // 2. Upload photo if provided
       let fotoUrl: string | null = null;
