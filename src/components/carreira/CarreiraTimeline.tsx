@@ -326,14 +326,14 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             <button
               key={value}
               onClick={() => handleTabClick(value)}
-              className="flex items-center gap-1.5 text-xs font-medium rounded-full border px-3 py-1.5 transition-all duration-200"
+              className="flex items-center gap-1.5 text-xs font-semibold rounded-full border-2 px-4 py-2 transition-all duration-200"
               style={{
-                backgroundColor: isActive ? accentColor : 'transparent',
+                backgroundColor: isActive ? accentColor : `${accentColor}15`,
                 color: isActive ? '#fff' : accentColor,
-                borderColor: isActive ? accentColor : `${accentColor}40`,
+                borderColor: accentColor,
               }}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-4 h-4" />
               {label}
             </button>
           );

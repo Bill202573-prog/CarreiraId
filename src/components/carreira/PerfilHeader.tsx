@@ -214,7 +214,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
 
               {/* Status + badges */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-1.5">
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 {atletaStatusInfo && (
                   <Badge variant="outline" className="gap-1 text-xs font-semibold"
                     style={{ borderColor: perfil.cor_destaque || '#3b82f6', color: perfil.cor_destaque || '#3b82f6' }}>
@@ -233,7 +233,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
               {/* Position + foot */}
               {(perfil.posicao_principal || perfil.pe_dominante) && (
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
                   {perfil.posicao_principal && (
                     <span className="flex items-center gap-1">
                       <Footprints className="w-3 h-3" />
@@ -248,7 +248,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
 
               {(perfil.cidade || perfil.estado) && (
-                <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-muted-foreground mt-1.5">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5">
                   <MapPin className="w-3 h-3" />
                   <span>{[perfil.cidade, perfil.estado].filter(Boolean).join(', ')}</span>
                 </div>
