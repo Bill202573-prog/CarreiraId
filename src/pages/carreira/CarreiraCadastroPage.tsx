@@ -366,20 +366,18 @@ export default function CarreiraCadastroPage() {
           </button>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 text-xs" style={{ color: 'hsl(0 0% 50%)' }}>
-              {['Tutorial', 'Conta', 'Perfil', 'Rede'].map((label, i) => (
+              {['Tutorial', 'Conta', 'Perfil'].map((label, i) => (
                 <span key={label} className="flex items-center gap-1.5">
                   {i > 0 && <span style={{ color: 'hsl(220 10% 25%)' }}>›</span>}
                   <span className={
                     (i === 0 && step === 'tutorial') ||
                     (i === 1 && step === 'auth') || 
-                    (i === 2 && (step === 'profile-type' || step === 'profile-form')) || 
-                    (i === 3 && step === 'invites')
+                    (i === 2 && (step === 'profile-type' || step === 'profile-form'))
                       ? 'font-semibold' : ''
                   } style={
                     (i === 0 && step === 'tutorial') ||
                     (i === 1 && step === 'auth') || 
-                    (i === 2 && (step === 'profile-type' || step === 'profile-form')) || 
-                    (i === 3 && step === 'invites')
+                    (i === 2 && (step === 'profile-type' || step === 'profile-form'))
                       ? { color: 'hsl(25 95% 55%)' } : undefined
                   }>
                     {label}
