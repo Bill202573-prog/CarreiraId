@@ -12,7 +12,7 @@ import { ProfileTypeSelector, type ProfileType } from '@/components/carreira/Pro
 import { ProfileTypeForm } from '@/components/carreira/ProfileTypeForm';
 import { AtletaFilhoForm } from '@/components/carreira/AtletaFilhoForm';
 import { OnboardingTutorial } from '@/components/carreira/OnboardingTutorial';
-import { InvitePage } from '@/components/carreira/InvitePage';
+
 import { CarreiraPaywall } from '@/components/carreira/CarreiraPaywall';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
