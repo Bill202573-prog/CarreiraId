@@ -67,8 +67,20 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     if (profileSlug) {
       navigate(carreiraPath(`/${profileSlug}`));
     } else if (currentUserId) {
-      const { data: pa } = await supabase.from('perfil_atleta').select('slug').eq('user_id', currentUserId).maybeSingle();
-      const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', currentUserId).maybeSingle();
+      const { data: pa } = await supabase
+        .from('perfil_atleta')
+        .select('slug')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const { data: pr } = await supabase
+        .from('perfis_rede')
+        .select('slug')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       const foundSlug = pa?.slug || pr?.slug;
       if (foundSlug) navigate(carreiraPath(`/${foundSlug}`));
       else navigate(carreiraPath(`/perfil/${currentUserId}`));
