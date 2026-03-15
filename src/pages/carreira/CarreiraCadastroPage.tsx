@@ -82,11 +82,13 @@ export default function CarreiraCadastroPage() {
 
       // Transfer session to canonical domain ONLY for OAuth callbacks on non-canonical, non-preview domains
       if (isWrongDomain && hasHashToken && session.access_token && session.refresh_token) {
-        const { data: existing } = await supabase
-          .from('perfis_rede')
-          .select('id, slug')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+          const { data: existing } = await supabase
+            .from('perfis_rede')
+            .select('id, slug')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
         const targetOrigin = 'https://carreiraid.com.br';
         const targetPath = existing?.slug ? carreiraPath(`/${existing.slug}`) : carreiraPath('/cadastro');
