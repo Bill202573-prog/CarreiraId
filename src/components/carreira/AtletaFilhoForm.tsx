@@ -51,7 +51,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
   const [categoria, setCategoria] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
-  const [bio, setBio] = useState('');
+  
   const [cpf, setCpf] = useState('');
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [fotoFile, setFotoFile] = useState<File | null>(null);
