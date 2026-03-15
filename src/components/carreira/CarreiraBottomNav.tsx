@@ -96,14 +96,14 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     {
       icon: Home,
       label: 'Feed',
-      onClick: () => navigate(feedPath),
+      onClick: () => navigate(feedPath, { replace: true }),
       active: location.pathname === feedPath || location.pathname === carreiraPath('/explorar'),
       badge: 0,
     },
     {
       icon: Users,
       label: 'Conexões',
-      onClick: () => navigate(conexoesPath),
+      onClick: () => navigate(conexoesPath, { replace: true }),
       active: location.pathname === conexoesPath,
       badge: (pendingCount || 0),
     },
@@ -114,14 +114,14 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     ? {
         icon: Search,
         label: 'Descobrir',
-        onClick: () => navigate(descobrirPath),
+        onClick: () => navigate(descobrirPath, { replace: true }),
         active: location.pathname === descobrirPath,
         badge: 0,
       }
     : {
         icon: Gamepad2,
         label: 'Gamer',
-        onClick: () => navigate(gamerPath),
+        onClick: () => navigate(gamerPath, { replace: true }),
         active: location.pathname === gamerPath,
         badge: 0,
       };
