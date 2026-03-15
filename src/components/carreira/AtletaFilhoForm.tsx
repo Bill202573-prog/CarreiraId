@@ -355,17 +355,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           </div>
         </div>
 
-        {/* Bio */}
-        <div className="space-y-2">
-          <Label>Sobre o atleta</Label>
-          <Textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Conte um pouco sobre a trajetória esportiva..."
-            maxLength={280}
-            rows={3}
-          />
-        </div>
+
+
 
         <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
