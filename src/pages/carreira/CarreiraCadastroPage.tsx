@@ -307,6 +307,8 @@ export default function CarreiraCadastroPage() {
         .from('perfil_atleta')
         .select('slug, crianca_id, nome')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (perfilAtleta?.slug) {
