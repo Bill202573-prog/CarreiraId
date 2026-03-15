@@ -335,6 +335,8 @@ export default function CarreiraCadastroPage() {
         .from('perfis_rede')
         .select('slug, tipo')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       
       if (perfilRede?.slug) {
