@@ -66,7 +66,7 @@ const App = () => (
         <Sonner />
         <PWAUpdatePrompt />
         <BrowserRouter>
-          <Suspense fallback={null}>
+          <Suspense fallback={<div className="min-h-screen bg-background" />}>
             <Routes>
               {/* Carreira ID — rota principal */}
               <Route path="/" element={<CarreiraLandingV2Page />} />
