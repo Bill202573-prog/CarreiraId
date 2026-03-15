@@ -333,7 +333,9 @@ export default function CarreiraCadastroPage() {
         return;
       }
     }
-    setStep('invites');
+    // Fallback: no slug found, go to feed
+    setShowPwaPopup(true);
+    setProfileSlug(null);
   };
 
   if (checkingAuth) {
