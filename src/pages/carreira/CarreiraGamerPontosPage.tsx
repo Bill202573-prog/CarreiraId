@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/contexts/AuthContext';
 import { TabelaPontos } from '@/components/carreira/TabelaPontos';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Card } from '@/components/ui/card';
