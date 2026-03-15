@@ -43,6 +43,8 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         .from('perfis_rede')
         .select('tipo')
         .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },
@@ -55,7 +57,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     await supabase.auth.signOut();
     toast.success('Você saiu da sua conta');
     if (isCarreiraDomain()) {
-      navigate(carreiraPath('/'), { replace: true });
+      navigate(carreiraPath('/cadastro'), { replace: true });
     } else {
       navigate('/auth', { replace: true });
     }
@@ -63,13 +65,25 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
 
   const goToProfile = async () => {
     if (profileSlug) {
-      navigate(carreiraPath(`/${profileSlug}`));
+      navigate(carreiraPath(`/${profileSlug}`), { replace: true });
     } else if (currentUserId) {
-      const { data: pa } = await supabase.from('perfil_atleta').select('slug').eq('user_id', currentUserId).maybeSingle();
-      const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', currentUserId).maybeSingle();
+      const { data: pa } = await supabase
+        .from('perfil_atleta')
+        .select('slug')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const { data: pr } = await supabase
+        .from('perfis_rede')
+        .select('slug')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       const foundSlug = pa?.slug || pr?.slug;
-      if (foundSlug) navigate(carreiraPath(`/${foundSlug}`));
-      else navigate(carreiraPath(`/perfil/${currentUserId}`));
+      if (foundSlug) navigate(carreiraPath(`/${foundSlug}`), { replace: true });
+      else navigate(carreiraPath(`/perfil/${currentUserId}`), { replace: true });
     }
   };
 
@@ -82,14 +96,14 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     {
       icon: Home,
       label: 'Feed',
-      onClick: () => navigate(feedPath),
+      onClick: () => navigate(feedPath, { replace: true }),
       active: location.pathname === feedPath || location.pathname === carreiraPath('/explorar'),
       badge: 0,
     },
     {
       icon: Users,
       label: 'Conexões',
-      onClick: () => navigate(conexoesPath),
+      onClick: () => navigate(conexoesPath, { replace: true }),
       active: location.pathname === conexoesPath,
       badge: (pendingCount || 0),
     },
@@ -100,14 +114,14 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     ? {
         icon: Search,
         label: 'Descobrir',
-        onClick: () => navigate(descobrirPath),
+        onClick: () => navigate(descobrirPath, { replace: true }),
         active: location.pathname === descobrirPath,
         badge: 0,
       }
     : {
         icon: Gamepad2,
         label: 'Gamer',
-        onClick: () => navigate(gamerPath),
+        onClick: () => navigate(gamerPath, { replace: true }),
         active: location.pathname === gamerPath,
         badge: 0,
       };

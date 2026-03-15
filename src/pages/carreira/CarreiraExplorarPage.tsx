@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PostAtleta } from '@/hooks/useCarreiraData';
 import { PostCard } from '@/components/carreira/PostCard';
@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Rss, UserPlus, Users, Copy, Check, Search, X } from 'lucide-react';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
-import { CarreiraLandingPage } from '@/components/carreira/CarreiraLandingPage';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -61,6 +60,8 @@ function useMyPerfilRede(userId?: string | null) {
         .from('perfis_rede')
         .select('id, slug, tipo, convite_codigo, nome, foto_url')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -78,6 +79,8 @@ function useMyPerfilAtletaBySession(userId?: string | null) {
         .from('perfil_atleta')
         .select('id, nome, foto_url, slug')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -310,7 +313,7 @@ export default function CarreiraExplorarPage() {
   }
 
   if (!sessionUserId || !hasProfile) {
-    return <CarreiraLandingPage />;
+    return <Navigate to={carreiraPath('/cadastro')} replace />;
   }
 
   const inviteLink = meuPerfilRede?.convite_codigo
@@ -389,8 +392,20 @@ export default function CarreiraExplorarPage() {
               )}
             </Button>
             <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
-              const { data: pa } = await supabase.from('perfil_atleta').select('slug').eq('user_id', sessionUserId!).maybeSingle();
-              const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', sessionUserId!).maybeSingle();
+              const { data: pa } = await supabase
+                .from('perfil_atleta')
+                .select('slug')
+                .eq('user_id', sessionUserId!)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              const { data: pr } = await supabase
+                .from('perfis_rede')
+                .select('slug')
+                .eq('user_id', sessionUserId!)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
               const slug = pa?.slug || pr?.slug;
               if (slug) navigate(carreiraPath(`/${slug}`));
               else navigate(carreiraPath(`/perfil/${sessionUserId}`));
