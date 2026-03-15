@@ -102,7 +102,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
     }
 
     setIsLoading(true);
-
+    console.log('[AtletaFilhoForm] Validação OK, criando perfil...');
     try {
       // 1. Create crianca record (generate ID client-side to avoid SELECT after INSERT,
       // since RLS SELECT policies won't match until perfil_atleta is linked)
