@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { ComoJogarButton } from '@/components/carreira/ComoJogarButton';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
-import { TabelaPontos } from '@/components/carreira/TabelaPontos';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Trophy, User, Zap, TableProperties } from 'lucide-react';
+import { Trophy, User, Zap, TableProperties, ChevronRight } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function useRanking() {
   return useQuery({
@@ -56,47 +56,31 @@ function useRanking() {
 }
 
 export default function CarreiraGamerPage() {
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [mySlug, setMySlug] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { session, isLoading } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const uid = session?.user?.id ?? null;
-      setCurrentUserId(uid);
-      if (uid) {
-        const { data: pa } = await supabase.from('perfil_atleta').select('slug').eq('user_id', uid).maybeSingle();
-        const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', uid).maybeSingle();
-        setMySlug(pa?.slug || pr?.slug || null);
-      }
-      setLoading(false);
-    });
-  }, []);
+  const currentUserId = session?.user?.id ?? null;
 
   const { data: perfilData } = useQuery({
     queryKey: ['gamer-page-accent', currentUserId],
     queryFn: async () => {
       if (!currentUserId) return null;
-      const { data: pa } = await supabase.from('perfil_atleta').select('cor_destaque').eq('user_id', currentUserId).maybeSingle();
-      return { accentColor: pa?.cor_destaque || '#3b82f6' };
+      const { data: pa } = await supabase.from('perfil_atleta').select('cor_destaque, slug').eq('user_id', currentUserId).order('created_at', { ascending: true }).limit(1).maybeSingle();
+      const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', currentUserId).order('created_at', { ascending: true }).limit(1).maybeSingle();
+      return { accentColor: pa?.cor_destaque || '#3b82f6', slug: pa?.slug || pr?.slug || null };
     },
     enabled: !!currentUserId,
   });
 
   const accentColor = perfilData?.accentColor || '#3b82f6';
+  const mySlug = perfilData?.slug || null;
   const { data: ranking } = useRanking();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" data-theme="dark-orange" style={{ background: 'hsl(0 0% 4%)' }}>
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+  if (isLoading) {
+    return <div className="min-h-screen bg-background" data-theme="dark-orange" />;
   }
 
   if (!currentUserId) {
-    navigate(carreiraPath('/cadastro'));
+    navigate(carreiraPath('/cadastro'), { replace: true });
     return null;
   }
 
@@ -124,14 +108,22 @@ export default function CarreiraGamerPage() {
         <TutorialAutoShow tipoPerfil="atleta_filho" />
         <GamificacaoHeroCard accentColor={accentColor} />
 
-        {/* Tabela de Pontos */}
-        <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
-          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <TableProperties className="w-4 h-4" style={{ color: accentColor }} />
-            Tabela de Pontos
-          </h3>
-          <TabelaPontos accentColor={accentColor} />
-        </Card>
+        {/* Link para Tabela de Pontos */}
+        <button
+          onClick={() => navigate(carreiraPath('/gamer/pontos'))}
+          className="w-full"
+        >
+          <Card
+            className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors cursor-pointer"
+            style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}
+          >
+            <div className="flex items-center gap-2">
+              <TableProperties className="w-5 h-5" style={{ color: accentColor }} />
+              <span className="text-sm font-semibold text-foreground">Tabela de Pontos</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </Card>
+        </button>
 
         {/* Ranking */}
         {ranking && ranking.length > 0 && (
@@ -140,49 +132,47 @@ export default function CarreiraGamerPage() {
               <Trophy className="w-4 h-4" style={{ color: accentColor }} />
               Ranking
             </h3>
-            <div className="space-y-2">
-              {ranking.map((player) => {
-                const isMe = player.user_id === currentUserId;
-                const medalColor = player.position <= 3 ? MEDAL_COLORS[player.position - 1] : undefined;
-                return (
-                  <div
-                    key={player.user_id}
-                    className={`flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer ${isMe ? 'ring-1' : 'hover:bg-muted/50'}`}
-                    style={isMe ? { backgroundColor: `${accentColor}10`, outline: `1px solid ${accentColor}` } : undefined}
-                    onClick={() => player.slug && navigate(carreiraPath(`/${player.slug}`))}
-                  >
-                    {/* Position */}
+            <ScrollArea className="max-h-[400px]">
+              <div className="space-y-2 pr-2">
+                {ranking.map((player) => {
+                  const isMe = player.user_id === currentUserId;
+                  const medalColor = player.position <= 3 ? MEDAL_COLORS[player.position - 1] : undefined;
+                  return (
                     <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                      style={medalColor
-                        ? { backgroundColor: medalColor, color: '#000' }
-                        : { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' }
-                      }
+                      key={player.user_id}
+                      className={`flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer ${isMe ? 'ring-1' : 'hover:bg-muted/50'}`}
+                      style={isMe ? { backgroundColor: `${accentColor}10`, outline: `1px solid ${accentColor}` } : undefined}
+                      onClick={() => player.slug && navigate(carreiraPath(`/${player.slug}`))}
                     >
-                      {player.position}
-                    </div>
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                        style={medalColor
+                          ? { backgroundColor: medalColor, color: '#000' }
+                          : { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' }
+                        }
+                      >
+                        {player.position}
+                      </div>
 
-                    {/* Avatar */}
-                    <Avatar className="w-8 h-8">
-                      {player.foto_url ? <AvatarImage src={player.foto_url} className="object-cover" /> : null}
-                      <AvatarFallback className="text-[10px]"><User className="w-3.5 h-3.5" /></AvatarFallback>
-                    </Avatar>
+                      <Avatar className="w-8 h-8">
+                        {player.foto_url ? <AvatarImage src={player.foto_url} className="object-cover" /> : null}
+                        <AvatarFallback className="text-[10px]"><User className="w-3.5 h-3.5" /></AvatarFallback>
+                      </Avatar>
 
-                    {/* Name */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{player.nome} {isMe && <span className="text-[10px] text-muted-foreground">(você)</span>}</p>
-                      <p className="text-[10px] text-muted-foreground">Nível {player.nivel}</p>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{player.nome} {isMe && <span className="text-[10px] text-muted-foreground">(você)</span>}</p>
+                        <p className="text-[10px] text-muted-foreground">Nível {player.nivel}</p>
+                      </div>
 
-                    {/* Points */}
-                    <div className="flex items-center gap-1 shrink-0" style={{ color: accentColor }}>
-                      <Zap className="w-3 h-3" />
-                      <span className="text-xs font-bold">{player.pontos.toLocaleString()}</span>
+                      <div className="flex items-center gap-1 shrink-0" style={{ color: accentColor }}>
+                        <Zap className="w-3 h-3" />
+                        <span className="text-xs font-bold">{player.pontos.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
           </Card>
         )}
       </main>
