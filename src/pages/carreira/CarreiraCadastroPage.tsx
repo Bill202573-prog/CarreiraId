@@ -551,12 +551,6 @@ export default function CarreiraCadastroPage() {
           />
         )}
 
-        {step === 'invites' && userId && (
-          <InvitePage
-            userId={userId}
-            onSkip={() => navigate(carreiraPath('/feed'))}
-          />
-        )}
 
         {step === 'auth' && (
           <div className="mt-6 text-center text-xs" style={{ color: 'hsl(0 0% 40%)' }}>
