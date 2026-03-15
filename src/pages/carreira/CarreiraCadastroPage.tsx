@@ -23,7 +23,7 @@ import PwaInstallButton from '@/components/shared/PwaInstallButton';
 import { PwaInstallPopup } from '@/components/shared/PwaInstallPopup';
 import { trackCompleteRegistration, trackProfileCreated, trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
 
-type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form' | 'invites';
+type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Email inválido'),
