@@ -60,6 +60,8 @@ function useMyPerfilRede(userId?: string | null) {
         .from('perfis_rede')
         .select('id, slug, tipo, convite_codigo, nome, foto_url')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return data;
