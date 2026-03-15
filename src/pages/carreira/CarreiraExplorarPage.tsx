@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PostAtleta } from '@/hooks/useCarreiraData';
 import { PostCard } from '@/components/carreira/PostCard';
@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Rss, UserPlus, Users, Copy, Check, Search, X } from 'lucide-react';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
-import { CarreiraLandingPage } from '@/components/carreira/CarreiraLandingPage';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
