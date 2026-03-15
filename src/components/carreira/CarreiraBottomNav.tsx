@@ -65,7 +65,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
 
   const goToProfile = async () => {
     if (profileSlug) {
-      navigate(carreiraPath(`/${profileSlug}`));
+      navigate(carreiraPath(`/${profileSlug}`), { replace: true });
     } else if (currentUserId) {
       const { data: pa } = await supabase
         .from('perfil_atleta')
@@ -82,8 +82,8 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         .limit(1)
         .maybeSingle();
       const foundSlug = pa?.slug || pr?.slug;
-      if (foundSlug) navigate(carreiraPath(`/${foundSlug}`));
-      else navigate(carreiraPath(`/perfil/${currentUserId}`));
+      if (foundSlug) navigate(carreiraPath(`/${foundSlug}`), { replace: true });
+      else navigate(carreiraPath(`/perfil/${currentUserId}`), { replace: true });
     }
   };
 
