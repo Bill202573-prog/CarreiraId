@@ -79,6 +79,8 @@ function useMyPerfilAtletaBySession(userId?: string | null) {
         .from('perfil_atleta')
         .select('id, nome, foto_url, slug')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return data;
