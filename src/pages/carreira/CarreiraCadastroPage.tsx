@@ -82,11 +82,13 @@ export default function CarreiraCadastroPage() {
 
       // Transfer session to canonical domain ONLY for OAuth callbacks on non-canonical, non-preview domains
       if (isWrongDomain && hasHashToken && session.access_token && session.refresh_token) {
-        const { data: existing } = await supabase
-          .from('perfis_rede')
-          .select('id, slug')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+          const { data: existing } = await supabase
+            .from('perfis_rede')
+            .select('id, slug')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
         const targetOrigin = 'https://carreiraid.com.br';
         const targetPath = existing?.slug ? carreiraPath(`/${existing.slug}`) : carreiraPath('/cadastro');
@@ -107,6 +109,8 @@ export default function CarreiraCadastroPage() {
             .from('perfil_atleta')
             .select('id, slug')
             .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
 
           if (perfilAtleta?.slug) {
@@ -118,6 +122,8 @@ export default function CarreiraCadastroPage() {
             .from('perfis_rede')
             .select('id, slug')
             .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
 
           if (perfilRede?.slug) {
@@ -191,6 +197,8 @@ export default function CarreiraCadastroPage() {
             .from('perfil_atleta')
             .select('id, slug')
             .eq('user_id', data.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
           if (perfilAtleta?.slug) {
             navigate(carreiraPath(`/${perfilAtleta.slug}`), { replace: true });
@@ -199,6 +207,8 @@ export default function CarreiraCadastroPage() {
               .from('perfis_rede')
               .select('id, slug')
               .eq('user_id', data.user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
               .maybeSingle();
             if (perfilRede?.slug) {
               navigate(carreiraPath(`/${perfilRede.slug}`), { replace: true });
@@ -297,6 +307,8 @@ export default function CarreiraCadastroPage() {
         .from('perfil_atleta')
         .select('slug, crianca_id, nome')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (perfilAtleta?.slug) {
@@ -323,6 +335,8 @@ export default function CarreiraCadastroPage() {
         .from('perfis_rede')
         .select('slug, tipo')
         .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       
       if (perfilRede?.slug) {
