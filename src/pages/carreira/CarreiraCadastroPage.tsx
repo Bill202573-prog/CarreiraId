@@ -207,6 +207,8 @@ export default function CarreiraCadastroPage() {
               .from('perfis_rede')
               .select('id, slug')
               .eq('user_id', data.user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
               .maybeSingle();
             if (perfilRede?.slug) {
               navigate(carreiraPath(`/${perfilRede.slug}`), { replace: true });
