@@ -43,6 +43,8 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         .from('perfis_rede')
         .select('tipo')
         .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },
@@ -55,7 +57,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     await supabase.auth.signOut();
     toast.success('Você saiu da sua conta');
     if (isCarreiraDomain()) {
-      navigate(carreiraPath('/'), { replace: true });
+      navigate(carreiraPath('/cadastro'), { replace: true });
     } else {
       navigate('/auth', { replace: true });
     }
