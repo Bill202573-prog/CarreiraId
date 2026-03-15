@@ -12,7 +12,7 @@ import { ProfileTypeSelector, type ProfileType } from '@/components/carreira/Pro
 import { ProfileTypeForm } from '@/components/carreira/ProfileTypeForm';
 import { AtletaFilhoForm } from '@/components/carreira/AtletaFilhoForm';
 import { OnboardingTutorial } from '@/components/carreira/OnboardingTutorial';
-import { InvitePage } from '@/components/carreira/InvitePage';
+
 import { CarreiraPaywall } from '@/components/carreira/CarreiraPaywall';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
@@ -23,7 +23,7 @@ import PwaInstallButton from '@/components/shared/PwaInstallButton';
 import { PwaInstallPopup } from '@/components/shared/PwaInstallPopup';
 import { trackCompleteRegistration, trackProfileCreated, trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
 
-type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form' | 'invites';
+type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Email inválido'),
@@ -333,7 +333,9 @@ export default function CarreiraCadastroPage() {
         return;
       }
     }
-    setStep('invites');
+    // Fallback: no slug found, go to feed
+    setShowPwaPopup(true);
+    setProfileSlug(null);
   };
 
   if (checkingAuth) {
@@ -364,20 +366,18 @@ export default function CarreiraCadastroPage() {
           </button>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 text-xs" style={{ color: 'hsl(0 0% 50%)' }}>
-              {['Tutorial', 'Conta', 'Perfil', 'Rede'].map((label, i) => (
+              {['Tutorial', 'Conta', 'Perfil'].map((label, i) => (
                 <span key={label} className="flex items-center gap-1.5">
                   {i > 0 && <span style={{ color: 'hsl(220 10% 25%)' }}>›</span>}
                   <span className={
                     (i === 0 && step === 'tutorial') ||
                     (i === 1 && step === 'auth') || 
-                    (i === 2 && (step === 'profile-type' || step === 'profile-form')) || 
-                    (i === 3 && step === 'invites')
+                    (i === 2 && (step === 'profile-type' || step === 'profile-form'))
                       ? 'font-semibold' : ''
                   } style={
                     (i === 0 && step === 'tutorial') ||
                     (i === 1 && step === 'auth') || 
-                    (i === 2 && (step === 'profile-type' || step === 'profile-form')) || 
-                    (i === 3 && step === 'invites')
+                    (i === 2 && (step === 'profile-type' || step === 'profile-form'))
                       ? { color: 'hsl(25 95% 55%)' } : undefined
                   }>
                     {label}
@@ -551,12 +551,6 @@ export default function CarreiraCadastroPage() {
           />
         )}
 
-        {step === 'invites' && userId && (
-          <InvitePage
-            userId={userId}
-            onSkip={() => navigate(carreiraPath('/feed'))}
-          />
-        )}
 
         {step === 'auth' && (
           <div className="mt-6 text-center text-xs" style={{ color: 'hsl(0 0% 40%)' }}>
@@ -645,8 +639,12 @@ export default function CarreiraCadastroPage() {
         open={showPwaPopup}
         onOpenChange={(open) => {
           setShowPwaPopup(open);
-          if (!open && profileSlug) {
-            navigate(carreiraPath(`/${profileSlug}`));
+          if (!open) {
+            if (profileSlug) {
+              navigate(carreiraPath(`/${profileSlug}`));
+            } else {
+              navigate(carreiraPath('/feed'));
+            }
           }
         }}
       />
