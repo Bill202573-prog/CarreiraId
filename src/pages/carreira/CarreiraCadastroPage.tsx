@@ -639,8 +639,12 @@ export default function CarreiraCadastroPage() {
         open={showPwaPopup}
         onOpenChange={(open) => {
           setShowPwaPopup(open);
-          if (!open && profileSlug) {
-            navigate(carreiraPath(`/${profileSlug}`));
+          if (!open) {
+            if (profileSlug) {
+              navigate(carreiraPath(`/${profileSlug}`));
+            } else {
+              navigate(carreiraPath('/feed'));
+            }
           }
         }}
       />
