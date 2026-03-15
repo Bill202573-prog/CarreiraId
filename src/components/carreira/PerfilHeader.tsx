@@ -233,7 +233,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
               {/* Position + foot */}
               {(perfil.posicao_principal || perfil.pe_dominante) && (
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
                   {perfil.posicao_principal && (
                     <span className="flex items-center gap-1">
                       <Footprints className="w-3 h-3" />
