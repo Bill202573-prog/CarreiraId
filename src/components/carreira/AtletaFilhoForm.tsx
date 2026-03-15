@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2, Upload, Shield, Lock } from 'lucide-react';
@@ -51,7 +51,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
   const [categoria, setCategoria] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
-  const [bio, setBio] = useState('');
+  
   const [cpf, setCpf] = useState('');
   const [telefoneWhatsapp, setTelefoneWhatsapp] = useState('');
   const [fotoFile, setFotoFile] = useState<File | null>(null);
@@ -76,6 +76,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[AtletaFilhoForm] Submit iniciado');
 
     if (!nome.trim()) {
       toast.error('Nome do atleta é obrigatório');
@@ -85,38 +86,23 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
       toast.error('Data de nascimento é obrigatória');
       return;
     }
-    if (!nomeResponsavel.trim()) {
-      toast.error('Nome do responsável é obrigatório');
-      return;
-    }
+
     const cleanDocInput = cpf.replace(/\D/g, '');
     let cleanDoc: string | null = null;
 
     const cleanPhoneInput = telefoneWhatsapp.replace(/\D/g, '');
     let cleanPhone: string | null = null;
 
-    const ignoredFields: string[] = [];
-
     if (cleanDocInput.length === 11 && validateCPF(cleanDocInput)) {
       cleanDoc = cleanDocInput;
-    } else if (cleanDocInput.length > 0) {
-      ignoredFields.push('CPF');
     }
 
     if (cleanPhoneInput.length >= 10 && cleanPhoneInput.length <= 11) {
       cleanPhone = cleanPhoneInput;
-    } else if (cleanPhoneInput.length > 0) {
-      ignoredFields.push('WhatsApp');
-    }
-
-    if (ignoredFields.length > 0) {
-      toast.warning(
-        `${ignoredFields.join(' e ')} inválido(s). O cadastro vai continuar sem esses dados; você pode corrigir depois no perfil.`
-      );
     }
 
     setIsLoading(true);
-
+    console.log('[AtletaFilhoForm] Validação OK, criando perfil...');
     try {
       // 1. Create crianca record (generate ID client-side to avoid SELECT after INSERT,
       // since RLS SELECT policies won't match until perfil_atleta is linked)
@@ -130,7 +116,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           ativo: true,
         });
 
-      if (criancaError) throw criancaError;
+      if (criancaError) { console.error('[AtletaFilhoForm] Erro crianca:', criancaError); throw criancaError; }
+      console.log('[AtletaFilhoForm] Crianca criada:', criancaId);
 
       // 2. Upload photo if provided
       let fotoUrl: string | null = null;
@@ -164,7 +151,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           categoria: categoria || null,
           cidade: cidade || null,
           estado: estado || null,
-          bio: bio || null,
+          bio: null,
           foto_url: fotoUrl,
           crianca_id: criancaId,
           is_public: true,
@@ -174,7 +161,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           origem: 'carreira',
         } as any);
 
-      if (perfilError) throw perfilError;
+      if (perfilError) { console.error('[AtletaFilhoForm] Erro perfil:', perfilError); throw perfilError; }
+      console.log('[AtletaFilhoForm] Perfil criado com slug:', slug);
 
       // 4. Handle invite code if present
       if (inviteCode) {
@@ -355,17 +343,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           </div>
         </div>
 
-        {/* Bio */}
-        <div className="space-y-2">
-          <Label>Sobre o atleta</Label>
-          <Textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Conte um pouco sobre a trajetória esportiva..."
-            maxLength={280}
-            rows={3}
-          />
-        </div>
+
+
 
         <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
