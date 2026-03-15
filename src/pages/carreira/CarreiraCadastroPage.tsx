@@ -122,6 +122,8 @@ export default function CarreiraCadastroPage() {
             .from('perfis_rede')
             .select('id, slug')
             .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
 
           if (perfilRede?.slug) {
