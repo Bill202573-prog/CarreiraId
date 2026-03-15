@@ -76,6 +76,7 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[AtletaFilhoForm] Submit iniciado');
 
     if (!nome.trim()) {
       toast.error('Nome do atleta é obrigatório');
@@ -85,34 +86,19 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
       toast.error('Data de nascimento é obrigatória');
       return;
     }
-    if (!nomeResponsavel.trim()) {
-      toast.error('Nome do responsável é obrigatório');
-      return;
-    }
+
     const cleanDocInput = cpf.replace(/\D/g, '');
     let cleanDoc: string | null = null;
 
     const cleanPhoneInput = telefoneWhatsapp.replace(/\D/g, '');
     let cleanPhone: string | null = null;
 
-    const ignoredFields: string[] = [];
-
     if (cleanDocInput.length === 11 && validateCPF(cleanDocInput)) {
       cleanDoc = cleanDocInput;
-    } else if (cleanDocInput.length > 0) {
-      ignoredFields.push('CPF');
     }
 
     if (cleanPhoneInput.length >= 10 && cleanPhoneInput.length <= 11) {
       cleanPhone = cleanPhoneInput;
-    } else if (cleanPhoneInput.length > 0) {
-      ignoredFields.push('WhatsApp');
-    }
-
-    if (ignoredFields.length > 0) {
-      toast.warning(
-        `${ignoredFields.join(' e ')} inválido(s). O cadastro vai continuar sem esses dados; você pode corrigir depois no perfil.`
-      );
     }
 
     setIsLoading(true);
