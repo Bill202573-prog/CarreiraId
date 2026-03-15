@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PWAUpdatePrompt } from "@/components/shared/PWAUpdatePrompt";
 // LandingPage do Atleta ID mantida para uso futuro se necessário
@@ -25,7 +25,6 @@ const AtletaIdPerfilPage = lazy(() => import("./pages/atletaid/AtletaIdPerfilPag
 const EscolaPerfilPage = lazy(() => import("./pages/carreira/EscolaPerfilPage"));
 const CarreiraCadastroPage = lazy(() => import("./pages/carreira/CarreiraCadastroPage"));
 const PerfilPage = lazy(() => import("./pages/carreira/PerfilPage"));
-const CarreiraLandingV2Page = lazy(() => import("./pages/carreira/CarreiraLandingV2Page"));
 const CarreiraConexoesPage = lazy(() => import("./pages/carreira/CarreiraConexoesPage"));
 const CarreiraGamerPage = lazy(() => import("./pages/carreira/CarreiraGamerPage"));
 const CarreiraDescobrirPage = lazy(() => import("./pages/carreira/CarreiraDescobrirPage"));
@@ -66,10 +65,10 @@ const App = () => (
         <Sonner />
         <PWAUpdatePrompt />
         <BrowserRouter>
-          <Suspense fallback={<div className="min-h-screen bg-background" />}>
+          <Suspense fallback={<div className="min-h-screen bg-background" data-theme="dark-orange" />}>
             <Routes>
               {/* Carreira ID — rota principal */}
-              <Route path="/" element={<CarreiraLandingV2Page />} />
+              <Route path="/" element={<Navigate to="/feed" replace />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
               <Route path="/minha" element={<CarreiraLinkedinPage />} />
               <Route path="/feed" element={<CarreiraExplorarPage />} />
