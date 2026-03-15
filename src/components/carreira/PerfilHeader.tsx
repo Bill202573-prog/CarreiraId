@@ -183,13 +183,6 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{perfil.nome}</h1>
-                {isOwner && (
-                  <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 shrink-0"
-                    style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}
-                    onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="w-2.5 h-2.5 mr-0.5" />Editar
-                  </Button>
-                )}
               </div>
               {temAcesso('selo_elite') ? (
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400 w-fit">

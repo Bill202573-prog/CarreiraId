@@ -578,6 +578,13 @@ export default function CarreiraPerfilPage() {
                   }}>
                     Meu Perfil
                   </Button>
+                  {isOwner && (
+                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1" style={{ borderColor: `${accentColor}50`, color: accentColor }} onClick={() => setEditDialogOpen(true)}>
+                      <Pencil className="w-3 h-3" />
+                      <span className="hidden sm:inline">Editar Perfil</span>
+                      <span className="sm:hidden">Editar</span>
+                    </Button>
+                  )}
                 </div>
                 <Button variant="ghost" size="sm" className="text-muted-foreground hidden sm:flex h-8 text-xs" onClick={async () => {
                   await supabase.auth.signOut();
