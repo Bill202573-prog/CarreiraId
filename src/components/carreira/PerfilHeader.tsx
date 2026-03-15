@@ -214,7 +214,7 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
               )}
 
               {/* Status + badges */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-1.5">
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 {atletaStatusInfo && (
                   <Badge variant="outline" className="gap-1 text-xs font-semibold"
                     style={{ borderColor: perfil.cor_destaque || '#3b82f6', color: perfil.cor_destaque || '#3b82f6' }}>
