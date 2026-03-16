@@ -89,6 +89,7 @@ function PerfilTable({ perfis, type }: { perfis: any[]; type: 'atleta' | 'rede' 
               <TableHead className="min-w-[200px]">Contato</TableHead>
               {type === 'rede' && <TableHead>Tipo</TableHead>}
               {type === 'atleta' && <TableHead>Modalidade</TableHead>}
+              <TableHead>Cidade</TableHead>
               <TableHead>Origem Auth</TableHead>
               <TableHead>Criado em</TableHead>
               <TableHead>Status</TableHead>
