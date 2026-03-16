@@ -77,6 +77,8 @@ const App = () => (
               {/* Carreira ID — rota principal */}
               <Route path="/" element={<Navigate to="/feed" replace />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
+              {/* Alias legado para área administrativa */}
+              <Route path="/admin/*" element={<LegacyAdminRedirect />} />
               <Route path="/minha" element={<CarreiraLinkedinPage />} />
               <Route path="/feed" element={<CarreiraExplorarPage />} />
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
