@@ -119,6 +119,7 @@ function PerfilTable({ perfis, type }: { perfis: any[]; type: 'atleta' | 'rede' 
                 </TableCell>
                 {type === 'rede' && <TableCell className="text-sm">{TYPE_LABELS[p.tipo] || p.tipo}</TableCell>}
                 {type === 'atleta' && <TableCell className="text-sm">{p.modalidade}</TableCell>}
+                <TableCell className="text-sm text-muted-foreground">{p.cidade ? `${p.cidade}${p.estado ? `/${p.estado}` : ''}` : '—'}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-xs">
                     {p.provider === 'google' ? '🔵 Google' : '📧 Email'}
