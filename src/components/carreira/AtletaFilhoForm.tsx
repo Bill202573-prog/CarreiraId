@@ -104,6 +104,20 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
     setIsLoading(true);
     console.log('[AtletaFilhoForm] Validação OK, criando perfil...');
     try {
+      // Check if user already has a perfil_atleta (prevent duplicates)
+      const { data: existingPerfil } = await supabase
+        .from('perfil_atleta')
+        .select('id, slug')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPerfil) {
+        toast.info('Você já possui um perfil de atleta cadastrado.');
+        await onComplete();
+        return;
+      }
+
       // 1. Create crianca record (generate ID client-side to avoid SELECT after INSERT,
       // since RLS SELECT policies won't match until perfil_atleta is linked)
       const criancaId = crypto.randomUUID();
