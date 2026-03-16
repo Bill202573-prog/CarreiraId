@@ -136,8 +136,10 @@ function PerfilTable({ perfis, type }: { perfis: any[]; type: 'atleta' | 'rede' 
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       {p.slug && (
-                        <Button variant="ghost" size="icon" asChild className="h-8 w-8">
-                          <a href={`/${p.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-4 h-4" /></a>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"
+                          onClick={() => window.open(`/${p.slug}`, '_blank')}
+                          title="Ver perfil público">
+                          <ExternalLink className="w-4 h-4" />
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="h-8 w-8"
