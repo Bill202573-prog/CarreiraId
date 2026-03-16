@@ -58,6 +58,12 @@ const queryClient = new QueryClient({
   },
 });
 
+const LegacyAdminRedirect = () => {
+  const location = useLocation();
+  const redirectPath = location.pathname.replace(/^\/admin/, '/carreira/admin');
+  return <Navigate to={`${redirectPath}${location.search}${location.hash}`} replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
