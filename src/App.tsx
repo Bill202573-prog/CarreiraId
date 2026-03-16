@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PWAUpdatePrompt } from "@/components/shared/PWAUpdatePrompt";
 // LandingPage do Atleta ID mantida para uso futuro se necessário
@@ -58,6 +58,12 @@ const queryClient = new QueryClient({
   },
 });
 
+const LegacyAdminRedirect = () => {
+  const location = useLocation();
+  const redirectPath = location.pathname.replace(/^\/admin/, '/carreira/admin');
+  return <Navigate to={`${redirectPath}${location.search}${location.hash}`} replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -71,6 +77,8 @@ const App = () => (
               {/* Carreira ID — rota principal */}
               <Route path="/" element={<Navigate to="/feed" replace />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
+              {/* Alias legado para área administrativa */}
+              <Route path="/admin/*" element={<LegacyAdminRedirect />} />
               <Route path="/minha" element={<CarreiraLinkedinPage />} />
               <Route path="/feed" element={<CarreiraExplorarPage />} />
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
