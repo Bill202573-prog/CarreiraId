@@ -55,7 +55,7 @@ function useAdminPerfisRede(search: string) {
         const { data: profiles } = await supabase.from('profiles').select('user_id, email, provider').in('user_id', userIds);
         if (profiles) profiles.forEach((p: any) => { profilesMap[p.user_id] = p; });
       }
-      let perfis = (data || []).map((p: any) => ({ ...p, email: profilesMap[p.user_id]?.email, provider: profilesMap[p.user_id]?.provider }));
+      let perfis = (data || []).map((p: any) => ({ ...p, email: profilesMap[p.user_id]?.email, provider: profilesMap[p.user_id]?.provider, cidade: (p.dados_perfil as any)?.localizacao || (p.dados_perfil as any)?.cidade || null }));
       if (search) {
         const s = search.toLowerCase();
         perfis = perfis.filter((p: any) => p.nome?.toLowerCase().includes(s) || p.slug?.toLowerCase().includes(s) || p.email?.toLowerCase().includes(s));
@@ -89,6 +89,7 @@ function PerfilTable({ perfis, type }: { perfis: any[]; type: 'atleta' | 'rede' 
               <TableHead className="min-w-[200px]">Contato</TableHead>
               {type === 'rede' && <TableHead>Tipo</TableHead>}
               {type === 'atleta' && <TableHead>Modalidade</TableHead>}
+              <TableHead>Cidade</TableHead>
               <TableHead>Origem Auth</TableHead>
               <TableHead>Criado em</TableHead>
               <TableHead>Status</TableHead>
@@ -118,6 +119,7 @@ function PerfilTable({ perfis, type }: { perfis: any[]; type: 'atleta' | 'rede' 
                 </TableCell>
                 {type === 'rede' && <TableCell className="text-sm">{TYPE_LABELS[p.tipo] || p.tipo}</TableCell>}
                 {type === 'atleta' && <TableCell className="text-sm">{p.modalidade}</TableCell>}
+                <TableCell className="text-sm text-muted-foreground">{p.cidade ? `${p.cidade}${p.estado ? `/${p.estado}` : ''}` : '—'}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-xs">
                     {p.provider === 'google' ? '🔵 Google' : '📧 Email'}
