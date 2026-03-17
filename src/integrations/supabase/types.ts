@@ -824,6 +824,60 @@ export type Database = {
         }
         Relationships: []
       }
+      conta_deletada_backup: {
+        Row: {
+          dados_conexoes: Json | null
+          dados_experiencias: Json | null
+          dados_perfil_atleta: Json | null
+          dados_perfis_rede: Json | null
+          dados_posts: Json | null
+          deletado_em: string
+          email: string | null
+          expira_em: string
+          id: string
+          motivo: string | null
+          nome: string | null
+          recuperado: boolean
+          recuperado_em: string | null
+          tipo_perfil: string | null
+          user_id: string
+        }
+        Insert: {
+          dados_conexoes?: Json | null
+          dados_experiencias?: Json | null
+          dados_perfil_atleta?: Json | null
+          dados_perfis_rede?: Json | null
+          dados_posts?: Json | null
+          deletado_em?: string
+          email?: string | null
+          expira_em?: string
+          id?: string
+          motivo?: string | null
+          nome?: string | null
+          recuperado?: boolean
+          recuperado_em?: string | null
+          tipo_perfil?: string | null
+          user_id: string
+        }
+        Update: {
+          dados_conexoes?: Json | null
+          dados_experiencias?: Json | null
+          dados_perfil_atleta?: Json | null
+          dados_perfis_rede?: Json | null
+          dados_posts?: Json | null
+          deletado_em?: string
+          email?: string | null
+          expira_em?: string
+          id?: string
+          motivo?: string | null
+          nome?: string | null
+          recuperado?: boolean
+          recuperado_em?: string | null
+          tipo_perfil?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       crianca_escolinha: {
         Row: {
           ativo: boolean
