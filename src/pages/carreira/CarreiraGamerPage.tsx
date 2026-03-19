@@ -12,6 +12,7 @@ import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNiveisConfig, getLevelTitle, getLevelColor } from '@/hooks/useGamificacaoData';
 
 function useRanking() {
   return useQuery({
@@ -72,6 +73,7 @@ export default function CarreiraGamerPage() {
   const accentColor = perfilData?.accentColor || '#3b82f6';
   const mySlug = perfilData?.slug || null;
   const { data: ranking } = useRanking();
+  const { data: niveis } = useNiveisConfig();
 
   if (isLoading) {
     return <div className="min-h-screen bg-background" data-theme="dark-orange" />;
@@ -125,25 +127,27 @@ export default function CarreiraGamerPage() {
 
         {/* Ranking */}
         {ranking && ranking.length > 0 && (
-          <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
-            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Card className="p-3" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
               <Trophy className="w-4 h-4" style={{ color: accentColor }} />
               Ranking
             </h3>
-            <ScrollArea className="max-h-[400px]">
-              <div className="space-y-2 pr-2">
+            <ScrollArea className="max-h-[420px]">
+              <div className="space-y-1 pr-1">
                 {ranking.map((player) => {
                   const isMe = player.user_id === currentUserId;
                   const medalColor = player.position <= 3 ? MEDAL_COLORS[player.position - 1] : undefined;
+                  const levelTitle = getLevelTitle(player.nivel, niveis || []);
+                  const levelColor = getLevelColor(player.nivel, niveis || []);
                   return (
                     <div
                       key={player.user_id}
-                      className={`flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer ${isMe ? 'ring-1' : 'hover:bg-muted/50'}`}
+                      className={`flex items-center gap-2 py-1.5 px-2 rounded-lg transition-colors cursor-pointer ${isMe ? 'ring-1' : 'hover:bg-muted/50'}`}
                       style={isMe ? { backgroundColor: `${accentColor}10`, outline: `1px solid ${accentColor}` } : undefined}
                       onClick={() => player.slug && navigate(carreiraPath(`/${player.slug}`))}
                     >
                       <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
                         style={medalColor
                           ? { backgroundColor: medalColor, color: '#000' }
                           : { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' }
@@ -152,19 +156,24 @@ export default function CarreiraGamerPage() {
                         {player.position}
                       </div>
 
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="w-7 h-7 shrink-0">
                         {player.foto_url ? <AvatarImage src={player.foto_url} className="object-cover" /> : null}
-                        <AvatarFallback className="text-[10px]"><User className="w-3.5 h-3.5" /></AvatarFallback>
+                        <AvatarFallback className="text-[9px]"><User className="w-3 h-3" /></AvatarFallback>
                       </Avatar>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{player.nome} {isMe && <span className="text-[10px] text-muted-foreground">(você)</span>}</p>
-                        <p className="text-[10px] text-muted-foreground">Nível {player.nivel}</p>
+                        <p className="text-[11px] font-medium truncate leading-tight">
+                          {player.nome}
+                          {isMe && <span className="text-[9px] text-muted-foreground ml-1">(você)</span>}
+                        </p>
+                        <p className="text-[9px] font-medium leading-tight" style={{ color: levelColor }}>
+                          {levelTitle}
+                        </p>
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0" style={{ color: accentColor }}>
+                      <div className="flex items-center gap-0.5 shrink-0" style={{ color: accentColor }}>
                         <Zap className="w-3 h-3" />
-                        <span className="text-xs font-bold">{player.pontos.toLocaleString()}</span>
+                        <span className="text-[11px] font-bold">{player.pontos.toLocaleString()}</span>
                       </div>
                     </div>
                   );
