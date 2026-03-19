@@ -12,6 +12,7 @@ import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNiveisConfig, getLevelTitle, getLevelColor } from '@/hooks/useGamificacaoData';
 
 function useRanking() {
   return useQuery({
