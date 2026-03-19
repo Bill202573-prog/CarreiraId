@@ -263,8 +263,6 @@ const AtividadeExternaFormDialog = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      console.log('[AtividadeExternaForm] Submitting with fotos:', fotos);
-      
       const payload = {
         crianca_id: criancaId,
         tipo: data.tipo as AtividadeExternaTipo,
@@ -285,8 +283,6 @@ const AtividadeExternaFormDialog = ({
         fotos_urls: fotos,
         tornar_publico: tornarPublico,
       };
-
-      console.log('[AtividadeExternaForm] Full payload:', payload);
 
       if (isEditing && editingActivity) {
         await updateAtividade.mutateAsync({

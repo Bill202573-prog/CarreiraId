@@ -287,8 +287,6 @@ export const useUpdateAtividadeExterna = () => {
       // Remove crianca_id from the update payload (it's used for query key only)
       delete sanitizedUpdates.crianca_id;
 
-      console.log('[useUpdateAtividadeExterna] Updating id:', id, 'payload:', JSON.stringify(sanitizedUpdates));
-
       const { data, error } = await supabase
         .from('atividades_externas')
         .update(sanitizedUpdates)
@@ -300,26 +298,22 @@ export const useUpdateAtividadeExterna = () => {
         console.error('[useUpdateAtividadeExterna] Supabase error:', error);
         throw error;
       }
-      
-      console.log('[useUpdateAtividadeExterna] Success:', data);
+
       return { data, crianca_id, tornarPublicoChanged };
     },
     onSuccess: (result) => {
-      // Always invalidate the child's activities
+      // Always invalidate both owner and public activity queries
       queryClient.invalidateQueries({ 
         queryKey: ['atividades-externas', result.crianca_id] 
       });
-      
-      // If tornar_publico was changed, invalidate public activities queries for Carreira
-      if (result.tornarPublicoChanged) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['atividades-publicas', result.crianca_id] 
-        });
-        // Also invalidate any posts-atleta queries that may show activities
-        queryClient.invalidateQueries({ 
-          queryKey: ['posts-atleta'] 
-        });
-      }
+      queryClient.invalidateQueries({ 
+        queryKey: ['atividades-publicas', result.crianca_id] 
+      });
+
+      // Posts can embed atividade references
+      queryClient.invalidateQueries({ 
+        queryKey: ['posts-atleta'] 
+      });
     },
   });
 };

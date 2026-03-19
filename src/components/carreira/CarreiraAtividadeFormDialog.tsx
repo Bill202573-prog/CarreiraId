@@ -244,11 +244,8 @@ export function CarreiraAtividadeFormDialog({
         tornar_publico: tornarPublico,
       };
 
-      console.log('[CarreiraAtividadeForm] Submitting payload:', JSON.stringify(payload));
-
       if (isEditing && editingActivity) {
-        const result = await updateAtividade.mutateAsync({ id: editingActivity.id, crianca_id: criancaId, ...payload });
-        console.log('[CarreiraAtividadeForm] Update result:', result);
+        await updateAtividade.mutateAsync({ id: editingActivity.id, crianca_id: criancaId, ...payload });
         toast.success('Atividade atualizada com sucesso!');
       } else {
         await createAtividade.mutateAsync(payload);
