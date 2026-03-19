@@ -179,7 +179,7 @@ export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accen
       </Card>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      <AlertDialog open={deleteConfirmOpen && canManage} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover atividade?</AlertDialogTitle>
@@ -189,7 +189,7 @@ export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accen
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
