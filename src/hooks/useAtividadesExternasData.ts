@@ -284,6 +284,11 @@ export const useUpdateAtividadeExterna = () => {
         sanitizedUpdates.credibilidade_status = credibilidade_status;
       }
 
+      // Remove crianca_id from the update payload (it's used for query key only)
+      delete sanitizedUpdates.crianca_id;
+
+      console.log('[useUpdateAtividadeExterna] Updating id:', id, 'payload:', JSON.stringify(sanitizedUpdates));
+
       const { data, error } = await supabase
         .from('atividades_externas')
         .update(sanitizedUpdates)
@@ -291,7 +296,12 @@ export const useUpdateAtividadeExterna = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useUpdateAtividadeExterna] Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('[useUpdateAtividadeExterna] Success:', data);
       return { data, crianca_id, tornarPublicoChanged };
     },
     onSuccess: (result) => {

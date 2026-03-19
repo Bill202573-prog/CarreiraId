@@ -296,7 +296,10 @@ export function CarreiraAtividadeFormDialog({
           }} />
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error('[CarreiraAtividadeForm] Validation errors:', errors);
+              toast.error('Preencha todos os campos obrigatórios');
+            })} className="space-y-4">
               {/* Freemium counter */}
               {limitResult?.source === 'freemium' && !isEditing && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
