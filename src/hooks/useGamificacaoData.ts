@@ -231,35 +231,26 @@ export function useRanking(limit = 20) {
         .from('user_gamificacao' as any)
         .select('user_id, pontos_total, nivel, xp_atual, convites_confirmados')
         .order('pontos_total', { ascending: false })
-        .limit(limit);
+        .limit(limit * 3); // fetch extra to have enough after filtering
       if (error) throw error;
 
-      // Enrich with profile names
-      const enriched = await Promise.all(
-        (data as any[] || []).map(async (u: any) => {
-          // Try perfis_rede first (Carreira users)
-          const { data: perfil } = await supabase
-            .from('perfis_rede')
-            .select('nome, foto_url, tipo')
-            .eq('user_id', u.user_id)
-            .maybeSingle();
+      const userIds = (data as any[] || []).map((u: any) => u.user_id);
+      if (userIds.length === 0) return [];
 
-          if (perfil) {
-            return { ...u, nome: perfil.nome, foto_url: perfil.foto_url, tipo: perfil.tipo };
-          }
+      // Only athletes participate
+      const { data: atletaProfiles } = await supabase
+        .from('perfil_atleta')
+        .select('user_id, nome, foto_url')
+        .in('user_id', userIds);
 
-          // Fallback to perfil_atleta
-          const { data: atleta } = await supabase
-            .from('perfil_atleta')
-            .select('nome, foto_url')
-            .eq('user_id', u.user_id)
-            .maybeSingle();
+      const atletaMap = new Map((atletaProfiles || []).map((p: any) => [p.user_id, p]));
 
-          return { ...u, nome: atleta?.nome || 'Usuário', foto_url: atleta?.foto_url, tipo: 'atleta_filho' };
-        })
-      );
+      const atletasOnly = (data as any[] || []).filter((u: any) => atletaMap.has(u.user_id));
 
-      return enriched;
+      return atletasOnly.slice(0, limit).map((u: any) => {
+        const atleta = atletaMap.get(u.user_id)!;
+        return { ...u, nome: atleta.nome || 'Atleta', foto_url: atleta.foto_url, tipo: 'atleta_filho' };
+      });
     },
     staleTime: 1000 * 60 * 2,
   });

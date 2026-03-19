@@ -21,32 +21,30 @@ function useRanking() {
         .from('user_gamificacao')
         .select('user_id, pontos_total, nivel')
         .order('pontos_total', { ascending: false })
-        .limit(50);
+        .limit(100);
       if (!gamData || gamData.length === 0) return [];
 
       const userIds = gamData.map(g => g.user_id);
 
-      const { data: redeProfiles } = await supabase
-        .from('perfis_rede')
-        .select('user_id, nome, foto_url, slug')
-        .in('user_id', userIds);
+      // Only athletes participate in the ranking
       const { data: atletaProfiles } = await supabase
         .from('perfil_atleta')
         .select('user_id, nome, foto_url, slug')
         .in('user_id', userIds);
 
-      const redeMap = new Map((redeProfiles || []).map(p => [p.user_id, p]));
       const atletaMap = new Map((atletaProfiles || []).map(p => [p.user_id, p]));
 
-      return gamData.map((g, idx) => {
-        const rede = redeMap.get(g.user_id);
-        const atleta = atletaMap.get(g.user_id);
+      // Filter to only users who have a perfil_atleta
+      const atletasOnly = gamData.filter(g => atletaMap.has(g.user_id));
+
+      return atletasOnly.map((g, idx) => {
+        const atleta = atletaMap.get(g.user_id)!;
         return {
           position: idx + 1,
           user_id: g.user_id,
-          nome: rede?.nome || atleta?.nome || 'Usuário',
-          foto_url: rede?.foto_url || atleta?.foto_url || null,
-          slug: rede?.slug || atleta?.slug || null,
+          nome: atleta.nome || 'Atleta',
+          foto_url: atleta.foto_url || null,
+          slug: atleta.slug || null,
           pontos: g.pontos_total,
           nivel: g.nivel,
         };
