@@ -55,14 +55,16 @@ interface AtividadePublicaCardProps {
 export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accentColor = '#3b82f6' }: AtividadePublicaCardProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const deleteAtividade = useDeleteAtividadeExterna();
-  const tipoLabel = atividade.tipo === 'outro' 
-    ? atividade.tipo_outro_descricao || 'Atividade' 
+  const isSyncedFromAtletaId = atividade.origem === 'atleta_id';
+  const canManage = isOwner && !isSyncedFromAtletaId;
+  const tipoLabel = atividade.tipo === 'outro'
+    ? atividade.tipo_outro_descricao || 'Atividade'
     : TIPO_LABELS[atividade.tipo] || atividade.tipo;
 
   const tipoIcon = TIPO_ICONS[atividade.tipo] || <Trophy className="w-4 h-4" />;
 
   const formattedDate = format(new Date(atividade.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
-  const formattedDateEnd = atividade.data_fim 
+  const formattedDateEnd = atividade.data_fim
     ? format(new Date(atividade.data_fim + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })
     : null;
 
@@ -73,8 +75,8 @@ export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accen
       await deleteAtividade.mutateAsync({ id: atividade.id, crianca_id: atividade.crianca_id });
       toast.success('Atividade removida com sucesso');
       setDeleteConfirmOpen(false);
-    } catch {
-      toast.error('Erro ao remover atividade');
+    } catch (error: any) {
+      toast.error(error?.message || 'Erro ao remover atividade');
     }
   };
 
@@ -92,12 +94,17 @@ export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accen
               {tipoLabel}
             </span>
             <div className="flex items-center gap-1">
+              {isSyncedFromAtletaId && (
+                <Badge variant="outline" className="text-xs">
+                  Atleta ID (somente leitura)
+                </Badge>
+              )}
               {atividade.torneio_abrangencia && (
                 <Badge variant="outline" className="text-xs">
                   {ABRANGENCIA_LABELS[atividade.torneio_abrangencia] || atividade.torneio_abrangencia}
                 </Badge>
               )}
-              {isOwner && (
+              {canManage && (
                 <>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit?.(atividade)}>
                     <Pencil className="w-3.5 h-3.5" />
@@ -172,7 +179,7 @@ export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accen
       </Card>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      <AlertDialog open={deleteConfirmOpen && canManage} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover atividade?</AlertDialogTitle>
@@ -182,7 +189,7 @@ export function AtividadePublicaCard({ atividade, isOwner = false, onEdit, accen
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

@@ -87,6 +87,7 @@ export interface AtividadeExternaPublica {
   observacoes?: string;
   fotos_urls: string[];
   created_at: string;
+  origem?: string;
   crianca_nome?: string;
 }
 
@@ -156,14 +157,17 @@ export function useAtividadesPublicas(criancaId: string | null | undefined) {
           id, crianca_id, tipo, tipo_outro_descricao, data, data_fim,
           local_atividade, profissional_instituicao,
           torneio_nome, torneio_abrangencia, observacoes,
-          fotos_urls, created_at
+          fotos_urls, created_at, origem
         `)
         .eq('crianca_id', criancaId)
         .eq('tornar_publico', true)
         .order('data', { ascending: false });
 
       if (error) throw error;
-      const original = (data || []) as AtividadeExternaPublica[];
+      const original = (data || []).map((item: any) => ({
+        ...item,
+        origem: item.origem || 'carreira',
+      })) as AtividadeExternaPublica[];
 
       // Synced activities from Atleta ID
       const { data: syncData } = await supabase
@@ -185,6 +189,7 @@ export function useAtividadesPublicas(criancaId: string | null | undefined) {
         observacoes: s.observacoes,
         fotos_urls: s.fotos_urls,
         created_at: s.created_at,
+        origem: s.origem || 'atleta_id',
       } as AtividadeExternaPublica));
 
       // Merge and sort by date descending

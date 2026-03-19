@@ -292,11 +292,15 @@ export const useUpdateAtividadeExterna = () => {
         .update(sanitizedUpdates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('[useUpdateAtividadeExterna] Supabase error:', error);
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('Esta atividade não pode ser editada no Carreira ID.');
       }
 
       return { data, crianca_id, tornarPublicoChanged };
@@ -324,12 +328,18 @@ export const useDeleteAtividadeExterna = () => {
 
   return useMutation({
     mutationFn: async ({ id, crianca_id }: { id: string; crianca_id: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('atividades_externas')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select('id')
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Esta atividade não pode ser removida no Carreira ID.');
+      }
+
       return { crianca_id, id };
     },
     onMutate: async ({ id, crianca_id }) => {

@@ -109,6 +109,11 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   };
 
   const handleEditActivity = async (atv: any) => {
+    if (atv?.origem === 'atleta_id') {
+      toast.info('Essa atividade veio do Atleta ID e só pode ser editada lá.');
+      return;
+    }
+
     // Fetch full record for editing (public query only has subset of fields)
     try {
       const { data, error } = await supabase
@@ -118,13 +123,16 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
         .maybeSingle();
 
       if (error) throw error;
-      setEditingActivity((data as AtividadeExterna) || (atv as AtividadeExterna));
-    } catch {
-      // Fallback to partial data
-      setEditingActivity(atv as AtividadeExterna);
-    }
+      if (!data) {
+        toast.error('Atividade não encontrada para edição.');
+        return;
+      }
 
-    setAtividadeFormOpen(true);
+      setEditingActivity(data as AtividadeExterna);
+      setAtividadeFormOpen(true);
+    } catch {
+      toast.error('Não foi possível abrir esta atividade para edição.');
+    }
   };
 
   const handleEditExperiencia = (exp: CarreiraExperiencia) => {
