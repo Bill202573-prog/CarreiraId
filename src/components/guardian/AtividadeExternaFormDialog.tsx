@@ -337,7 +337,10 @@ const AtividadeExternaFormDialog = ({
           </div>
         ) : (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error('[AtividadeExternaForm] Validation errors:', errors);
+              toast.error('Preencha todos os campos obrigatórios');
+            })} className="space-y-4">
             {/* Tipo de Atividade */}
             <FormField
               control={form.control}

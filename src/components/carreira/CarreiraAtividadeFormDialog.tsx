@@ -244,17 +244,20 @@ export function CarreiraAtividadeFormDialog({
         tornar_publico: tornarPublico,
       };
 
+      console.log('[CarreiraAtividadeForm] Submitting payload:', JSON.stringify(payload));
+
       if (isEditing && editingActivity) {
-        await updateAtividade.mutateAsync({ id: editingActivity.id, crianca_id: criancaId, ...payload });
+        const result = await updateAtividade.mutateAsync({ id: editingActivity.id, crianca_id: criancaId, ...payload });
+        console.log('[CarreiraAtividadeForm] Update result:', result);
         toast.success('Atividade atualizada com sucesso!');
       } else {
         await createAtividade.mutateAsync(payload);
         toast.success('Atividade registrada com sucesso!');
       }
       handleClose();
-    } catch (error) {
-      toast.error(isEditing ? 'Erro ao atualizar atividade' : 'Erro ao registrar atividade');
+    } catch (error: any) {
       console.error('[CarreiraAtividadeForm] Submit error:', error);
+      toast.error(error?.message || (isEditing ? 'Erro ao atualizar atividade' : 'Erro ao registrar atividade'));
     }
   };
 
@@ -293,7 +296,10 @@ export function CarreiraAtividadeFormDialog({
           }} />
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error('[CarreiraAtividadeForm] Validation errors:', errors);
+              toast.error('Preencha todos os campos obrigatórios');
+            })} className="space-y-4">
               {/* Freemium counter */}
               {limitResult?.source === 'freemium' && !isEditing && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
