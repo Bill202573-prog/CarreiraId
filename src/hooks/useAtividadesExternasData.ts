@@ -292,11 +292,15 @@ export const useUpdateAtividadeExterna = () => {
         .update(sanitizedUpdates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('[useUpdateAtividadeExterna] Supabase error:', error);
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('Esta atividade não pode ser editada no Carreira ID.');
       }
 
       return { data, crianca_id, tornarPublicoChanged };

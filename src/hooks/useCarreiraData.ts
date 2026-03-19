@@ -87,6 +87,7 @@ export interface AtividadeExternaPublica {
   observacoes?: string;
   fotos_urls: string[];
   created_at: string;
+  origem?: string;
   crianca_nome?: string;
 }
 
