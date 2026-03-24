@@ -6,8 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PWAUpdatePrompt } from "@/components/shared/PWAUpdatePrompt";
-// LandingPage do Atleta ID mantida para uso futuro se necessário
-// import LandingPage from "./pages/LandingPage";
+const RootRoute = lazy(() => import("./pages/RootRoute"));
 
 // Lazy load pages not needed on initial render
 const Auth = lazy(() => import("./pages/Auth"));
@@ -75,7 +74,7 @@ const App = () => (
           <Suspense fallback={<div className="min-h-screen bg-background" data-theme="dark-orange" />}>
             <Routes>
               {/* Carreira ID — rota principal */}
-              <Route path="/" element={<Navigate to="/feed" replace />} />
+              <Route path="/" element={<RootRoute />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
               {/* Alias legado para área administrativa */}
               <Route path="/admin/*" element={<LegacyAdminRedirect />} />
