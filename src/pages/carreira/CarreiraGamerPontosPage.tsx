@@ -48,7 +48,7 @@ export default function CarreiraGamerPontosPage() {
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
             <img src={logoCarreira} alt="Carreira" className="h-16 lg:h-20" />
           </Link>
-          <h1 className="ml-4 text-lg font-semibold text-foreground">Tabela de Pontos</h1>
+          <h1 className="ml-4 text-lg font-semibold text-foreground">Tabela de Pontos da Liga</h1>
           <CarreiraThemeToggle
             className="ml-auto"
             isDarkTheme={isDarkTheme}
