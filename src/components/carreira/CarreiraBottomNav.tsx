@@ -89,8 +89,9 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
 
   const feedPath = carreiraPath('/feed');
   const conexoesPath = carreiraPath('/conexoes');
-  const gamerPath = carreiraPath('/gamer');
+  const ligaPath = carreiraPath('/liga');
   const descobrirPath = carreiraPath('/descobrir');
+  const ligaAliasPath = carreiraPath('/gamer');
 
   const baseItems = [
     {
@@ -109,7 +110,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     },
   ];
 
-  // Conditionally show Gamer OR Descobrir based on profile type
+  // Conditionally show Liga OR Descobrir based on profile type
   const middleItem = isScoutingProfile
     ? {
         icon: Search,
@@ -120,9 +121,13 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       }
     : {
         icon: Gamepad2,
-        label: 'Gamer',
-        onClick: () => navigate(gamerPath, { replace: true }),
-        active: location.pathname === gamerPath,
+        label: 'Liga',
+        onClick: () => navigate(ligaPath, { replace: true }),
+        active:
+          location.pathname === ligaPath ||
+          location.pathname.startsWith(`${ligaPath}/`) ||
+          location.pathname === ligaAliasPath ||
+          location.pathname.startsWith(`${ligaAliasPath}/`),
         badge: 0,
       };
 
