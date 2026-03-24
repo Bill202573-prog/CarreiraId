@@ -46,7 +46,26 @@ type FormData = z.infer<typeof formSchema>;
 
 import { ESTADOS } from '@/constants/esportes';
 
-interface ExperienciaFormDialogProps {
+function ExpCidadeField({ form }: { form: any }) {
+  const estado = form.watch('estado');
+  const { data: cidades, isLoading } = useCidadesPorEstado(estado);
+  return (
+    <FormField control={form.control} name="cidade" render={({ field }: any) => (
+      <FormItem>
+        <FormLabel>Cidade</FormLabel>
+        <Select onValueChange={field.onChange} value={field.value} disabled={!estado}>
+          <FormControl><SelectTrigger><SelectValue placeholder={isLoading ? 'Carregando...' : 'Selecione'} /></SelectTrigger></FormControl>
+          <SelectContent>
+            {(cidades || []).map((c: string) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormItem>
+    )} />
+  );
+}
+
   open: boolean;
   onOpenChange: (open: boolean) => void;
   criancaId: string;
