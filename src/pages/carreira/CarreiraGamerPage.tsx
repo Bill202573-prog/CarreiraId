@@ -40,7 +40,7 @@ export default function CarreiraGamerPage() {
   const { data: niveis } = useNiveisConfig();
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background" data-theme="dark-orange" />;
+    return <div className="min-h-screen bg-background" data-theme={carreiraTheme} />;
   }
 
   if (!currentUserId) {
