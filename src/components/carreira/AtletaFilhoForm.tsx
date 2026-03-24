@@ -17,19 +17,7 @@ interface Props {
   onComplete: () => void | Promise<void>;
 }
 
-const MODALIDADES = [
-  'Futebol', 'Futsal', 'Beach Soccer', 'Society',
-  'Basquete', 'Vôlei', 'Handebol', 'Natação',
-  'Atletismo', 'Judô', 'Jiu-Jitsu', 'Tênis', 'Outro',
-];
-
-const CATEGORIAS = ['Sub-5', 'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20'];
-
-const ESTADOS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
+import { MODALIDADES, CATEGORIAS_BASE as CATEGORIAS } from '@/constants/esportes';
 
 function generateSlug(name: string): string {
   return name

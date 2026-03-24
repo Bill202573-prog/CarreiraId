@@ -22,7 +22,7 @@ interface Filters {
   status_atleta: string;
 }
 
-const CATEGORIAS = ['Sub-7', 'Sub-8', 'Sub-9', 'Sub-10', 'Sub-11', 'Sub-12', 'Sub-13', 'Sub-14', 'Sub-15', 'Sub-16', 'Sub-17', 'Sub-18', 'Sub-19', 'Sub-20'];
+import { CATEGORIAS, ESTADOS as ESTADOS_CONST } from '@/constants/esportes';
 
 const POSICOES = [
   'Goleiro', 'Lateral Direito', 'Lateral Esquerdo', 'Zagueiro',

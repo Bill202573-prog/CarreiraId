@@ -62,17 +62,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const MODALIDADES = [
-  'Futebol', 'Futsal', 'Beach Soccer', 'Futebol Society',
-  'Futebol Americano', 'Basquete', 'Vôlei', 'Handebol',
-  'Natação', 'Atletismo', 'Judô', 'Jiu-Jitsu', 'Tênis', 'Outro',
-];
-
-const ESTADOS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
+import { MODALIDADES, ESTADOS } from '@/constants/esportes';
 
 interface EditPerfilDialogProps {
   open: boolean;

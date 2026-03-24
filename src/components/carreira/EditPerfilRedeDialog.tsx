@@ -30,7 +30,7 @@ interface DynFieldDef {
   options?: string[];
 }
 
-const CATEGORIAS = ['Sub-5', 'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+import { CATEGORIAS, MODALIDADES_ESCOLA, MODALIDADES_PROFISSIONAL } from '@/constants/esportes';
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
 
 function getDynamicFields(tipo: string): DynFieldDef[] {

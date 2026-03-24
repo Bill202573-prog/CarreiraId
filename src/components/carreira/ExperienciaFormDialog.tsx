@@ -43,11 +43,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const ESTADOS = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA',
-  'MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN',
-  'RS','RO','RR','SC','SP','SE','TO',
-];
+import { ESTADOS } from '@/constants/esportes';
 
 interface ExperienciaFormDialogProps {
   open: boolean;
