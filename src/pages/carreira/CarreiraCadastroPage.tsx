@@ -100,6 +100,23 @@ export default function CarreiraCadastroPage() {
       // Normal flow
       setUserId(session.user.id);
 
+      // Check if user is admin — redirect to admin panel
+      try {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+
+        if (roleData) {
+          navigate('/carreira/admin', { replace: true });
+          return true;
+        }
+      } catch (err) {
+        console.error('Erro ao verificar role admin:', err);
+      }
+
       // Check if user wants to create an additional profile (query param)
       const wantsNewProfile = new URLSearchParams(window.location.search).get('novo') === '1';
 

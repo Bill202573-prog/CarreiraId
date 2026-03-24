@@ -6,8 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PWAUpdatePrompt } from "@/components/shared/PWAUpdatePrompt";
-// LandingPage do Atleta ID mantida para uso futuro se necessário
-// import LandingPage from "./pages/LandingPage";
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 // Lazy load pages not needed on initial render
 const Auth = lazy(() => import("./pages/Auth"));
