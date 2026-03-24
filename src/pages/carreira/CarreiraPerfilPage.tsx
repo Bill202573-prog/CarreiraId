@@ -20,13 +20,14 @@ import { AssinaturaExpiryReminder } from '@/components/carreira/AssinaturaExpiry
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { CarreiraPushAutoSubscribe } from '@/components/carreira/CarreiraPushAutoSubscribe';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
+import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone, Eye } from 'lucide-react';
+import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone, Eye, Zap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
+import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
+import { useCarreiraRanking } from '@/hooks/useCarreiraRanking';
 
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
@@ -278,6 +281,7 @@ export default function CarreiraPerfilPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
   
   const [mySlug, setMySlug] = useState<string | null>(null);
@@ -299,6 +303,7 @@ export default function CarreiraPerfilPage() {
   const { data: connections } = useConnectionsList(perfil?.user_id);
   const { data: escolinhas } = useEscolinhasCarreira(perfil?.type === 'atleta' ? perfil?.crianca_id : undefined);
   const { data: searchResults } = useSearchPeople(searchQuery);
+  const { data: ligaRanking } = useCarreiraRanking(20);
 
   // Track profile view (like LinkedIn) — only for non-owner visits on atleta profiles
   useEffect(() => {
@@ -454,7 +459,7 @@ export default function CarreiraPerfilPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" data-theme="dark-orange" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background" data-theme={carreiraTheme}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -462,7 +467,7 @@ export default function CarreiraPerfilPage() {
 
   if (error || !perfil) {
     return (
-      <div className="min-h-screen" data-theme="dark-orange" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
+      <div className="min-h-screen bg-background" data-theme={carreiraTheme}>
         <div className="container py-20 text-center">
           <UserX className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
           <h1 className="text-2xl font-bold mb-2">Perfil não encontrado</h1>
@@ -537,18 +542,23 @@ export default function CarreiraPerfilPage() {
   const sidebarCategoria = criancaSidebar?.data_nascimento
     ? (() => { const age = new Date().getFullYear() - new Date(criancaSidebar.data_nascimento).getFullYear(); return `Sub ${age}`; })()
     : perfil.categoria;
-
-  const isDarkTheme = true; // Dark premium theme for all Carreira profiles
+  const rankingDoPerfil = perfil.type === 'atleta'
+    ? ligaRanking?.find((entry) => entry.user_id === perfil.user_id)
+    : null;
+  const topRanking = (ligaRanking || []).slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-background" data-theme="dark-orange">
+    <div className="min-h-screen bg-background" data-theme={carreiraTheme}>
       {/* Auto-subscribe to push notifications for logged-in users */}
       {isOwner && <CarreiraPushAutoSubscribe />}
       {/* Accent top bar */}
       <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
 
       {/* Header */}
-      <header className={`sticky top-0 z-50 backdrop-blur-sm shadow-sm bg-[hsl(0_0%_0%/0.97)] border-b`} style={{ borderColor: `${accentColor}40` }}>
+      <header
+        className={`sticky top-0 z-50 backdrop-blur-sm shadow-sm border-b ${isDarkTheme ? 'bg-[hsl(0_0%_0%/0.97)]' : 'bg-background/95'}`}
+        style={{ borderColor: `${accentColor}40` }}
+      >
         {/* Row 1: Logo + Search (desktop inline) + Actions */}
         <div className="container flex items-center justify-between h-14 lg:h-16 px-4 max-w-6xl">
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
@@ -578,6 +588,11 @@ export default function CarreiraPerfilPage() {
             {currentUserId && (
               <>
                 <NotificacoesBell accentColor={accentColor} />
+                <CarreiraThemeToggle
+                  isDarkTheme={isDarkTheme}
+                  onCheckedChange={setDarkTheme}
+                  compact
+                />
                 <div className="flex items-center gap-1.5">
                   <Button variant="outline" size="sm" className="h-8 text-xs"
                     style={{ borderColor: `${accentColor}50`, color: accentColor }}
@@ -1025,6 +1040,58 @@ export default function CarreiraPerfilPage() {
 
           {/* Right Sidebar — Pending Requests + Suggestions + Connections */}
           <aside className="hidden lg:block space-y-4">
+            {perfil.type === 'atleta' && topRanking.length > 0 && (
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Trophy className="w-4 h-4" style={{ color: accentColor }} />
+                  Ranking da Liga
+                </h3>
+
+                {rankingDoPerfil && (
+                  <div className="mb-3 rounded-lg border border-border bg-muted/30 p-2">
+                    <p className="text-[11px] text-muted-foreground">Posição deste atleta</p>
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      #{rankingDoPerfil.position}
+                      <span className="text-xs text-muted-foreground">{rankingDoPerfil.nome}</span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {topRanking.map((player) => (
+                    <button
+                      key={player.user_id}
+                      onClick={() => player.slug && navigate(carreiraPath(`/${player.slug}`))}
+                      className="w-full flex items-center gap-2 rounded-md p-1.5 hover:bg-muted/40 text-left"
+                    >
+                      <span className="w-6 text-[11px] font-bold text-muted-foreground">#{player.position}</span>
+                      <Avatar className="w-7 h-7">
+                        {player.foto_url ? <AvatarImage src={player.foto_url} className="object-cover" /> : null}
+                        <AvatarFallback className="text-[9px]"><User className="w-3 h-3" /></AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium truncate">{player.nome}</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: accentColor }}>
+                        <Zap className="w-3 h-3" />
+                        {player.pontos.toLocaleString()}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 w-full text-xs"
+                  onClick={() => navigate(carreiraPath('/liga'))}
+                  style={{ borderColor: `${accentColor}50`, color: accentColor }}
+                >
+                  Ver ranking completo
+                </Button>
+              </Card>
+            )}
+
             {/* Pending connection requests (own profile only) */}
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
               <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>

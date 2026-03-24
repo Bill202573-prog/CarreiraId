@@ -5,6 +5,7 @@ import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { ComoJogarButton } from '@/components/carreira/ComoJogarButton';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
+import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trophy, User, Zap, TableProperties, ChevronRight } from 'lucide-react';
@@ -13,54 +14,17 @@ import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNiveisConfig, getLevelTitle, getLevelColor } from '@/hooks/useGamificacaoData';
-
-function useRanking() {
-  return useQuery({
-    queryKey: ['gamificacao-ranking'],
-    queryFn: async () => {
-      const { data: gamData } = await supabase
-        .from('user_gamificacao')
-        .select('user_id, pontos_total, nivel')
-        .order('pontos_total', { ascending: false })
-        .limit(100);
-      if (!gamData || gamData.length === 0) return [];
-
-      const userIds = gamData.map(g => g.user_id);
-
-      // Only athletes participate in the ranking
-      const { data: atletaProfiles } = await supabase
-        .from('perfil_atleta')
-        .select('user_id, nome, foto_url, slug')
-        .in('user_id', userIds);
-
-      const atletaMap = new Map((atletaProfiles || []).map(p => [p.user_id, p]));
-
-      // Filter to only users who have a perfil_atleta
-      const atletasOnly = gamData.filter(g => atletaMap.has(g.user_id));
-
-      return atletasOnly.map((g, idx) => {
-        const atleta = atletaMap.get(g.user_id)!;
-        return {
-          position: idx + 1,
-          user_id: g.user_id,
-          nome: atleta.nome || 'Atleta',
-          foto_url: atleta.foto_url || null,
-          slug: atleta.slug || null,
-          pontos: g.pontos_total,
-          nivel: g.nivel,
-        };
-      });
-    },
-  });
-}
+import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
+import { useCarreiraRanking } from '@/hooks/useCarreiraRanking';
 
 export default function CarreiraGamerPage() {
   const { session, isLoading } = useAuth();
   const navigate = useNavigate();
   const currentUserId = session?.user?.id ?? null;
+  const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
 
   const { data: perfilData } = useQuery({
-    queryKey: ['gamer-page-accent', currentUserId],
+    queryKey: ['liga-page-accent', currentUserId],
     queryFn: async () => {
       if (!currentUserId) return null;
       const { data: pa } = await supabase.from('perfil_atleta').select('cor_destaque, slug').eq('user_id', currentUserId).order('created_at', { ascending: true }).limit(1).maybeSingle();
@@ -72,11 +36,11 @@ export default function CarreiraGamerPage() {
 
   const accentColor = perfilData?.accentColor || '#3b82f6';
   const mySlug = perfilData?.slug || null;
-  const { data: ranking } = useRanking();
+  const { data: ranking } = useCarreiraRanking();
   const { data: niveis } = useNiveisConfig();
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background" data-theme="dark-orange" />;
+    return <div className="min-h-screen bg-background" data-theme={carreiraTheme} />;
   }
 
   if (!currentUserId) {
@@ -87,19 +51,24 @@ export default function CarreiraGamerPage() {
   const MEDAL_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32'];
 
   return (
-    <div className="min-h-screen bg-background" data-theme="dark-orange">
+    <div className="min-h-screen bg-background" data-theme={carreiraTheme}>
       <div className="h-[2px] w-full" style={{ backgroundColor: accentColor }} />
       <header
-        className="sticky top-0 z-50 bg-[hsl(0_0%_0%/0.97)]"
+        className={`sticky top-0 z-50 ${isDarkTheme ? 'bg-[hsl(0_0%_0%/0.97)]' : 'bg-background/95 backdrop-blur-sm'}`}
         style={{ borderBottom: `2px solid ${accentColor}50` }}
       >
         <div className="container flex items-center h-14 px-4 max-w-2xl">
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
             <img src={logoCarreira} alt="Carreira" className="h-16 lg:h-20" />
           </Link>
-          <h1 className="ml-4 text-lg font-semibold text-foreground">Gamer</h1>
-          <div className="ml-auto">
+          <h1 className="ml-4 text-lg font-semibold text-foreground">Liga</h1>
+          <div className="ml-auto flex items-center gap-2">
             <ComoJogarButton variant="inline" accentColor={accentColor} />
+            <CarreiraThemeToggle
+              isDarkTheme={isDarkTheme}
+              onCheckedChange={setDarkTheme}
+              compact
+            />
           </div>
         </div>
       </header>
@@ -110,7 +79,7 @@ export default function CarreiraGamerPage() {
 
         {/* Link para Tabela de Pontos */}
         <button
-          onClick={() => navigate(carreiraPath('/gamer/pontos'))}
+          onClick={() => navigate(carreiraPath('/liga/pontos'))}
           className="w-full"
         >
           <Card

@@ -51,7 +51,8 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const validation = loginSchema.safeParse({ email, password });
+        const normalizedEmail = email.trim().toLowerCase();
+        const validation = loginSchema.safeParse({ email: normalizedEmail, password });
         if (!validation.success) {
           toast({
             title: 'Dados invalidos',
@@ -62,16 +63,13 @@ const Auth = () => {
           return;
         }
 
-        const result = await login(email, password);
+        const result = await login(normalizedEmail, password);
         
         if (result.success) {
           toast({
             title: 'Login realizado!',
             description: 'Bem-vindo ao sistema.',
           });
-          // Navigate will also be handled by useEffect when user state updates
-          // but we do it here too for immediate response
-          navigate('/dashboard');
         } else {
           toast({
             title: 'Erro no login',
@@ -175,6 +173,9 @@ const Auth = () => {
                     placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    autoComplete="email"
                     className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                     disabled={isLoading}
                   />
@@ -191,6 +192,9 @@ const Auth = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    autoComplete={isLogin ? 'current-password' : 'new-password'}
                     className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                     disabled={isLoading}
                   />

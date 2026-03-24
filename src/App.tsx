@@ -82,8 +82,10 @@ const App = () => (
               <Route path="/feed" element={<CarreiraExplorarPage />} />
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
               <Route path="/conexoes" element={<CarreiraConexoesPage />} />
-              <Route path="/gamer" element={<CarreiraGamerPage />} />
-              <Route path="/gamer/pontos" element={<CarreiraGamerPontosPage />} />
+              <Route path="/liga" element={<CarreiraGamerPage />} />
+              <Route path="/liga/pontos" element={<CarreiraGamerPontosPage />} />
+              <Route path="/gamer" element={<Navigate to="/liga" replace />} />
+              <Route path="/gamer/pontos" element={<Navigate to="/liga/pontos" replace />} />
               <Route path="/descobrir" element={<CarreiraDescobrirPage />} />
               <Route path="/termos" element={<TermosPage />} />
               <Route path="/privacidade" element={<PrivacidadePage />} />
