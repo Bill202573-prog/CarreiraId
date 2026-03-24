@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
-const LandingPage = lazy(() => import('./LandingPage'));
+const CarreiraLandingV2Page = lazy(() => import('./carreira/CarreiraLandingV2Page'));
 
 export default function RootRoute() {
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
@@ -28,7 +28,7 @@ export default function RootRoute() {
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-background" />}>
-      <LandingPage />
+      <CarreiraLandingV2Page />
     </Suspense>
   );
 }
