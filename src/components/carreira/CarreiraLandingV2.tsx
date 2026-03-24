@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import mockupRanking from '@/assets/mockup-ranking-celular.png';
+import mockupPerfilCelular from '@/assets/mockup-perfil-celular.png';
 import mockupScoutPerfil from '@/assets/mockup-scout-perfil.png';
 import mockupScoutBusca from '@/assets/mockup-scout-busca.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
@@ -317,7 +318,11 @@ export function CarreiraLandingV2() {
               </div>
             </div>
             <div className="flex justify-center">
-              <SolutionProfileCard />
+              <img
+                src={mockupPerfilCelular}
+                alt="Perfil de atleta no Carreira ID"
+                className="w-full max-w-[280px] rounded-2xl border border-emerald-500/20 shadow-2xl"
+              />
             </div>
           </div>
         </div>
