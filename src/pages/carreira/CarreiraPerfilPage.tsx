@@ -710,7 +710,7 @@ export default function CarreiraPerfilPage() {
           
           {/* Left Sidebar — Athlete Card */}
           <aside className="hidden lg:block space-y-4">
-            <Card className="text-center overflow-hidden" style={{ borderColor: `${accentColor}50`, borderWidth: 2, backgroundColor: 'hsl(220 12% 10%)' }}>
+            <Card className="text-center overflow-hidden" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
               {/* Banner */}
               {perfil.banner_url && (
                 <div className="h-20 w-full overflow-hidden">
