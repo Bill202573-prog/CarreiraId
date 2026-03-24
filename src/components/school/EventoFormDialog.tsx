@@ -81,18 +81,9 @@ interface EventoFormDialogProps {
 }
 
 const CATEGORIAS = [
-  'Sub-5',
-  'Sub-6',
-  'Sub-7',
-  'Sub-8',
-  'Sub-9',
-  'Sub-10',
-  'Sub-11',
-  'Sub-12',
-  'Sub-13',
-  'Sub-14',
-  'Sub-15',
-  'Sub-17',
+  'Sub-5', 'Sub-6', 'Sub-7', 'Sub-8', 'Sub-9', 'Sub-10',
+  'Sub-11', 'Sub-12', 'Sub-13', 'Sub-14', 'Sub-15',
+  'Sub-16', 'Sub-17', 'Sub-18', 'Sub-19', 'Sub-20',
   'Livre',
 ];
 
