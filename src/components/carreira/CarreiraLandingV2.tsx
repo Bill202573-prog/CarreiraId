@@ -426,6 +426,57 @@ export function CarreiraLandingV2() {
         </div>
       </section>
 
+      {/* ═══ Competição & Ranking ═══ */}
+      <section className="bg-[#0a0f18] py-20">
+        <div className="container max-w-6xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="flex justify-center order-2 md:order-1">
+              <img
+                src={mockupRanking}
+                alt="Ranking de atletas no Carreira ID"
+                className="w-full max-w-[280px] md:max-w-[320px] drop-shadow-2xl rounded-3xl"
+                loading="lazy"
+                width={512}
+                height={960}
+              />
+            </div>
+            <div className="order-1 md:order-2">
+              <SectionBadge>Competição</SectionBadge>
+              <h2 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold">
+                Jogue, convide e <span className="text-orange-400">suba no ranking</span>.
+              </h2>
+              <p className="mt-6 text-gray-400 text-lg leading-relaxed">
+                No Carreira ID, cada ação conta. Complete seu perfil, registre atividades e convide amigos e familiares para fazerem parte da sua <strong className="text-white">torcida</strong>.
+              </p>
+              <p className="mt-4 text-gray-400 text-base leading-relaxed">
+                Aumente sua autoridade e reputação trazendo novos membros para a plataforma — técnicos, professores, treinadores e jogadores profissionais. Quanto mais engajado, mais alto você chega no ranking.
+              </p>
+              <div className="space-y-3 mt-8">
+                {[
+                  { icon: Trophy, label: 'Ranking nacional entre atletas', color: 'text-amber-400' },
+                  { icon: Users, label: 'Convide amigos e familiares como torcida', color: 'text-emerald-400' },
+                  { icon: Star, label: 'Ganhe XP e badges por cada conquista', color: 'text-orange-400' },
+                  { icon: TrendingUp, label: 'Atraia técnicos e profissionais para sua rede', color: 'text-blue-400' },
+                ].map((f) => (
+                  <div key={f.label} className="flex items-center gap-3 bg-[#1a2332] border border-[#2a3a4e] rounded-xl p-4">
+                    <div className="w-10 h-10 rounded-lg bg-[#2a3a4e] flex items-center justify-center shrink-0">
+                      <f.icon className={`w-5 h-5 ${f.color}`} />
+                    </div>
+                    <p className="text-white text-sm font-medium">{f.label}</p>
+                  </div>
+                ))}
+              </div>
+              <Link
+                to={cadastroLink}
+                className="mt-8 inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-7 py-3.5 rounded-xl text-base transition"
+              >
+                Entrar na Competição <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ Planos ═══ */}
       <section id="planos" className="bg-[#0a0f18] py-20">
         <div className="container max-w-5xl mx-auto px-4 text-center">
