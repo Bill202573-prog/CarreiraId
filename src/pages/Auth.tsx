@@ -52,7 +52,7 @@ const Auth = () => {
     try {
       if (isLogin) {
         const normalizedEmail = email.trim().toLowerCase();
-        const validation = loginSchema.safeParse({ email, password });
+        const validation = loginSchema.safeParse({ email: normalizedEmail, password });
         if (!validation.success) {
           toast({
             title: 'Dados invalidos',
