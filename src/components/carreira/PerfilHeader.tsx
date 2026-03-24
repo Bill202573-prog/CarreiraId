@@ -182,7 +182,12 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
             {/* Core info next to avatar */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{perfil.nome}</h1>
+                <h1 
+                  className="text-base sm:text-lg font-bold text-foreground leading-tight"
+                  style={perfil.banner_url ? { textShadow: '0 1px 4px rgba(0,0,0,0.7), 0 0px 2px rgba(0,0,0,0.5)' } : undefined}
+                >
+                  {perfil.nome}
+                </h1>
               </div>
               {temAcesso('selo_elite') ? (
                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400 w-fit">
