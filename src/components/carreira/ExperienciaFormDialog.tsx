@@ -66,6 +66,7 @@ function ExpCidadeField({ form }: { form: any }) {
   );
 }
 
+interface ExperienciaFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   criancaId: string;
