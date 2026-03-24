@@ -1,6 +1,6 @@
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useMyPerfilAtleta } from '@/hooks/useCarreiraData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { CarreiraLayout } from '@/components/layout/CarreiraLayout';
 import { CreatePerfilForm } from '@/components/carreira/CreatePerfilForm';
 import { PerfilHeader } from '@/components/carreira/PerfilHeader';
@@ -12,19 +12,44 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Crown, Zap } from 'lucide-react';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { TutorialHelpButton } from '@/components/carreira/TutorialHelpButton';
+import { useCarreiraSession } from '@/hooks/useCarreiraSession';
+import type { PerfilAtleta } from '@/hooks/useCarreiraData';
 
 export default function CarreiraLinkedinPage() {
-  const { user, isLoading: authLoading } = useAuth();
-  const { data: perfil, isLoading: perfilLoading } = useMyPerfilAtleta();
+  const { sessionUserId, loading: sessionLoading } = useCarreiraSession();
   const navigate = useNavigate();
+
+  const { data: perfil, isLoading: perfilLoading } = useQuery({
+    queryKey: ['meu-perfil-atleta', sessionUserId],
+    queryFn: async () => {
+      if (!sessionUserId) return null;
+      const { data, error } = await supabase
+        .from('perfil_atleta')
+        .select('*')
+        .eq('user_id', sessionUserId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as PerfilAtleta | null;
+    },
+    enabled: !!sessionUserId,
+  });
+
   const criancaId = perfil?.crianca_id || null;
   const { plano, isLoading: planoLoading } = useCarreiraPlano(criancaId);
 
-  if (!authLoading && !user) {
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!sessionUserId) {
     return <Navigate to="/auth" replace />;
   }
 
-  const isLoading = authLoading || perfilLoading;
+  const isLoading = perfilLoading;
   const planoInfo = PLANOS[plano];
   const showUpgradeBanner = plano !== 'elite' && perfil && !planoLoading;
 

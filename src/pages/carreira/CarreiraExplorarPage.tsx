@@ -14,6 +14,7 @@ import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { useCarreiraSession } from '@/hooks/useCarreiraSession';
 
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
@@ -28,28 +29,6 @@ const TYPE_LABELS: Record<string, string> = {
   fotografo: 'Fotógrafo',
   torcedor: 'Torcedor',
 };
-
-// Hook to get current Supabase session user (independent of institutional AuthContext)
-function useCarreiraSession() {
-  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSessionUserId(session?.user?.id ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSessionUserId(session?.user?.id ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  return { sessionUserId, loading };
-}
 
 function useMyPerfilRede(userId?: string | null) {
   return useQuery({

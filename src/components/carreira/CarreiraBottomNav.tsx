@@ -158,7 +158,9 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         {items.map((item) => (
           <button
             key={item.label}
-            onClick={item.onClick}
+            onClick={() => {
+              if (!item.active) item.onClick();
+            }}
             className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${
               item.active
                 ? 'text-primary'

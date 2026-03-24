@@ -1,20 +1,19 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { TabelaPontos } from '@/components/carreira/TabelaPontos';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, TableProperties } from 'lucide-react';
+import { ArrowLeft, TableProperties, Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
+import { useCarreiraSession } from '@/hooks/useCarreiraSession';
 
 export default function CarreiraGamerPontosPage() {
-  const { session } = useAuth();
+  const { sessionUserId: currentUserId, loading: sessionLoading } = useCarreiraSession();
   const navigate = useNavigate();
-  const currentUserId = session?.user?.id ?? null;
   const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
 
   const { data: perfilData } = useQuery({
@@ -29,9 +28,16 @@ export default function CarreiraGamerPontosPage() {
 
   const accentColor = perfilData?.accentColor || '#3b82f6';
 
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background" data-theme={carreiraTheme}>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (!currentUserId) {
-    navigate(carreiraPath('/cadastro'), { replace: true });
-    return null;
+    return <Navigate to={carreiraPath('/cadastro')} replace />;
   }
 
   return (
