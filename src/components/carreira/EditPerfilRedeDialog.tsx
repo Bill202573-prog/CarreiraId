@@ -56,7 +56,7 @@ function getDynamicFields(tipo: string): DynFieldDef[] {
         { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text' },
         { key: 'endereco', label: 'Endereço da Sede', type: 'text' },
         { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text' },
-        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
+        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', options: MODALIDADES_ESCOLA },
         { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
         { key: 'site', label: 'Site', type: 'text' },
       ];
