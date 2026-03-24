@@ -353,16 +353,10 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
             )} />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="cidade" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade</FormLabel>
-                  <FormControl><Input {...field} placeholder="Ex: Rio de Janeiro" /></FormControl>
-                </FormItem>
-              )} />
               <FormField control={form.control} name="estado" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Estado</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => { field.onChange(val); form.setValue('cidade', ''); }} value={field.value}>
                     <FormControl>
                       <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
                     </FormControl>
@@ -374,6 +368,7 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
                   </Select>
                 </FormItem>
               )} />
+              <ExpCidadeField form={form} />
             </div>
 
             {/* Observações */}
