@@ -1,42 +1,37 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { useCarreiraSession } from '@/hooks/useCarreiraSession';
 
 export default function CarreiraConexoesPage() {
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { sessionUserId: currentUserId, loading } = useCarreiraSession();
   const [mySlug, setMySlug] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const uid = session?.user?.id ?? null;
-      setCurrentUserId(uid);
-      if (uid) {
-        const { data: pa } = await supabase.from('perfil_atleta').select('slug').eq('user_id', uid).maybeSingle();
-        const { data: pr } = await supabase.from('perfis_rede').select('slug').eq('user_id', uid).maybeSingle();
-        setMySlug(pa?.slug || pr?.slug || null);
-      }
-      setLoading(false);
+    if (!currentUserId) return;
+    supabase.from('perfil_atleta').select('slug').eq('user_id', currentUserId).maybeSingle().then(({ data: pa }) => {
+      if (pa?.slug) { setMySlug(pa.slug); return; }
+      supabase.from('perfis_rede').select('slug').eq('user_id', currentUserId).maybeSingle().then(({ data: pr }) => {
+        setMySlug(pr?.slug || null);
+      });
     });
-  }, []);
+  }, [currentUserId]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" data-theme="dark-orange" style={{ background: 'hsl(0 0% 4%)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background" data-theme="dark-orange">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!currentUserId) {
-    navigate(carreiraPath('/cadastro'));
-    return null;
+    return <Navigate to={carreiraPath('/cadastro')} replace />;
   }
 
   return (

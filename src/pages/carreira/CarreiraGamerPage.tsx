@@ -1,5 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { GamificacaoHeroCard } from '@/components/carreira/GamificacaoHeroCard';
 import { ComoJogarButton } from '@/components/carreira/ComoJogarButton';
@@ -8,7 +7,7 @@ import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trophy, User, Zap, TableProperties, ChevronRight } from 'lucide-react';
+import { Trophy, User, Zap, TableProperties, ChevronRight, Loader2 } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useQuery } from '@tanstack/react-query';
@@ -16,11 +15,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNiveisConfig, getLevelTitle, getLevelColor } from '@/hooks/useGamificacaoData';
 import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
 import { useCarreiraRanking } from '@/hooks/useCarreiraRanking';
+import { useCarreiraSession } from '@/hooks/useCarreiraSession';
 
 export default function CarreiraGamerPage() {
-  const { session, isLoading } = useAuth();
+  const { sessionUserId: currentUserId, loading: sessionLoading } = useCarreiraSession();
   const navigate = useNavigate();
-  const currentUserId = session?.user?.id ?? null;
   const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
 
   const { data: perfilData } = useQuery({
@@ -39,13 +38,16 @@ export default function CarreiraGamerPage() {
   const { data: ranking } = useCarreiraRanking();
   const { data: niveis } = useNiveisConfig();
 
-  if (isLoading) {
-    return <div className="min-h-screen bg-background" data-theme={carreiraTheme} />;
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background" data-theme={carreiraTheme}>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   if (!currentUserId) {
-    navigate(carreiraPath('/cadastro'), { replace: true });
-    return null;
+    return <Navigate to={carreiraPath('/cadastro')} replace />;
   }
 
   const MEDAL_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32'];
