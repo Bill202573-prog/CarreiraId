@@ -459,7 +459,7 @@ export default function CarreiraPerfilPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" data-theme="dark-orange" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background" data-theme={carreiraTheme}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -467,7 +467,7 @@ export default function CarreiraPerfilPage() {
 
   if (error || !perfil) {
     return (
-      <div className="min-h-screen" data-theme="dark-orange" style={{ backgroundColor: 'hsl(220 15% 6%)' }}>
+      <div className="min-h-screen bg-background" data-theme={carreiraTheme}>
         <div className="container py-20 text-center">
           <UserX className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
           <h1 className="text-2xl font-bold mb-2">Perfil não encontrado</h1>
