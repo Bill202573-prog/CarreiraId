@@ -20,13 +20,14 @@ import { AssinaturaExpiryReminder } from '@/components/carreira/AssinaturaExpiry
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { CarreiraPushAutoSubscribe } from '@/components/carreira/CarreiraPushAutoSubscribe';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
+import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone, Eye } from 'lucide-react';
+import { Loader2, ArrowLeft, UserX, MapPin, Trophy, Share2, User, UserPlus, UserCheck, Users, Copy, Check, Search, School, X, LogOut, Pencil, Instagram, Globe, Phone, Eye, Zap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
+import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
+import { useCarreiraRanking } from '@/hooks/useCarreiraRanking';
 
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
