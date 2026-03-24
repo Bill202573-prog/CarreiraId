@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import { useCreateCarreiraExperiencia, useUpdateCarreiraExperiencia, useEscolinhasAutocomplete, CarreiraExperiencia } from '@/hooks/useCarreiraExperienciasData';
 
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
-const CATEGORIAS_INSTITUICAO = ['Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+import { CATEGORIAS as CATEGORIAS_INSTITUICAO } from '@/constants/esportes';
 const TIPOS_INSTITUICAO = [
   { value: 'escolinha', label: 'Escolinha / Academia' },
   { value: 'clube_federado', label: 'Clube federado' },
