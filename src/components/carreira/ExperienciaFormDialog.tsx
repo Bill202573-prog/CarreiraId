@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useCidadesPorEstado } from '@/hooks/useCidadesPorEstado';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +22,7 @@ import { toast } from 'sonner';
 import { useCreateCarreiraExperiencia, useUpdateCarreiraExperiencia, useEscolinhasAutocomplete, CarreiraExperiencia } from '@/hooks/useCarreiraExperienciasData';
 
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
-const CATEGORIAS_INSTITUICAO = ['Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+import { CATEGORIAS as CATEGORIAS_INSTITUICAO } from '@/constants/esportes';
 const TIPOS_INSTITUICAO = [
   { value: 'escolinha', label: 'Escolinha / Academia' },
   { value: 'clube_federado', label: 'Clube federado' },
@@ -43,11 +44,27 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const ESTADOS = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA',
-  'MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN',
-  'RS','RO','RR','SC','SP','SE','TO',
-];
+import { ESTADOS } from '@/constants/esportes';
+
+function ExpCidadeField({ form }: { form: any }) {
+  const estado = form.watch('estado');
+  const { data: cidades, isLoading } = useCidadesPorEstado(estado);
+  return (
+    <FormField control={form.control} name="cidade" render={({ field }: any) => (
+      <FormItem>
+        <FormLabel>Cidade</FormLabel>
+        <Select onValueChange={field.onChange} value={field.value} disabled={!estado}>
+          <FormControl><SelectTrigger><SelectValue placeholder={isLoading ? 'Carregando...' : 'Selecione'} /></SelectTrigger></FormControl>
+          <SelectContent>
+            {(cidades || []).map((c: string) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormItem>
+    )} />
+  );
+}
 
 interface ExperienciaFormDialogProps {
   open: boolean;
@@ -337,16 +354,10 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
             )} />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="cidade" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade</FormLabel>
-                  <FormControl><Input {...field} placeholder="Ex: Rio de Janeiro" /></FormControl>
-                </FormItem>
-              )} />
               <FormField control={form.control} name="estado" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Estado</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => { field.onChange(val); form.setValue('cidade', ''); }} value={field.value}>
                     <FormControl>
                       <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
                     </FormControl>
@@ -358,6 +369,7 @@ export function ExperienciaFormDialog({ open, onOpenChange, criancaId, childName
                   </Select>
                 </FormItem>
               )} />
+              <ExpCidadeField form={form} />
             </div>
 
             {/* Observações */}

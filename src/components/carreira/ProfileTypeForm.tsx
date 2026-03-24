@@ -32,7 +32,7 @@ interface FieldDef {
   isProfileField?: boolean; // goes to perfis_rede columns directly
 }
 
-const CATEGORIAS = ['Sub-5', 'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+import { CATEGORIAS, MODALIDADES_ESCOLA, MODALIDADES_PROFISSIONAL } from '@/constants/esportes';
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
 
 function getFields(type: ProfileType): FieldDef[] {
@@ -45,7 +45,7 @@ function getFields(type: ProfileType): FieldDef[] {
     case 'professor':
       return [
         { key: 'especialidade', label: 'Especialidade', type: 'select', required: true, options: ['Preparação Física', 'Técnico de Futebol', 'Goleiros', 'Tático', 'Coordenação Motora', 'Outro'] },
-        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', required: true, options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Outro'] },
+        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', required: true, options: MODALIDADES_PROFISSIONAL },
         { key: 'categorias', label: 'Categorias que trabalha', type: 'multiselect', required: true, options: CATEGORIAS },
         { key: 'certificacoes', label: 'Certificações / Cursos', type: 'textarea', placeholder: 'Liste suas certificações...' },
         { key: 'experiencia', label: 'Experiência Profissional', type: 'textarea', placeholder: 'Descreva sua experiência...' },
@@ -65,7 +65,7 @@ function getFields(type: ProfileType): FieldDef[] {
         { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text', required: true, placeholder: 'Ex: Escola de Futebol Gol de Placa' },
         { key: 'endereco', label: 'Endereço da Sede', type: 'text', placeholder: 'Ex: Rua das Flores, 123 - Centro' },
         { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text', required: true, placeholder: 'Ex: São Paulo, SP' },
-        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', required: true, options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
+        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', required: true, options: MODALIDADES_ESCOLA },
         { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
         { key: 'site', label: 'Site', type: 'text', placeholder: 'https://...' },
         ...common,

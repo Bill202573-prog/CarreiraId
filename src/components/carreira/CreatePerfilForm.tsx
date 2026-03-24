@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCidadesPorEstado } from '@/hooks/useCidadesPorEstado';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -45,27 +46,36 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const MODALIDADES = [
-  'Futebol',
-  'Futsal',
-  'Beach Soccer',
-  'Futebol Americano',
-  'Basquete',
-  'Vôlei',
-  'Handebol',
-  'Natação',
-  'Atletismo',
-  'Judô',
-  'Jiu-Jitsu',
-  'Tênis',
-  'Outro',
-];
+import { MODALIDADES, ESTADOS } from '@/constants/esportes';
 
-const ESTADOS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
+function CidadeField({ form }: { form: any }) {
+  const estado = form.watch('estado');
+  const { data: cidades, isLoading } = useCidadesPorEstado(estado);
+  return (
+    <FormField
+      control={form.control}
+      name="cidade"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Cidade</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value} disabled={!estado}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={isLoading ? 'Carregando...' : 'Selecione'} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {(cidades || []).map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
 
 export function CreatePerfilForm() {
   const createPerfil = useCreatePerfilAtleta();
@@ -234,25 +244,11 @@ export function CreatePerfilForm() {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="cidade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Sua cidade" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="estado"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(val) => { field.onChange(val); form.setValue('cidade', ''); }} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="UF" />
@@ -260,9 +256,7 @@ export function CreatePerfilForm() {
                       </FormControl>
                       <SelectContent>
                         {ESTADOS.map((uf) => (
-                          <SelectItem key={uf} value={uf}>
-                            {uf}
-                          </SelectItem>
+                          <SelectItem key={uf} value={uf}>{uf}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -270,6 +264,8 @@ export function CreatePerfilForm() {
                   </FormItem>
                 )}
               />
+
+              <CidadeField form={form} />
             </div>
 
             <FormField

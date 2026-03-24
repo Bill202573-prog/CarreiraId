@@ -11,18 +11,7 @@ import { useCreatePerfilAtleta, uploadProfilePhoto } from '@/hooks/useAtletaIdDa
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-const ESTADOS_BR = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
-  'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-];
-
-const CATEGORIAS = [
-  'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'
-];
-
-const MODALIDADES = [
-  'Futebol', 'Futsal', 'Beach Soccer', 'Futebol Feminino', 'Futebol Society'
-];
+import { ESTADOS as ESTADOS_BR, CATEGORIAS, MODALIDADES } from '@/constants/esportes';
 
 export function CreatePerfilForm() {
   const { user } = useAuth();

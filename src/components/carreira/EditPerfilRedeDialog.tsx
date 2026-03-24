@@ -30,7 +30,7 @@ interface DynFieldDef {
   options?: string[];
 }
 
-const CATEGORIAS = ['Sub-5', 'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20', 'Profissional'];
+import { CATEGORIAS, MODALIDADES_ESCOLA, MODALIDADES_PROFISSIONAL } from '@/constants/esportes';
 const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Atacante'];
 
 function getDynamicFields(tipo: string): DynFieldDef[] {
@@ -38,7 +38,7 @@ function getDynamicFields(tipo: string): DynFieldDef[] {
     case 'professor':
       return [
         { key: 'especialidade', label: 'Especialidade', type: 'select', options: ['Preparação Física', 'Técnico de Futebol', 'Goleiros', 'Tático', 'Coordenação Motora', 'Outro'] },
-        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Outro'] },
+        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', options: MODALIDADES_PROFISSIONAL },
         { key: 'categorias', label: 'Categorias que trabalha', type: 'multiselect', options: CATEGORIAS },
         { key: 'certificacoes', label: 'Certificações / Cursos', type: 'textarea' },
         { key: 'experiencia', label: 'Experiência Profissional', type: 'textarea' },
@@ -56,7 +56,7 @@ function getDynamicFields(tipo: string): DynFieldDef[] {
         { key: 'nome_escola', label: 'Nome da Escolinha / Clube', type: 'text' },
         { key: 'endereco', label: 'Endereço da Sede', type: 'text' },
         { key: 'localizacao', label: 'Localização (Cidade, Estado)', type: 'text' },
-        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Vôlei', 'Basquete'] },
+        { key: 'modalidades', label: 'Modalidades Oferecidas', type: 'multiselect', options: MODALIDADES_ESCOLA },
         { key: 'categorias', label: 'Categorias Atendidas', type: 'multiselect', options: CATEGORIAS },
         { key: 'site', label: 'Site', type: 'text' },
       ];

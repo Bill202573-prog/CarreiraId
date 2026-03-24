@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { UfCidadeSelect } from '@/components/shared/UfCidadeSelect';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -17,19 +18,7 @@ interface Props {
   onComplete: () => void | Promise<void>;
 }
 
-const MODALIDADES = [
-  'Futebol', 'Futsal', 'Beach Soccer', 'Society',
-  'Basquete', 'Vôlei', 'Handebol', 'Natação',
-  'Atletismo', 'Judô', 'Jiu-Jitsu', 'Tênis', 'Outro',
-];
-
-const CATEGORIAS = ['Sub-5', 'Sub-7', 'Sub-9', 'Sub-11', 'Sub-13', 'Sub-15', 'Sub-17', 'Sub-20'];
-
-const ESTADOS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
+import { MODALIDADES, CATEGORIAS_BASE as CATEGORIAS } from '@/constants/esportes';
 
 function generateSlug(name: string): string {
   return name
@@ -337,25 +326,13 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
         </div>
 
         {/* Cidade / Estado */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>Cidade</Label>
-            <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" maxLength={100} />
-          </div>
-          <div className="space-y-2">
-            <Label>Estado</Label>
-            <Select value={estado} onValueChange={setEstado}>
-              <SelectTrigger>
-                <SelectValue placeholder="UF" />
-              </SelectTrigger>
-              <SelectContent>
-                {ESTADOS.map((uf) => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <UfCidadeSelect
+          estado={estado}
+          cidade={cidade}
+          onEstadoChange={setEstado}
+          onCidadeChange={setCidade}
+          className="grid grid-cols-2 gap-3"
+        />
 
 
 
