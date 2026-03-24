@@ -228,7 +228,11 @@ function useProfileBySlug(slug: string) {
     queryFn: async () => {
       if (!slug) return null;
 
-      // 1. Try perfil_atleta first
+      // Get current user to allow owners to see their own private profiles
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUid = session?.user?.id ?? null;
+
+      // 1. Try perfil_atleta — public profiles first
       const { data: atletaData, error: atletaError } = await supabase
         .from('perfil_atleta')
         .select('*')
@@ -237,6 +241,18 @@ function useProfileBySlug(slug: string) {
         .maybeSingle();
       if (atletaError && atletaError.code !== 'PGRST116') throw atletaError;
       if (atletaData) return { type: 'atleta' as const, ...atletaData } as UnifiedProfile;
+
+      // 1b. If not found as public, try without is_public filter for the owner
+      if (currentUid) {
+        const { data: ownAtleta, error: ownError } = await supabase
+          .from('perfil_atleta')
+          .select('*')
+          .eq('slug', slug)
+          .eq('user_id', currentUid)
+          .maybeSingle();
+        if (ownError && ownError.code !== 'PGRST116') throw ownError;
+        if (ownAtleta) return { type: 'atleta' as const, ...ownAtleta } as UnifiedProfile;
+      }
 
       // 2. Try perfis_rede
       const { data: redeData, error: redeError } = await supabase
