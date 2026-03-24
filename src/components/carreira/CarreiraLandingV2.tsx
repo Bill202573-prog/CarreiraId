@@ -502,7 +502,11 @@ export function CarreiraLandingV2() {
       </section>
 
       {/* ═══ Competição & Ranking ═══ */}
-      <section className="bg-[#0a0f18] py-20">
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={torcidaPaisBg} alt="" className="w-full h-full object-cover" loading="lazy" width={1920} height={1024} />
+          <div className="absolute inset-0 bg-[#0a0f18]/85" />
+        </div>
         <div className="container max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="flex justify-center order-2 md:order-1">
