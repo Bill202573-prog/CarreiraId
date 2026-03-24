@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import mockupRanking from '@/assets/mockup-ranking-celular.png';
+import mockupScoutPerfil from '@/assets/mockup-scout-perfil.png';
+import mockupScoutBusca from '@/assets/mockup-scout-busca.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import logoCarreira from '@/assets/logo-carreira-id.png';
 import logoAtletaIdDark from '@/assets/logo-atleta-id-dark.png';
@@ -30,6 +32,9 @@ import {
   ShieldCheck,
   Lock,
   EyeOff,
+  Search,
+  Eye,
+  Target,
   Settings,
   Star,
   Trophy,
@@ -313,6 +318,71 @@ export function CarreiraLandingV2() {
             </div>
             <div className="flex justify-center">
               <SolutionProfileCard />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Scouting / Busca de Talentos ═══ */}
+      <section id="scouting" className="bg-[#060b14] py-20 border-t border-orange-500/10">
+        <div className="container max-w-6xl mx-auto px-4">
+          <div className="text-center mb-14">
+            <SectionBadge>Para Profissionais</SectionBadge>
+            <h2 className="mt-6 text-3xl sm:text-4xl font-extrabold text-white">
+              Encontre o <span className="text-orange-400">próximo grande talento</span>.
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-gray-400 leading-relaxed">
+              Técnicos, scouts, olheiros e treinadores usam o Carreira ID para descobrir atletas com filtros avançados — por idade, posição, pé dominante, cidade e muito mais.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            {/* Mockups lado a lado */}
+            <div className="flex gap-4 justify-center items-start">
+              <img
+                src={mockupScoutPerfil}
+                alt="Perfil de scout no Carreira ID"
+                className="w-[48%] max-w-[260px] rounded-2xl border border-white/10 shadow-2xl shadow-orange-500/5"
+              />
+              <img
+                src={mockupScoutBusca}
+                alt="Busca de talentos com filtros no Carreira ID"
+                className="w-[48%] max-w-[260px] rounded-2xl border border-white/10 shadow-2xl shadow-orange-500/5"
+              />
+            </div>
+
+            {/* Texto e features */}
+            <div className="flex flex-col justify-center">
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Ferramentas de busca profissional
+              </h3>
+              <p className="text-gray-400 mb-6 leading-relaxed">
+                Crie seu perfil como profissional do esporte e acesse a maior base de atletas em formação do Brasil. Use filtros inteligentes para encontrar exatamente o perfil que procura.
+              </p>
+              <div className="space-y-4">
+                {[
+                  { icon: Search, label: 'Filtros por categoria, posição, pé dominante, modalidade e cidade' },
+                  { icon: Users, label: 'Perfis verificados de técnicos, scouts e agentes de clubes' },
+                  { icon: Eye, label: 'Acesse o histórico completo e a evolução de cada atleta' },
+                  { icon: Target, label: 'Receba destaques de novos talentos na sua região' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-orange-400" />
+                    </div>
+                    <p className="text-white/90 text-sm leading-relaxed">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8">
+                <a
+                  href="/cadastro"
+                  className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+                >
+                  Criar Perfil Profissional
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
