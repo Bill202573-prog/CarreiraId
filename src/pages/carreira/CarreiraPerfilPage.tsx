@@ -634,9 +634,9 @@ export default function CarreiraPerfilPage() {
             )}
           </div>
         </div>
-        {/* Row 2: Search bar — mobile only */}
-        <div className="lg:hidden container px-4 pb-2 max-w-6xl">
-          <div className="relative">
+        {/* Row 2: Search bar + theme toggle — mobile only */}
+        <div className="lg:hidden container px-4 pb-2 max-w-6xl flex items-center gap-2">
+          <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Buscar pessoas na rede..."
@@ -651,6 +651,11 @@ export default function CarreiraPerfilPage() {
               </button>
             )}
           </div>
+          <CarreiraThemeToggle
+            isDarkTheme={isDarkTheme}
+            onCheckedChange={setDarkTheme}
+            compact
+          />
         </div>
       </header>
 
