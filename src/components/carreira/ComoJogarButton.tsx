@@ -20,7 +20,7 @@ interface Tutorial {
 }
 
 /**
- * Botão "Como Jogar" que abre diretamente o tutorial do Gamer.
+ * Botão "Como Jogar" que abre diretamente o tutorial da Liga.
  * Variantes: inline (ao lado do título) e card (bloco para sidebar).
  */
 export function ComoJogarButton({ variant = 'inline', accentColor = '#f97316' }: { variant?: 'inline' | 'card'; accentColor?: string }) {
@@ -28,14 +28,14 @@ export function ComoJogarButton({ variant = 'inline', accentColor = '#f97316' }:
   const [viewing, setViewing] = useState(false);
 
   const { data: tutorial } = useQuery({
-    queryKey: ['tutorial-gamer'],
+    queryKey: ['tutorial-liga'],
     queryFn: async () => {
       const { data } = await supabase
         .from('carreira_tutoriais' as any)
         .select('id, titulo, slides')
         .eq('ativo', true)
         .or('tipo_perfil.eq.todos,tipo_perfil.eq.atleta_filho')
-        .ilike('titulo', '%gamer%')
+        .or('titulo.ilike.%liga%,titulo.ilike.%gamer%')
         .limit(1)
         .maybeSingle();
       return data as Tutorial | null;
