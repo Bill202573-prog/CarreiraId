@@ -74,7 +74,7 @@ const App = () => (
           <Suspense fallback={<div className="min-h-screen bg-background" data-theme="dark-orange" />}>
             <Routes>
               {/* Carreira ID — rota principal */}
-              <Route path="/" element={<Navigate to="/feed" replace />} />
+              <Route path="/" element={<RootRoute />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
               {/* Alias legado para área administrativa */}
               <Route path="/admin/*" element={<LegacyAdminRedirect />} />
