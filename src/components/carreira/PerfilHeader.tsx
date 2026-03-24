@@ -22,7 +22,6 @@ function calcularCategoria(dataNascimento: string): string {
 }
 import { toast } from 'sonner';
 import { EditPerfilDialog } from './EditPerfilDialog';
-import { EditContaDialog } from './EditContaDialog';
 
 function TorcedoresCount({ perfilId }: { perfilId: string }) {
   const { data: count } = useQuery({
@@ -50,7 +49,6 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editContaOpen, setEditContaOpen] = useState(false);
   const [sessionUserId, setSessionUserId] = useState<string | null>(null);
 
   // Fallback to direct Supabase auth for Carreira-only users
@@ -280,6 +278,18 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
 
             {/* Actions */}
             <div className="flex gap-1.5 mt-3 flex-wrap justify-center">
+              {isOwner && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => setEditDialogOpen(true)}
+                  style={{ borderColor: `${perfil.cor_destaque || '#3b82f6'}50`, color: perfil.cor_destaque || '#3b82f6' }}
+                >
+                  <Pencil className="w-3 h-3 mr-1" />Editar perfil
+                </Button>
+              )}
+
               {!isOwner && user && (
                 <>
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={user.id} />
@@ -300,7 +310,6 @@ export function PerfilHeader({ perfil, isOwner = false }: PerfilHeaderProps) {
       </Card>
 
       {isOwner && <EditPerfilDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} perfil={perfil} />}
-      {isOwner && <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />}
     </>
   );
 }
