@@ -592,6 +592,7 @@ export default function CarreiraPerfilPage() {
                   isDarkTheme={isDarkTheme}
                   onCheckedChange={setDarkTheme}
                   compact
+                  className="hidden sm:flex"
                 />
                 <div className="flex items-center gap-1.5">
                   <Button variant="outline" size="sm" className="h-8 text-xs"
