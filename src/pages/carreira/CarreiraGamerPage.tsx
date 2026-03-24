@@ -24,7 +24,7 @@ export default function CarreiraGamerPage() {
   const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
 
   const { data: perfilData } = useQuery({
-    queryKey: ['gamer-page-accent', currentUserId],
+    queryKey: ['liga-page-accent', currentUserId],
     queryFn: async () => {
       if (!currentUserId) return null;
       const { data: pa } = await supabase.from('perfil_atleta').select('cor_destaque, slug').eq('user_id', currentUserId).order('created_at', { ascending: true }).limit(1).maybeSingle();
