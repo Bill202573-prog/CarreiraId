@@ -759,6 +759,18 @@ export function CarreiraLandingV2() {
                 a: 'O responsável legal cria e gerencia o perfil do atleta menor de idade. Ele define o que pode ou não ser exibido publicamente, garantindo total controle parental sobre as informações.',
               },
               {
+                q: 'O que é a Liga e como funciona o ranking?',
+                a: 'A Liga é o sistema de gamificação do Carreira ID. Cada ação que você realiza — como completar o perfil, fazer publicações, registrar atividades e convidar amigos — gera pontos de XP. Quanto mais pontos, mais alto você sobe no ranking nacional entre atletas.',
+              },
+              {
+                q: 'Como ganho pontos e XP na Liga?',
+                a: 'Você ganha XP ao completar ações como: preencher seu perfil, publicar posts, adicionar experiências esportivas, conectar-se a outros atletas e convidar amigos e familiares para a plataforma. Cada ação tem um valor de pontos diferente, que pode ser consultado na Tabela de Pontos.',
+              },
+              {
+                q: 'O que são os níveis da Liga (Cria, Promessa, Craque...)?',
+                a: 'São faixas de progressão baseadas no seu XP acumulado. Você começa como "Cria" e pode evoluir para níveis como Promessa, Destaque e Craque. Cada nível traz reconhecimento e visibilidade no ranking.',
+              },
+              {
                 q: 'O que é a integração com o Atleta ID?',
                 a: 'O Atleta ID é a plataforma de gestão para escolinhas esportivas. Se o atleta está matriculado em uma escolinha que usa o Atleta ID, dados como frequência, participações em campeonatos e premiações podem ser importados automaticamente para o Carreira ID.',
               },
@@ -769,10 +781,6 @@ export function CarreiraLandingV2() {
               {
                 q: 'Posso cancelar o plano a qualquer momento?',
                 a: 'Sim, os planos Competidor e Elite podem ser cancelados a qualquer momento sem multa. Seu perfil continua ativo no plano Base gratuito, preservando todas as suas publicações.',
-              },
-              {
-                q: 'Como compartilho meu perfil?',
-                a: 'Cada perfil tem um link único (ex: carreiraid.com.br/seu-nome). Você pode copiar e enviar por WhatsApp, redes sociais, e-mail ou qualquer outro meio.',
               },
               {
                 q: 'Como compartilho meu perfil?',
