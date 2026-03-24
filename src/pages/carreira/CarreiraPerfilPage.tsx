@@ -1040,6 +1040,58 @@ export default function CarreiraPerfilPage() {
 
           {/* Right Sidebar — Pending Requests + Suggestions + Connections */}
           <aside className="hidden lg:block space-y-4">
+            {perfil.type === 'atleta' && topRanking.length > 0 && (
+              <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Trophy className="w-4 h-4" style={{ color: accentColor }} />
+                  Ranking da Liga
+                </h3>
+
+                {rankingDoPerfil && (
+                  <div className="mb-3 rounded-lg border border-border bg-muted/30 p-2">
+                    <p className="text-[11px] text-muted-foreground">Posição deste atleta</p>
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      #{rankingDoPerfil.position}
+                      <span className="text-xs text-muted-foreground">{rankingDoPerfil.nome}</span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {topRanking.map((player) => (
+                    <button
+                      key={player.user_id}
+                      onClick={() => player.slug && navigate(carreiraPath(`/${player.slug}`))}
+                      className="w-full flex items-center gap-2 rounded-md p-1.5 hover:bg-muted/40 text-left"
+                    >
+                      <span className="w-6 text-[11px] font-bold text-muted-foreground">#{player.position}</span>
+                      <Avatar className="w-7 h-7">
+                        {player.foto_url ? <AvatarImage src={player.foto_url} className="object-cover" /> : null}
+                        <AvatarFallback className="text-[9px]"><User className="w-3 h-3" /></AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium truncate">{player.nome}</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: accentColor }}>
+                        <Zap className="w-3 h-3" />
+                        {player.pontos.toLocaleString()}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 w-full text-xs"
+                  onClick={() => navigate(carreiraPath('/liga'))}
+                  style={{ borderColor: `${accentColor}50`, color: accentColor }}
+                >
+                  Ver ranking completo
+                </Button>
+              </Card>
+            )}
+
             {/* Pending connection requests (own profile only) */}
             {isOwner && pendingRequests && pendingRequests.length > 0 && (
               <Card className="p-4" style={{ borderColor: `${accentColor}50`, borderWidth: 2 }}>
