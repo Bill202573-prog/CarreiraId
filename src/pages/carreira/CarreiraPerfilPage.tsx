@@ -542,18 +542,23 @@ export default function CarreiraPerfilPage() {
   const sidebarCategoria = criancaSidebar?.data_nascimento
     ? (() => { const age = new Date().getFullYear() - new Date(criancaSidebar.data_nascimento).getFullYear(); return `Sub ${age}`; })()
     : perfil.categoria;
-
-  const isDarkTheme = true; // Dark premium theme for all Carreira profiles
+  const rankingDoPerfil = perfil.type === 'atleta'
+    ? ligaRanking?.find((entry) => entry.user_id === perfil.user_id)
+    : null;
+  const topRanking = (ligaRanking || []).slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-background" data-theme="dark-orange">
+    <div className="min-h-screen bg-background" data-theme={carreiraTheme}>
       {/* Auto-subscribe to push notifications for logged-in users */}
       {isOwner && <CarreiraPushAutoSubscribe />}
       {/* Accent top bar */}
       <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
 
       {/* Header */}
-      <header className={`sticky top-0 z-50 backdrop-blur-sm shadow-sm bg-[hsl(0_0%_0%/0.97)] border-b`} style={{ borderColor: `${accentColor}40` }}>
+      <header
+        className={`sticky top-0 z-50 backdrop-blur-sm shadow-sm border-b ${isDarkTheme ? 'bg-[hsl(0_0%_0%/0.97)]' : 'bg-background/95'}`}
+        style={{ borderColor: `${accentColor}40` }}
+      >
         {/* Row 1: Logo + Search (desktop inline) + Actions */}
         <div className="container flex items-center justify-between h-14 lg:h-16 px-4 max-w-6xl">
           <Link to={carreiraPath('/feed')} className="flex items-center gap-2 shrink-0">
