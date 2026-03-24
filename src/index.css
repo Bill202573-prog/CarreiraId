@@ -191,6 +191,29 @@ section {
   --destructive-foreground: 0 0% 100%;
 }
 
+/* Per-profile theme: Light Orange (light bg, same orange accents) */
+[data-theme="light-orange"] {
+  --background: 36 100% 98%;
+  --foreground: 220 18% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 18% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 18% 12%;
+  --primary: 25 95% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 33 40% 93%;
+  --secondary-foreground: 220 18% 20%;
+  --muted: 33 32% 92%;
+  --muted-foreground: 220 10% 38%;
+  --accent: 25 95% 55%;
+  --accent-foreground: 0 0% 100%;
+  --border: 32 28% 84%;
+  --input: 32 28% 84%;
+  --ring: 25 95% 50%;
+  --destructive: 0 70% 45%;
+  --destructive-foreground: 0 0% 100%;
+}
+
 /* Dark-orange: override all hardcoded utility classes */
 [data-theme="dark-orange"] .bg-carreira {
   background-color: hsl(220 15% 6%);
