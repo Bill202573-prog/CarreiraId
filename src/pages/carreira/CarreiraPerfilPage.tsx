@@ -588,6 +588,11 @@ export default function CarreiraPerfilPage() {
             {currentUserId && (
               <>
                 <NotificacoesBell accentColor={accentColor} />
+                <CarreiraThemeToggle
+                  isDarkTheme={isDarkTheme}
+                  onCheckedChange={setDarkTheme}
+                  compact
+                />
                 <div className="flex items-center gap-1.5">
                   <Button variant="outline" size="sm" className="h-8 text-xs"
                     style={{ borderColor: `${accentColor}50`, color: accentColor }}
