@@ -48,6 +48,35 @@ type FormData = z.infer<typeof formSchema>;
 
 import { MODALIDADES, ESTADOS } from '@/constants/esportes';
 
+function CidadeField({ form }: { form: any }) {
+  const estado = form.watch('estado');
+  const { data: cidades, isLoading } = useCidadesPorEstado(estado);
+  return (
+    <FormField
+      control={form.control}
+      name="cidade"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Cidade</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value} disabled={!estado}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={isLoading ? 'Carregando...' : 'Selecione'} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {(cidades || []).map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 export function CreatePerfilForm() {
   const createPerfil = useCreatePerfilAtleta();
 
