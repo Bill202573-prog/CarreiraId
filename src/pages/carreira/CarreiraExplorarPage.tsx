@@ -22,7 +22,7 @@ const TYPE_LABELS: Record<string, string> = {
   preparador_fisico: 'Preparador Físico',
   empresario: 'Empresário',
   influenciador: 'Influenciador',
-  pai_responsavel: 'Pai/Responsável',
+  pai_responsavel: 'Atleta',
   scout: 'Scout',
   agente_clube: 'Agente de Clube',
   fotografo: 'Fotógrafo',

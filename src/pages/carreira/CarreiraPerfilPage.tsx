@@ -396,14 +396,24 @@ export default function CarreiraPerfilPage() {
       const redeMap = new Map((redeProfiles || []).map(p => [p.user_id, p]));
       const atletaMap = new Map((atletaProfiles || []).map(p => [p.user_id, p]));
 
-      return data.map(view => {
+      // Deduplicate by viewer_user_id (keep most recent)
+      const seen = new Set<string>();
+      const unique = data.filter(v => {
+        if (seen.has(v.viewer_user_id)) return false;
+        seen.add(v.viewer_user_id);
+        return true;
+      });
+
+      return unique.map(view => {
         const rede = redeMap.get(view.viewer_user_id);
         const atleta = atletaMap.get(view.viewer_user_id);
+        // If user has perfil_atleta, show as "Atleta"; otherwise use rede tipo
+        const resolvedTipo = atleta ? 'atleta' : (rede?.tipo === 'pai_responsavel' ? 'atleta' : rede?.tipo || view.viewer_tipo);
         return {
           ...view,
           viewer_foto_url: rede?.foto_url || atleta?.foto_url || view.viewer_foto_url,
           viewer_nome: rede?.nome || atleta?.nome || view.viewer_nome,
-          viewer_tipo: rede?.tipo || view.viewer_tipo,
+          viewer_tipo: resolvedTipo,
         };
       });
     },

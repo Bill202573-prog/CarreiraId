@@ -64,7 +64,7 @@ export function FansSection({ perfilAtletaId, accentColor = '#3b82f6' }: FansSec
     professor: 'Professor',
     tecnico: 'Técnico',
     scout: 'Scout',
-    pai_responsavel: 'Pai/Responsável',
+    pai_responsavel: 'Atleta',
     atleta: 'Atleta',
   };
 
