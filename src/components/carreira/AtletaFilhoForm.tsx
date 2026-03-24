@@ -326,25 +326,13 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
         </div>
 
         {/* Cidade / Estado */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>Cidade</Label>
-            <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" maxLength={100} />
-          </div>
-          <div className="space-y-2">
-            <Label>Estado</Label>
-            <Select value={estado} onValueChange={setEstado}>
-              <SelectTrigger>
-                <SelectValue placeholder="UF" />
-              </SelectTrigger>
-              <SelectContent>
-                {ESTADOS.map((uf) => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <UfCidadeSelect
+          estado={estado}
+          cidade={cidade}
+          onEstadoChange={setEstado}
+          onCidadeChange={setCidade}
+          className="grid grid-cols-2 gap-3"
+        />
 
 
 

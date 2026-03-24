@@ -45,7 +45,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-import { MODALIDADES } from '@/constants/esportes';
+import { MODALIDADES, ESTADOS } from '@/constants/esportes';
 
 export function CreatePerfilForm() {
   const createPerfil = useCreatePerfilAtleta();
