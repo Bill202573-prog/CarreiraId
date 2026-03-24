@@ -281,6 +281,7 @@ export default function CarreiraPerfilPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
   
   const [mySlug, setMySlug] = useState<string | null>(null);
@@ -302,6 +303,7 @@ export default function CarreiraPerfilPage() {
   const { data: connections } = useConnectionsList(perfil?.user_id);
   const { data: escolinhas } = useEscolinhasCarreira(perfil?.type === 'atleta' ? perfil?.crianca_id : undefined);
   const { data: searchResults } = useSearchPeople(searchQuery);
+  const { data: ligaRanking } = useCarreiraRanking(20);
 
   // Track profile view (like LinkedIn) — only for non-owner visits on atleta profiles
   useEffect(() => {
