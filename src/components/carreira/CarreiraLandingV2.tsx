@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import mockupRanking from '@/assets/mockup-ranking-celular.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import logoCarreira from '@/assets/logo-carreira-id.png';
 import logoAtletaIdDark from '@/assets/logo-atleta-id-dark.png';
