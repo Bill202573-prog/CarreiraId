@@ -340,17 +340,10 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
 
                 {/* City and State */}
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="cidade" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade</FormLabel>
-                      <FormControl><Input placeholder="Sua cidade" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
                   <FormField control={form.control} name="estado" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Estado</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={(val) => { field.onChange(val); form.setValue('cidade', ''); }} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger></FormControl>
                         <SelectContent>
                           {ESTADOS.map((uf) => (<SelectItem key={uf} value={uf}>{uf}</SelectItem>))}
@@ -359,6 +352,7 @@ export function EditPerfilDialog({ open, onOpenChange, perfil }: EditPerfilDialo
                       <FormMessage />
                     </FormItem>
                   )} />
+                  <EditCidadeField form={form} />
                 </div>
 
                 {/* Bio */}
