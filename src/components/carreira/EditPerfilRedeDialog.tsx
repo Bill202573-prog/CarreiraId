@@ -38,7 +38,7 @@ function getDynamicFields(tipo: string): DynFieldDef[] {
     case 'professor':
       return [
         { key: 'especialidade', label: 'Especialidade', type: 'select', options: ['Preparação Física', 'Técnico de Futebol', 'Goleiros', 'Tático', 'Coordenação Motora', 'Outro'] },
-        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', options: ['Futebol', 'Futsal', 'Society', 'Beach Soccer', 'Outro'] },
+        { key: 'modalidade', label: 'Modalidade Principal', type: 'select', options: MODALIDADES_PROFISSIONAL },
         { key: 'categorias', label: 'Categorias que trabalha', type: 'multiselect', options: CATEGORIAS },
         { key: 'certificacoes', label: 'Certificações / Cursos', type: 'textarea' },
         { key: 'experiencia', label: 'Experiência Profissional', type: 'textarea' },
