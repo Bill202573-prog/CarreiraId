@@ -89,7 +89,7 @@ function EditCidadeField({ form }: { form: any }) {
     />
   );
 }
-
+interface EditPerfilDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   perfil: PerfilAtleta;
