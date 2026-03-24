@@ -723,7 +723,7 @@ export default function CarreiraPerfilPage() {
                 <AvatarFallback className="text-xl"><User className="w-8 h-8" /></AvatarFallback>
               </Avatar>
 
-              <h2 className="font-bold text-foreground text-sm">{displayProfileName}</h2>
+              <h2 className="font-bold text-foreground text-sm" style={perfil.banner_url ? { textShadow: '0 1px 4px rgba(0,0,0,0.7), 0 0px 2px rgba(0,0,0,0.5)' } : undefined}>{displayProfileName}</h2>
               
               {/* Athlete subtitle: "Atleta Sub X" + managed by guardian */}
               {!isRedeProfile && sidebarCategoria && (
