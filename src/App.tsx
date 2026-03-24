@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PWAUpdatePrompt } from "@/components/shared/PWAUpdatePrompt";
-const LandingPage = lazy(() => import("./pages/LandingPage"));
+const RootRoute = lazy(() => import("./pages/RootRoute"));
 
 // Lazy load pages not needed on initial render
 const Auth = lazy(() => import("./pages/Auth"));
