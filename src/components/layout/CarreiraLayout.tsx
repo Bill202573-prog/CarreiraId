@@ -14,6 +14,9 @@ import { LogOut, User, Home, ArrowLeft, Settings } from 'lucide-react';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { EditContaDialog } from '@/components/carreira/EditContaDialog';
+import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
+import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
+import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
 
 interface CarreiraLayoutProps {
   children: React.ReactNode;
@@ -23,6 +26,7 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [editContaOpen, setEditContaOpen] = useState(false);
+  const { theme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
 
   const handleLogout = async () => {
     await logout();
@@ -34,9 +38,9 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-background text-foreground" data-theme={theme}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
         <div className="container flex items-center justify-between h-20 px-4">
           {/* Logo e identidade */}
           <div className="flex items-center gap-3">
@@ -50,6 +54,14 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
 
           {/* Ações */}
           <div className="flex items-center gap-2">
+            {user && (
+              <CarreiraThemeToggle
+                isDarkTheme={isDarkTheme}
+                onCheckedChange={setDarkTheme}
+                compact
+              />
+            )}
+
             {/* Voltar para o app da escolinha — só mostra para quem tem vínculo */}
             {user && (user.role === 'guardian' || user.role === 'school' || user.role === 'teacher') && user.escolinhaId && (
               <Button
@@ -108,15 +120,17 @@ export function CarreiraLayout({ children }: CarreiraLayoutProps) {
       <EditContaDialog open={editContaOpen} onOpenChange={setEditContaOpen} />
 
       {/* Main Content */}
-      <main className="container max-w-2xl py-6 px-4">
+      <main className="container max-w-2xl py-6 px-4 pb-24 lg:pb-6">
         {children}
       </main>
 
+      {user && <CarreiraBottomNav currentUserId={user.id} />}
+
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 mt-12 py-8 bg-black">
+      <footer className="border-t border-border mt-12 py-8 bg-card">
         <div className="container flex flex-col items-center gap-3">
           <img src={logoCarreira} alt="Carreira ID" className="h-14" />
-          <p className="text-xs text-slate-400">Carreira Esportiva — Sua trajetória no esporte</p>
+          <p className="text-xs text-muted-foreground">Carreira Esportiva — Sua trajetória no esporte</p>
         </div>
       </footer>
     </div>
