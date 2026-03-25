@@ -212,8 +212,8 @@ export default function PerfilPage() {
             toast.success('Experiência removida');
           };
 
-          const tabCount = 3 + (showHistorico ? 1 : 0) + (showDescobrir ? 1 : 0);
-          const gridClass = tabCount === 3 ? 'grid-cols-3' : tabCount === 4 ? 'grid-cols-4' : 'grid-cols-5';
+          const tabCount = 3 + (showHistorico ? 1 : 0) + (showDescobrir ? 1 : 0) + (showPeneiras ? 1 : 0);
+          const gridClass = tabCount <= 3 ? 'grid-cols-3' : tabCount === 4 ? 'grid-cols-4' : tabCount === 5 ? 'grid-cols-5' : 'grid-cols-6';
 
           return (
             <>
