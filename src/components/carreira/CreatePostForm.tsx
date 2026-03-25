@@ -416,9 +416,9 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
               </div>
 
               <div className="flex items-center gap-2">
-                {!postsLimitReached && limites.posts_dia < 99 && (
+              {!postsLimitReached && effectiveLimites.posts_dia < 99 && (
                   <span className="text-[10px] text-muted-foreground">
-                    {postsDiaCount}/{limites.posts_dia}
+                    {postsDiaCount}/{effectiveLimites.posts_dia}
                   </span>
                 )}
                 <Button
