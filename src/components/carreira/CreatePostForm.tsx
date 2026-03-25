@@ -27,6 +27,9 @@ interface CreatePostFormProps {
   accentColor?: string;
 }
 
+// Professional profile types that don't need subscriptions
+const PROFESSIONAL_TYPES = ['tecnico', 'scout', 'agente_clube', 'dono_escola', 'empresario', 'jogador_profissional', 'professor'];
+
 export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRedeFoto, accentColor }: CreatePostFormProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -37,6 +40,23 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const criancaId = perfil?.crianca_id || null;
   const { plano, limites, temAcesso } = useCarreiraPlano(criancaId);
   const { data: postsDiaCount = 0 } = usePostsDiaCount(perfil?.id);
+
+  // Check if this is a professional (non-athlete) profile
+  const [perfilRedeTipo, setPerfilRedeTipo] = useState<string | null>(null);
+  useEffect(() => {
+    if (perfilRedeId) {
+      supabase.from('perfis_rede').select('tipo').eq('id', perfilRedeId).single()
+        .then(({ data }) => { if (data) setPerfilRedeTipo(data.tipo); });
+    }
+  }, [perfilRedeId]);
+
+  const isProfessional = !!perfilRedeId && !!perfilRedeTipo && PROFESSIONAL_TYPES.includes(perfilRedeTipo);
+  // Professionals: no post limit, video up to 2min/40MB, YouTube allowed
+  const effectiveLimites = isProfessional
+    ? { ...limites, posts_dia: 99, video_seg: 120, video_max_mb: 40, youtube: true }
+    : limites;
+  const effectivePostsLimitReached = isProfessional ? false : postsDiaCount >= limites.posts_dia;
+  const effectiveCanUploadVideo = isProfessional ? true : temAcesso('video_seg');
   
   const [texto, setTexto] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
