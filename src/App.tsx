@@ -73,6 +73,7 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<div className="min-h-screen bg-background" data-theme="dark-orange" />}>
             <Routes>
+              {/* Fallback global para lazy loading — mostra spinner em vez de tela branca */}
               {/* Carreira ID — rota principal */}
               <Route path="/" element={<RootRoute />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
