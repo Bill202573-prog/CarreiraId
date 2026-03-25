@@ -266,7 +266,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
           <div className="mb-3 flex items-center gap-2 p-2.5 rounded-lg bg-muted/80 border border-dashed border-muted-foreground/20">
             <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
             <div className="text-xs text-muted-foreground flex-1">
-              Limite de {limites.posts_dia} publicação(ões)/dia atingido.{' '}
+              Limite de {effectiveLimites.posts_dia} publicação(ões)/dia atingido.{' '}
               <button onClick={() => navigate(carreiraPath('/planos'))} className="text-primary underline font-medium">
                 Fazer upgrade
               </button>
