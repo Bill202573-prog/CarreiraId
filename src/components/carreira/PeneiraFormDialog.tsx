@@ -83,6 +83,8 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
       return;
     }
 
+    const bannerUrl = await uploadBanner();
+
     await createPeneira.mutateAsync({
       criador_id: criadorId,
       criador_perfil_rede_id: criadorPerfilRedeId,
@@ -101,6 +103,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
       contato_whatsapp: contatoWhatsapp.trim() || null,
       contato_email: contatoEmail.trim() || null,
       filtro_status_federado: filtroStatusFederado || null,
+      banner_url: bannerUrl,
     } as any);
 
     onOpenChange(false);
@@ -109,6 +112,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
     setLocalEndereco(''); setCidade(''); setEstado(''); setVagas('');
     setRequisitos(''); setContatoWhatsapp(''); setContatoEmail('');
     setCategorias([]); setPosicoes([]); setFiltroStatusFederado('');
+    setBannerFile(null); setBannerPreview(null);
   };
 
   const toggleArrayItem = (arr: string[], item: string, setter: (v: string[]) => void) => {
