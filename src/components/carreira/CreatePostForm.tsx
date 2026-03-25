@@ -27,6 +27,9 @@ interface CreatePostFormProps {
   accentColor?: string;
 }
 
+// Professional profile types that don't need subscriptions
+const PROFESSIONAL_TYPES = ['tecnico', 'scout', 'agente_clube', 'dono_escola', 'empresario', 'jogador_profissional', 'professor'];
+
 export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRedeFoto, accentColor }: CreatePostFormProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -37,6 +40,23 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const criancaId = perfil?.crianca_id || null;
   const { plano, limites, temAcesso } = useCarreiraPlano(criancaId);
   const { data: postsDiaCount = 0 } = usePostsDiaCount(perfil?.id);
+
+  // Check if this is a professional (non-athlete) profile
+  const [perfilRedeTipo, setPerfilRedeTipo] = useState<string | null>(null);
+  useEffect(() => {
+    if (perfilRedeId) {
+      supabase.from('perfis_rede').select('tipo').eq('id', perfilRedeId).single()
+        .then(({ data }) => { if (data) setPerfilRedeTipo(data.tipo); });
+    }
+  }, [perfilRedeId]);
+
+  const isProfessional = !!perfilRedeId && !!perfilRedeTipo && PROFESSIONAL_TYPES.includes(perfilRedeTipo);
+  // Professionals: no post limit, video up to 2min/40MB, YouTube allowed
+  const effectiveLimites = isProfessional
+    ? { ...limites, posts_dia: 99, video_seg: 120, video_max_mb: 40, youtube: true }
+    : limites;
+  const effectivePostsLimitReached = isProfessional ? false : postsDiaCount >= limites.posts_dia;
+  const effectiveCanUploadVideo = isProfessional ? true : temAcesso('video_seg');
   
   const [texto, setTexto] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
@@ -58,8 +78,8 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
 
   const lastFetchedUrl = useRef<string | null>(null);
   
-  const postsLimitReached = postsDiaCount >= limites.posts_dia;
-  const canUploadVideo = temAcesso('video_seg');
+  const postsLimitReached = effectivePostsLimitReached;
+  const canUploadVideo = effectiveCanUploadVideo;
 
   const handleTextChange = (value: string) => {
     setTexto(value);
@@ -127,7 +147,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
       return;
     }
 
-    const result = await validateVideo(file, limites.video_seg, limites.video_max_mb);
+    const result = await validateVideo(file, effectiveLimites.video_seg, effectiveLimites.video_max_mb);
     
     if (!result.valid) {
       toast.error(result.error || 'Vídeo não permitido');
@@ -167,7 +187,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
     }
 
     if (postsLimitReached) {
-      toast.error(`Você atingiu o limite de ${limites.posts_dia} publicação(ões) por dia no plano ${PLANOS[plano].nome}`);
+      toast.error(`Você atingiu o limite de ${effectiveLimites.posts_dia} publicação(ões) por dia no plano ${PLANOS[plano].nome}`);
       return;
     }
 
@@ -246,7 +266,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
           <div className="mb-3 flex items-center gap-2 p-2.5 rounded-lg bg-muted/80 border border-dashed border-muted-foreground/20">
             <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
             <div className="text-xs text-muted-foreground flex-1">
-              Limite de {limites.posts_dia} publicação(ões)/dia atingido.{' '}
+              Limite de {effectiveLimites.posts_dia} publicação(ões)/dia atingido.{' '}
               <button onClick={() => navigate(carreiraPath('/planos'))} className="text-primary underline font-medium">
                 Fazer upgrade
               </button>
@@ -396,9 +416,9 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
               </div>
 
               <div className="flex items-center gap-2">
-                {!postsLimitReached && limites.posts_dia < 99 && (
+              {!postsLimitReached && effectiveLimites.posts_dia < 99 && (
                   <span className="text-[10px] text-muted-foreground">
-                    {postsDiaCount}/{limites.posts_dia}
+                    {postsDiaCount}/{effectiveLimites.posts_dia}
                   </span>
                 )}
                 <Button
