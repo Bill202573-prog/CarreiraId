@@ -71,8 +71,13 @@ const App = () => (
         <Sonner />
         <PWAUpdatePrompt />
         <BrowserRouter>
-          <Suspense fallback={<div className="min-h-screen bg-background" data-theme="dark-orange" />}>
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center bg-background" data-theme="dark-orange">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            }>
             <Routes>
+              {/* Fallback global para lazy loading — mostra spinner em vez de tela branca */}
               {/* Carreira ID — rota principal */}
               <Route path="/" element={<RootRoute />} />
               <Route path="/cadastro" element={<CarreiraCadastroPage />} />
