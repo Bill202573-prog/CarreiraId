@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, CalendarDays, MapPin, Users, Phone, Image } from 'lucide-react';
+import { Loader2, CalendarDays, MapPin, Users, Phone, Image, X } from 'lucide-react';
 import { useCreatePeneira } from '@/hooks/usePeneirasData';
 import { MODALIDADES, CATEGORIAS, ESTADOS } from '@/constants/esportes';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { compressImage } from '@/lib/image-compressor';
 
 interface Props {
   open: boolean;
@@ -41,12 +43,47 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
   const [contatoWhatsapp, setContatoWhatsapp] = useState('');
   const [contatoEmail, setContatoEmail] = useState('');
   const [filtroStatusFederado, setFiltroStatusFederado] = useState('');
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+
+  const handleBannerSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file, { maxWidth: 1200, quality: 0.8 });
+      setBannerFile(compressed);
+      setBannerPreview(URL.createObjectURL(compressed));
+    } catch {
+      toast.error('Erro ao processar imagem');
+    }
+  };
+
+  const uploadBanner = async (): Promise<string | null> => {
+    if (!bannerFile) return null;
+    setUploadingBanner(true);
+    try {
+      const ext = bannerFile.name.split('.').pop() || 'jpg';
+      const fileName = `peneiras/${criadorId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('carreira-assets').upload(fileName, bannerFile);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('carreira-assets').getPublicUrl(fileName);
+      return publicUrl;
+    } catch (err: any) {
+      toast.error('Erro ao enviar imagem: ' + err.message);
+      return null;
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!titulo.trim() || !dataEvento || !localNome.trim()) {
       toast.error('Preencha título, data e local');
       return;
     }
+
+    const bannerUrl = await uploadBanner();
 
     await createPeneira.mutateAsync({
       criador_id: criadorId,
@@ -66,6 +103,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
       contato_whatsapp: contatoWhatsapp.trim() || null,
       contato_email: contatoEmail.trim() || null,
       filtro_status_federado: filtroStatusFederado || null,
+      banner_url: bannerUrl,
     } as any);
 
     onOpenChange(false);
@@ -74,6 +112,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
     setLocalEndereco(''); setCidade(''); setEstado(''); setVagas('');
     setRequisitos(''); setContatoWhatsapp(''); setContatoEmail('');
     setCategorias([]); setPosicoes([]); setFiltroStatusFederado('');
+    setBannerFile(null); setBannerPreview(null);
   };
 
   const toggleArrayItem = (arr: string[], item: string, setter: (v: string[]) => void) => {
@@ -204,6 +243,33 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             <Textarea value={requisitos} onChange={(e) => setRequisitos(e.target.value)} placeholder="Ex: Trazer documento, atestado médico..." rows={2} />
           </div>
 
+          {/* Banner image */}
+          <div>
+            <Label className="flex items-center gap-1"><Image className="w-3 h-3" /> Imagem de Divulgação</Label>
+            {bannerPreview ? (
+              <div className="relative mt-1">
+                <img src={bannerPreview} alt="Banner" className="w-full h-32 object-cover rounded-lg border" />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-1 right-1 w-6 h-6"
+                  onClick={() => { setBannerFile(null); setBannerPreview(null); }}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <label className="mt-1 flex items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <Image className="w-5 h-5" />
+                  <span className="text-xs">Clique para adicionar</span>
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={handleBannerSelect} />
+              </label>
+            )}
+          </div>
+
           {/* Contact */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -216,8 +282,8 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             </div>
           </div>
 
-          <Button onClick={handleSubmit} disabled={createPeneira.isPending} className="w-full gap-2">
-            {createPeneira.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
+          <Button onClick={handleSubmit} disabled={createPeneira.isPending || uploadingBanner} className="w-full gap-2">
+            {(createPeneira.isPending || uploadingBanner) ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
             Criar Peneira
           </Button>
         </div>

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut, Gamepad2, Search, Bell } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2, Search, Bell, CalendarDays } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ interface CarreiraBottomNavProps {
 }
 
 const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', 'empresario'];
+const PENEIRA_TYPES = ['tecnico', 'scout', 'agente_clube', 'dono_escola'];
 
 export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottomNavProps) {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   });
 
   const isScoutingProfile = perfilRede ? SCOUTING_TYPES.includes(perfilRede.tipo) : false;
+  const isPeneiraCreator = perfilRede ? PENEIRA_TYPES.includes(perfilRede.tipo) : false;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -91,6 +93,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   const conexoesPath = carreiraPath('/conexoes');
   const ligaPath = carreiraPath('/liga');
   const descobrirPath = carreiraPath('/descobrir');
+  const eventosPath = carreiraPath('/eventos');
   const ligaAliasPath = carreiraPath('/gamer');
 
   const baseItems = [
@@ -131,8 +134,16 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         badge: 0,
       };
 
-  const items = [
+  // Build items - professionals get Eventos instead of Liga
+  const navItems = [
     ...baseItems,
+    ...(isPeneiraCreator ? [{
+      icon: CalendarDays,
+      label: 'Eventos',
+      onClick: () => navigate(eventosPath, { replace: true }),
+      active: location.pathname === eventosPath,
+      badge: 0,
+    }] : []),
     middleItem,
     {
       icon: User,
@@ -155,7 +166,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-[9999] bg-background border-t border-border lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex items-center justify-around h-14">
-        {items.map((item) => (
+        {navItems.map((item) => (
           <button
             key={item.label}
             onClick={() => {

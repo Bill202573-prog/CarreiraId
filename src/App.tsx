@@ -44,6 +44,7 @@ const CarreiraAdminComunicadosPage = lazy(() => import("./pages/carreira/admin/C
 const CarreiraAdminTutoriaisPage = lazy(() => import("./pages/carreira/admin/CarreiraAdminTutoriaisPage"));
 const ResetPasswordPage = lazy(() => import("./pages/carreira/ResetPasswordPage"));
 const CarreiraPlanosPage = lazy(() => import("./pages/carreira/CarreiraPlanosPage"));
+const CarreiraEventosPage = lazy(() => import("./pages/carreira/CarreiraEventosPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/privacidade" element={<PrivacidadePage />} />
               <Route path="/contato" element={<ContatoPage />} />
               <Route path="/planos" element={<CarreiraPlanosPage />} />
+              <Route path="/eventos" element={<CarreiraEventosPage />} />
               {/* Carreira ID — Admin */}
               <Route path="/carreira/admin" element={<CarreiraAdminDashboard />} />
               <Route path="/carreira/admin/perfis" element={<CarreiraAdminPerfisPage />} />
