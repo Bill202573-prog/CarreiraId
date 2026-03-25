@@ -147,7 +147,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
       return;
     }
 
-    const result = await validateVideo(file, limites.video_seg, limites.video_max_mb);
+    const result = await validateVideo(file, effectiveLimites.video_seg, effectiveLimites.video_max_mb);
     
     if (!result.valid) {
       toast.error(result.error || 'Vídeo não permitido');
