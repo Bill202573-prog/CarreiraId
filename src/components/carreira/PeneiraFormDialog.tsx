@@ -51,7 +51,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressed = await compressImage(file, 1200, 0.8);
+      const compressed = await compressImage(file, { maxWidth: 1200, quality: 0.8 });
       setBannerFile(compressed);
       setBannerPreview(URL.createObjectURL(compressed));
     } catch {
