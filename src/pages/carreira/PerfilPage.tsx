@@ -277,6 +277,15 @@ export default function PerfilPage() {
                     currentUserId={currentUserId}
                   />
                 </TabsContent>
+                {showPeneiras && (
+                  <TabsContent value="peneiras">
+                    <PeneirasSection
+                      userId={redeProfile.user_id}
+                      perfilRedeId={redeProfile.id}
+                      perfilRedeTipo={redeProfile.tipo}
+                    />
+                  </TabsContent>
+                )}
                 {showDescobrir && (
                   <TabsContent value="descobrir">
                     <DescobrirAtletasSection />
