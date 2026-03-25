@@ -241,6 +241,9 @@ export default function PerfilPage() {
                     <TabsTrigger value="historico" className="flex-1">Histórico</TabsTrigger>
                   )}
                   <TabsTrigger value="conexoes" className="flex-1">Conexões</TabsTrigger>
+                  {showPeneiras && (
+                    <TabsTrigger value="peneiras" className="flex-1">Peneiras</TabsTrigger>
+                  )}
                   {showDescobrir && (
                     <TabsTrigger value="descobrir" className="flex-1">
                       {redeProfile.tipo === 'torcedor' ? 'Atletas' : 'Descobrir'}
