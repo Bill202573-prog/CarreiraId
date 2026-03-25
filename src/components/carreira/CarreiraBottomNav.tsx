@@ -134,8 +134,16 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         badge: 0,
       };
 
-  const items = [
+  // Build items - professionals get Eventos instead of Liga
+  const navItems = [
     ...baseItems,
+    ...(isPeneiraCreator ? [{
+      icon: CalendarDays,
+      label: 'Eventos',
+      onClick: () => navigate(eventosPath, { replace: true }),
+      active: location.pathname === eventosPath,
+      badge: 0,
+    }] : []),
     middleItem,
     {
       icon: User,
