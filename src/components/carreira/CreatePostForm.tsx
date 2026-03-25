@@ -78,8 +78,8 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
 
   const lastFetchedUrl = useRef<string | null>(null);
   
-  const postsLimitReached = postsDiaCount >= limites.posts_dia;
-  const canUploadVideo = temAcesso('video_seg');
+  const postsLimitReached = effectivePostsLimitReached;
+  const canUploadVideo = effectiveCanUploadVideo;
 
   const handleTextChange = (value: string) => {
     setTexto(value);
