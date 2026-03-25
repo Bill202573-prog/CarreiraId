@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, CalendarDays, MapPin, Users, Phone, Image } from 'lucide-react';
+import { Loader2, CalendarDays, MapPin, Users, Phone, Image, X } from 'lucide-react';
 import { useCreatePeneira } from '@/hooks/usePeneirasData';
 import { MODALIDADES, CATEGORIAS, ESTADOS } from '@/constants/esportes';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { compressImage } from '@/lib/image-compressor';
 
 interface Props {
   open: boolean;

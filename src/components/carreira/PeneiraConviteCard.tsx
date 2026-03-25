@@ -2,25 +2,37 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, MapPin, User, Check, X, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { CalendarDays, MapPin, User, Check, X, Clock, EyeOff } from 'lucide-react';
+import { format, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PeneiraConvite, useRespondConvitePeneira } from '@/hooks/usePeneirasData';
+import { useState } from 'react';
 
 interface Props {
   convite: PeneiraConvite;
+  showDismiss?: boolean;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Check }> = {
   pendente: { label: 'Pendente', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-200', icon: Clock },
   confirmado: { label: 'Confirmado', color: 'bg-green-500/10 text-green-700 border-green-200', icon: Check },
   recusado: { label: 'Recusado', color: 'bg-red-500/10 text-red-700 border-red-200', icon: X },
+  descartado: { label: 'Descartado', color: 'bg-muted text-muted-foreground border-border', icon: EyeOff },
 };
 
-export function PeneiraConviteCard({ convite }: Props) {
+export function PeneiraConviteCard({ convite, showDismiss }: Props) {
   const respond = useRespondConvitePeneira();
+  const [dismissed, setDismissed] = useState(false);
   const peneira = convite.peneira;
   if (!peneira) return null;
+
+  // Hide if dismissed locally
+  if (dismissed) return null;
+
+  // Hide confirmed/recusado events that are past the event date
+  const eventDate = new Date(peneira.data_evento);
+  const isPast = isBefore(eventDate, new Date());
+  if (isPast && convite.status !== 'pendente') return null;
 
   const statusConfig = STATUS_CONFIG[convite.status] || STATUS_CONFIG.pendente;
   const StatusIcon = statusConfig.icon;
@@ -29,6 +41,11 @@ export function PeneiraConviteCard({ convite }: Props) {
   return (
     <Card className="border-l-4 border-l-primary">
       <CardContent className="pt-4 space-y-3">
+        {/* Banner */}
+        {peneira.banner_url && (
+          <img src={peneira.banner_url} alt={peneira.titulo} className="w-full h-28 object-cover rounded-md -mt-1" />
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
@@ -56,7 +73,7 @@ export function PeneiraConviteCard({ convite }: Props) {
         <div className="space-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <CalendarDays className="w-3 h-3" />
-            {format(new Date(peneira.data_evento), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+            {format(eventDate, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
           </div>
           <div className="flex items-center gap-1.5">
             <MapPin className="w-3 h-3" />
@@ -103,6 +120,19 @@ export function PeneiraConviteCard({ convite }: Props) {
               Recusar
             </Button>
           </div>
+        )}
+
+        {/* Dismiss button for confirmed events */}
+        {showDismiss && convite.status === 'confirmado' && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="w-full gap-1.5 text-xs text-muted-foreground"
+            onClick={() => setDismissed(true)}
+          >
+            <EyeOff className="w-3 h-3" />
+            Ocultar do perfil
+          </Button>
         )}
       </CardContent>
     </Card>
