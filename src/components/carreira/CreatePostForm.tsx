@@ -187,7 +187,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
     }
 
     if (postsLimitReached) {
-      toast.error(`Você atingiu o limite de ${limites.posts_dia} publicação(ões) por dia no plano ${PLANOS[plano].nome}`);
+      toast.error(`Você atingiu o limite de ${effectiveLimites.posts_dia} publicação(ões) por dia no plano ${PLANOS[plano].nome}`);
       return;
     }
 
