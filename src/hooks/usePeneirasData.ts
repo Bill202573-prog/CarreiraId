@@ -26,7 +26,6 @@ export interface Peneira {
   alcance: string;
   filtro_status_federado: string | null;
   created_at: string;
-  // joined
   criador_perfil_rede?: { nome: string; foto_url: string | null; tipo: string } | null;
 }
 
@@ -42,7 +41,6 @@ export interface PeneiraConvite {
   atleta_perfil?: { nome: string; foto_url: string | null; categoria: string | null; posicao_principal: string | null; cidade: string | null; estado: string | null };
 }
 
-// Types allowed to create peneiras
 const PENEIRA_CREATOR_TYPES = ['tecnico', 'scout', 'agente_clube', 'dono_escola'];
 
 export function useCanCreatePeneira(perfilRedeTipo: string | null) {
@@ -156,6 +154,68 @@ export function useCreatePeneira() {
   });
 }
 
+/** Update an existing peneira */
+export function useUpdatePeneira() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<Peneira> & { id: string }) => {
+      const { error } = await supabase
+        .from('peneiras')
+        .update(data as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['minhas-peneiras'] });
+      queryClient.invalidateQueries({ queryKey: ['peneiras-abertas'] });
+      toast.success('Peneira atualizada!');
+    },
+    onError: (e: any) => toast.error('Erro ao atualizar: ' + e.message),
+  });
+}
+
+/** Cancel a peneira and notify all invited athletes */
+export function useCancelPeneira() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ peneiraId, titulo }: { peneiraId: string; titulo: string }) => {
+      // Update status to cancelada
+      const { error } = await supabase
+        .from('peneiras')
+        .update({ status: 'cancelada' } as any)
+        .eq('id', peneiraId);
+      if (error) throw error;
+
+      // Get all invited athlete user_ids to notify
+      const { data: convites } = await supabase
+        .from('peneira_convites')
+        .select('atleta_user_id')
+        .eq('peneira_id', peneiraId);
+
+      if (convites && convites.length > 0) {
+        const userIds = convites.map((c) => c.atleta_user_id);
+        try {
+          await supabase.functions.invoke('send-carreira-push', {
+            body: {
+              user_ids: userIds,
+              title: '❌ Peneira Cancelada',
+              body: `A peneira "${titulo}" foi cancelada pelo organizador.`,
+              url: '/eventos',
+            },
+          });
+        } catch { /* silent */ }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['minhas-peneiras'] });
+      queryClient.invalidateQueries({ queryKey: ['meus-convites-peneira'] });
+      queryClient.invalidateQueries({ queryKey: ['peneiras-abertas'] });
+      toast.success('Peneira cancelada. Todos os convidados foram notificados.');
+    },
+    onError: (e: any) => toast.error('Erro ao cancelar: ' + e.message),
+  });
+}
+
 /** Send convites to athletes matching filters */
 export function useSendConvitesPeneira() {
   const queryClient = useQueryClient();
@@ -170,7 +230,6 @@ export function useSendConvitesPeneira() {
       const { error } = await supabase.from('peneira_convites').upsert(rows as any, { onConflict: 'peneira_id,atleta_perfil_id' });
       if (error) throw error;
 
-      // Send push notifications
       try {
         await supabase.functions.invoke('send-peneira-push', {
           body: { peneira_id: peneiraId, atleta_user_ids: atletaIds.map((a) => a.user_id) },
@@ -189,7 +248,7 @@ export function useSendConvitesPeneira() {
 export function useRespondConvitePeneira() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ conviteId, status }: { conviteId: string; status: 'confirmado' | 'recusado' }) => {
+    mutationFn: async ({ conviteId, status }: { conviteId: string; status: 'confirmado' | 'recusado' | 'descartado' }) => {
       const { error } = await supabase
         .from('peneira_convites')
         .update({ status, respondido_em: new Date().toISOString() } as any)
@@ -199,7 +258,12 @@ export function useRespondConvitePeneira() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['meus-convites-peneira'] });
       queryClient.invalidateQueries({ queryKey: ['convites-peneira'] });
-      toast.success(vars.status === 'confirmado' ? 'Presença confirmada!' : 'Convite recusado');
+      const msgs: Record<string, string> = {
+        confirmado: 'Presença confirmada!',
+        recusado: 'Convite recusado',
+        descartado: 'Evento ocultado do perfil',
+      };
+      toast.success(msgs[vars.status] || 'Atualizado');
     },
     onError: (e: any) => toast.error('Erro: ' + e.message),
   });

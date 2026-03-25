@@ -195,7 +195,7 @@ function ConvitesContent({
         <div className="space-y-2">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Confirmados</h3>
           {confirmados.map((c) => (
-            <PeneiraConviteCard key={c.id} convite={c} showDismiss />
+            <PeneiraConviteCard key={c.id} convite={c} />
           ))}
         </div>
       )}

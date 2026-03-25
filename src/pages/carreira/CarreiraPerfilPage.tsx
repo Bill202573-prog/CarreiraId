@@ -1007,6 +1007,7 @@ export default function CarreiraPerfilPage() {
                 userId={currentUserId}
                 perfilRedeId={perfil.type === 'rede' ? perfil.id : undefined}
                 perfilRedeTipo={perfil.type === 'rede' ? perfil.tipo : undefined}
+                accentColor={accentColor}
               />
             )}
 

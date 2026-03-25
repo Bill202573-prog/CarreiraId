@@ -2,32 +2,33 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, MapPin, User, Check, X, Clock, EyeOff } from 'lucide-react';
+import { CalendarDays, MapPin, User, Check, X, Clock, EyeOff, Ban } from 'lucide-react';
 import { format, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PeneiraConvite, useRespondConvitePeneira } from '@/hooks/usePeneirasData';
-import { useState } from 'react';
 
 interface Props {
   convite: PeneiraConvite;
-  showDismiss?: boolean;
+  accentColor?: string;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Check }> = {
   pendente: { label: 'Pendente', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-200', icon: Clock },
   confirmado: { label: 'Confirmado', color: 'bg-green-500/10 text-green-700 border-green-200', icon: Check },
   recusado: { label: 'Recusado', color: 'bg-red-500/10 text-red-700 border-red-200', icon: X },
-  descartado: { label: 'Descartado', color: 'bg-muted text-muted-foreground border-border', icon: EyeOff },
+  descartado: { label: 'Oculto', color: 'bg-muted text-muted-foreground border-border', icon: EyeOff },
 };
 
-export function PeneiraConviteCard({ convite, showDismiss }: Props) {
+export function PeneiraConviteCard({ convite, accentColor }: Props) {
   const respond = useRespondConvitePeneira();
-  const [dismissed, setDismissed] = useState(false);
   const peneira = convite.peneira;
   if (!peneira) return null;
 
-  // Hide if dismissed locally
-  if (dismissed) return null;
+  // Hide descartado convites
+  if (convite.status === 'descartado') return null;
+
+  // Hide if peneira was cancelled and already responded
+  if (peneira.status === 'cancelada' && convite.status !== 'pendente') return null;
 
   // Hide confirmed/recusado events that are past the event date
   const eventDate = new Date(peneira.data_evento);
@@ -37,21 +38,32 @@ export function PeneiraConviteCard({ convite, showDismiss }: Props) {
   const statusConfig = STATUS_CONFIG[convite.status] || STATUS_CONFIG.pendente;
   const StatusIcon = statusConfig.icon;
   const criador = peneira.criador_perfil_rede;
+  const borderColor = accentColor || 'hsl(var(--primary))';
+
+  const isCancelled = peneira.status === 'cancelada';
 
   return (
-    <Card className="border-l-4 border-l-primary">
+    <Card className="border-l-4" style={{ borderLeftColor: borderColor }}>
       <CardContent className="pt-4 space-y-3">
         {/* Banner */}
         {peneira.banner_url && (
           <img src={peneira.banner_url} alt={peneira.titulo} className="w-full h-28 object-cover rounded-md -mt-1" />
         )}
 
+        {/* Cancelled notice */}
+        {isCancelled && (
+          <div className="flex items-center gap-2 text-xs text-red-500 bg-red-500/10 rounded-md px-3 py-2">
+            <Ban className="w-3.5 h-3.5 shrink-0" />
+            <span>Este evento foi cancelado pelo organizador.</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <CalendarDays className="w-4 h-4 text-primary shrink-0" />
-              <h3 className="font-semibold text-sm line-clamp-2">{peneira.titulo}</h3>
+              <CalendarDays className="w-4 h-4 shrink-0" style={{ color: borderColor }} />
+              <h3 className="font-semibold text-sm line-clamp-2 text-foreground">{peneira.titulo}</h3>
             </div>
             {criador && (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -97,8 +109,8 @@ export function PeneiraConviteCard({ convite, showDismiss }: Props) {
           </div>
         )}
 
-        {/* Actions */}
-        {convite.status === 'pendente' && (
+        {/* Actions for pending */}
+        {convite.status === 'pendente' && !isCancelled && (
           <div className="flex gap-2 pt-1">
             <Button
               size="sm"
@@ -123,12 +135,13 @@ export function PeneiraConviteCard({ convite, showDismiss }: Props) {
         )}
 
         {/* Dismiss button for confirmed events */}
-        {showDismiss && convite.status === 'confirmado' && (
+        {convite.status === 'confirmado' && !isPast && (
           <Button
             size="sm"
             variant="ghost"
             className="w-full gap-1.5 text-xs text-muted-foreground"
-            onClick={() => setDismissed(true)}
+            onClick={() => respond.mutate({ conviteId: convite.id, status: 'descartado' })}
+            disabled={respond.isPending}
           >
             <EyeOff className="w-3 h-3" />
             Ocultar do perfil

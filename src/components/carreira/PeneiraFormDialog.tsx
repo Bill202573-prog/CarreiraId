@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, CalendarDays, MapPin, Users, Phone, Image, X } from 'lucide-react';
-import { useCreatePeneira } from '@/hooks/usePeneirasData';
+import { useCreatePeneira, useUpdatePeneira, Peneira } from '@/hooks/usePeneirasData';
 import { MODALIDADES, CATEGORIAS, ESTADOS } from '@/constants/esportes';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   criadorId: string;
   criadorPerfilRedeId: string;
+  editPeneira?: Peneira | null;
 }
 
 const POSICOES = [
@@ -25,8 +26,10 @@ const POSICOES = [
   'Centroavante', 'Qualquer',
 ];
 
-export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfilRedeId }: Props) {
+export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfilRedeId, editPeneira }: Props) {
   const createPeneira = useCreatePeneira();
+  const updatePeneira = useUpdatePeneira();
+  const isEdit = !!editPeneira;
 
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -47,6 +50,42 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
+  // Populate fields when editing
+  useEffect(() => {
+    if (editPeneira && open) {
+      setTitulo(editPeneira.titulo);
+      setDescricao(editPeneira.descricao || '');
+      // Convert ISO to datetime-local format
+      const dt = new Date(editPeneira.data_evento);
+      const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setDataEvento(local);
+      setLocalNome(editPeneira.local_nome);
+      setLocalEndereco(editPeneira.local_endereco || '');
+      setCidade(editPeneira.cidade || '');
+      setEstado(editPeneira.estado || '');
+      setModalidade(editPeneira.modalidade);
+      setCategorias(editPeneira.categorias || []);
+      setPosicoes(editPeneira.posicoes || []);
+      setVagas(editPeneira.vagas ? String(editPeneira.vagas) : '');
+      setRequisitos(editPeneira.requisitos || '');
+      setContatoWhatsapp(editPeneira.contato_whatsapp || '');
+      setContatoEmail(editPeneira.contato_email || '');
+      setFiltroStatusFederado(editPeneira.filtro_status_federado || '');
+      setBannerPreview(editPeneira.banner_url || null);
+      setBannerFile(null);
+    } else if (!open) {
+      resetForm();
+    }
+  }, [editPeneira, open]);
+
+  const resetForm = () => {
+    setTitulo(''); setDescricao(''); setDataEvento(''); setLocalNome('');
+    setLocalEndereco(''); setCidade(''); setEstado(''); setVagas('');
+    setRequisitos(''); setContatoWhatsapp(''); setContatoEmail('');
+    setCategorias([]); setPosicoes([]); setFiltroStatusFederado('');
+    setBannerFile(null); setBannerPreview(null);
+  };
+
   const handleBannerSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -60,7 +99,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
   };
 
   const uploadBanner = async (): Promise<string | null> => {
-    if (!bannerFile) return null;
+    if (!bannerFile) return bannerPreview; // keep existing if no new file
     setUploadingBanner(true);
     try {
       const ext = bannerFile.name.split('.').pop() || 'jpg';
@@ -85,9 +124,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
 
     const bannerUrl = await uploadBanner();
 
-    await createPeneira.mutateAsync({
-      criador_id: criadorId,
-      criador_perfil_rede_id: criadorPerfilRedeId,
+    const payload = {
       titulo: titulo.trim(),
       descricao: descricao.trim() || null,
       data_evento: new Date(dataEvento).toISOString(),
@@ -104,20 +141,26 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
       contato_email: contatoEmail.trim() || null,
       filtro_status_federado: filtroStatusFederado || null,
       banner_url: bannerUrl,
-    } as any);
+    };
+
+    if (isEdit && editPeneira) {
+      await updatePeneira.mutateAsync({ id: editPeneira.id, ...payload } as any);
+    } else {
+      await createPeneira.mutateAsync({
+        criador_id: criadorId,
+        criador_perfil_rede_id: criadorPerfilRedeId,
+        ...payload,
+      } as any);
+    }
 
     onOpenChange(false);
-    // Reset
-    setTitulo(''); setDescricao(''); setDataEvento(''); setLocalNome('');
-    setLocalEndereco(''); setCidade(''); setEstado(''); setVagas('');
-    setRequisitos(''); setContatoWhatsapp(''); setContatoEmail('');
-    setCategorias([]); setPosicoes([]); setFiltroStatusFederado('');
-    setBannerFile(null); setBannerPreview(null);
   };
 
   const toggleArrayItem = (arr: string[], item: string, setter: (v: string[]) => void) => {
     setter(arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item]);
   };
+
+  const isPending = createPeneira.isPending || updatePeneira.isPending || uploadingBanner;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,42 +168,42 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
-            Criar Peneira / Seletiva
+            {isEdit ? 'Editar Peneira' : 'Criar Peneira / Seletiva'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Basic info */}
-          <div>
+          <div className="space-y-1.5">
             <Label>Título *</Label>
             <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Peneira Sub-15 - Temporada 2026" />
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label>Descrição</Label>
             <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhes do evento, o que esperar..." rows={3} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="space-y-1.5">
               <Label>Data e Horário *</Label>
               <Input type="datetime-local" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} />
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label>Vagas</Label>
               <Input type="number" value={vagas} onChange={(e) => setVagas(e.target.value)} placeholder="Ex: 30" />
             </div>
           </div>
 
           {/* Location */}
-          <div>
+          <div className="space-y-1.5">
             <Label className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Local *</Label>
-            <Input value={localNome} onChange={(e) => setLocalNome(e.target.value)} placeholder="Nome do local" className="mb-2" />
-            <Input value={localEndereco} onChange={(e) => setLocalEndereco(e.target.value)} placeholder="Endereço (opcional)" />
+            <Input value={localNome} onChange={(e) => setLocalNome(e.target.value)} placeholder="Nome do local" />
+            <Input value={localEndereco} onChange={(e) => setLocalEndereco(e.target.value)} placeholder="Endereço (opcional)" className="mt-1.5" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="space-y-1.5">
               <Label>Estado</Label>
               <Select value={estado} onValueChange={setEstado}>
                 <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
@@ -169,14 +212,14 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label>Cidade</Label>
               <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" />
             </div>
           </div>
 
           {/* Filters */}
-          <div>
+          <div className="space-y-1.5">
             <Label>Modalidade</Label>
             <Select value={modalidade} onValueChange={setModalidade}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -186,7 +229,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             </Select>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label className="flex items-center gap-1"><Users className="w-3 h-3" /> Categorias desejadas</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {CATEGORIAS.map((cat) => (
@@ -206,7 +249,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label>Posições desejadas</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {POSICOES.map((pos) => (
@@ -226,7 +269,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label>Status do atleta</Label>
             <Select value={filtroStatusFederado} onValueChange={setFiltroStatusFederado}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
@@ -238,13 +281,13 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             </Select>
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label>Requisitos adicionais</Label>
             <Textarea value={requisitos} onChange={(e) => setRequisitos(e.target.value)} placeholder="Ex: Trazer documento, atestado médico..." rows={2} />
           </div>
 
           {/* Banner image */}
-          <div>
+          <div className="space-y-1.5">
             <Label className="flex items-center gap-1"><Image className="w-3 h-3" /> Imagem de Divulgação</Label>
             {bannerPreview ? (
               <div className="relative mt-1">
@@ -272,19 +315,19 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
 
           {/* Contact */}
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="space-y-1.5">
               <Label className="flex items-center gap-1"><Phone className="w-3 h-3" /> WhatsApp</Label>
               <Input value={contatoWhatsapp} onChange={(e) => setContatoWhatsapp(e.target.value)} placeholder="(11) 99999-9999" />
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label>E-mail</Label>
               <Input type="email" value={contatoEmail} onChange={(e) => setContatoEmail(e.target.value)} placeholder="contato@email.com" />
             </div>
           </div>
 
-          <Button onClick={handleSubmit} disabled={createPeneira.isPending || uploadingBanner} className="w-full gap-2">
-            {(createPeneira.isPending || uploadingBanner) ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
-            Criar Peneira
+          <Button onClick={handleSubmit} disabled={isPending} className="w-full gap-2">
+            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
+            {isEdit ? 'Salvar Alterações' : 'Criar Peneira'}
           </Button>
         </div>
       </DialogContent>
