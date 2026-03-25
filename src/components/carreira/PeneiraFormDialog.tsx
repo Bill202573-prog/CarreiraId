@@ -43,6 +43,39 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
   const [contatoWhatsapp, setContatoWhatsapp] = useState('');
   const [contatoEmail, setContatoEmail] = useState('');
   const [filtroStatusFederado, setFiltroStatusFederado] = useState('');
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+
+  const handleBannerSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file, 1200, 0.8);
+      setBannerFile(compressed);
+      setBannerPreview(URL.createObjectURL(compressed));
+    } catch {
+      toast.error('Erro ao processar imagem');
+    }
+  };
+
+  const uploadBanner = async (): Promise<string | null> => {
+    if (!bannerFile) return null;
+    setUploadingBanner(true);
+    try {
+      const ext = bannerFile.name.split('.').pop() || 'jpg';
+      const fileName = `peneiras/${criadorId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('carreira-assets').upload(fileName, bannerFile);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('carreira-assets').getPublicUrl(fileName);
+      return publicUrl;
+    } catch (err: any) {
+      toast.error('Erro ao enviar imagem: ' + err.message);
+      return null;
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!titulo.trim() || !dataEvento || !localNome.trim()) {
