@@ -134,8 +134,8 @@ export function PeneiraConviteCard({ convite, accentColor }: Props) {
           </div>
         )}
 
-        {/* Dismiss button for confirmed events */}
-        {convite.status === 'confirmado' && !isPast && (
+        {/* Dismiss button for confirmed/recusado events */}
+        {(convite.status === 'confirmado' || convite.status === 'recusado') && !isPast && (
           <Button
             size="sm"
             variant="ghost"

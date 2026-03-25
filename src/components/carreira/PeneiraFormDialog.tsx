@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, CalendarDays, MapPin, Users, Phone, Image, X } from 'lucide-react';
+import { Loader2, CalendarDays, MapPin, Users, Phone, Image, X, Mail } from 'lucide-react';
 import { useCreatePeneira, useUpdatePeneira, Peneira } from '@/hooks/usePeneirasData';
 import { MODALIDADES, CATEGORIAS, ESTADOS } from '@/constants/esportes';
 import { toast } from 'sonner';
@@ -25,6 +25,13 @@ const POSICOES = [
   'Volante', 'Meia', 'Atacante', 'Ponta Direita', 'Ponta Esquerda',
   'Centroavante', 'Qualquer',
 ];
+
+function formatPhoneMask(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
 
 export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfilRedeId, editPeneira }: Props) {
   const createPeneira = useCreatePeneira();
@@ -50,12 +57,10 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  // Populate fields when editing
   useEffect(() => {
     if (editPeneira && open) {
       setTitulo(editPeneira.titulo);
       setDescricao(editPeneira.descricao || '');
-      // Convert ISO to datetime-local format
       const dt = new Date(editPeneira.data_evento);
       const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
       setDataEvento(local);
@@ -68,7 +73,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
       setPosicoes(editPeneira.posicoes || []);
       setVagas(editPeneira.vagas ? String(editPeneira.vagas) : '');
       setRequisitos(editPeneira.requisitos || '');
-      setContatoWhatsapp(editPeneira.contato_whatsapp || '');
+      setContatoWhatsapp(editPeneira.contato_whatsapp ? formatPhoneMask(editPeneira.contato_whatsapp) : '');
       setContatoEmail(editPeneira.contato_email || '');
       setFiltroStatusFederado(editPeneira.filtro_status_federado || '');
       setBannerPreview(editPeneira.banner_url || null);
@@ -99,7 +104,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
   };
 
   const uploadBanner = async (): Promise<string | null> => {
-    if (!bannerFile) return bannerPreview; // keep existing if no new file
+    if (!bannerFile) return bannerPreview;
     setUploadingBanner(true);
     try {
       const ext = bannerFile.name.split('.').pop() || 'jpg';
@@ -123,6 +128,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
     }
 
     const bannerUrl = await uploadBanner();
+    const whatsappDigits = contatoWhatsapp.replace(/\D/g, '') || null;
 
     const payload = {
       titulo: titulo.trim(),
@@ -137,7 +143,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
       posicoes,
       vagas: vagas ? parseInt(vagas) : null,
       requisitos: requisitos.trim() || null,
-      contato_whatsapp: contatoWhatsapp.trim() || null,
+      contato_whatsapp: whatsappDigits,
       contato_email: contatoEmail.trim() || null,
       filtro_status_federado: filtroStatusFederado || null,
       banner_url: bannerUrl,
@@ -164,7 +170,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto pb-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
@@ -172,7 +178,7 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Basic info */}
           <div className="space-y-1.5">
             <Label>Título *</Label>
@@ -317,18 +323,25 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1"><Phone className="w-3 h-3" /> WhatsApp</Label>
-              <Input value={contatoWhatsapp} onChange={(e) => setContatoWhatsapp(e.target.value)} placeholder="(11) 99999-9999" />
+              <Input
+                value={contatoWhatsapp}
+                onChange={(e) => setContatoWhatsapp(formatPhoneMask(e.target.value))}
+                placeholder="(11) 99999-9999"
+                maxLength={15}
+              />
             </div>
             <div className="space-y-1.5">
-              <Label>E-mail</Label>
+              <Label className="flex items-center gap-1"><Mail className="w-3 h-3" /> E-mail</Label>
               <Input type="email" value={contatoEmail} onChange={(e) => setContatoEmail(e.target.value)} placeholder="contato@email.com" />
             </div>
           </div>
 
-          <Button onClick={handleSubmit} disabled={isPending} className="w-full gap-2">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
-            {isEdit ? 'Salvar Alterações' : 'Criar Peneira'}
-          </Button>
+          <div className="pt-2 pb-2">
+            <Button onClick={handleSubmit} disabled={isPending} className="w-full gap-2">
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
+              {isEdit ? 'Salvar Alterações' : 'Criar Peneira'}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, Plus, Loader2 } from 'lucide-react';
 import { useMinhasPeneiras, useMeusConvitesPeneira, useCanCreatePeneira } from '@/hooks/usePeneirasData';
 import { PeneiraFormDialog } from './PeneiraFormDialog';
 import { PeneiraCard } from './PeneiraCard';
 import { PeneiraConviteCard } from './PeneiraConviteCard';
+import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 
 interface Props {
   userId: string;
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export function PeneirasSection({ userId, perfilRedeId, perfilRedeTipo, accentColor }: Props) {
+  const navigate = useNavigate();
   const canCreate = useCanCreatePeneira(perfilRedeTipo || null);
   const { data: minhasPeneiras = [], isLoading: loadingPeneiras } = useMinhasPeneiras(canCreate ? userId : null);
   const { data: meusConvites = [], isLoading: loadingConvites } = useMeusConvitesPeneira(userId);
@@ -27,10 +30,14 @@ export function PeneirasSection({ userId, perfilRedeId, perfilRedeTipo, accentCo
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: accentColor || 'hsl(var(--primary))' }}>
+        <button
+          onClick={() => navigate(carreiraPath('/eventos'))}
+          className="text-base font-semibold flex items-center gap-2 hover:opacity-80 transition-opacity"
+          style={{ color: accentColor || 'hsl(var(--primary))' }}
+        >
           <CalendarDays className="w-5 h-5" />
           Peneiras
-        </h2>
+        </button>
         {canCreate && perfilRedeId && (
           <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setFormOpen(true)}>
             <Plus className="w-4 h-4" /> Nova Peneira
