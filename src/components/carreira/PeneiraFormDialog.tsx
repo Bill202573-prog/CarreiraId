@@ -243,6 +243,33 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             <Textarea value={requisitos} onChange={(e) => setRequisitos(e.target.value)} placeholder="Ex: Trazer documento, atestado médico..." rows={2} />
           </div>
 
+          {/* Banner image */}
+          <div>
+            <Label className="flex items-center gap-1"><Image className="w-3 h-3" /> Imagem de Divulgação</Label>
+            {bannerPreview ? (
+              <div className="relative mt-1">
+                <img src={bannerPreview} alt="Banner" className="w-full h-32 object-cover rounded-lg border" />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-1 right-1 w-6 h-6"
+                  onClick={() => { setBannerFile(null); setBannerPreview(null); }}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <label className="mt-1 flex items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <Image className="w-5 h-5" />
+                  <span className="text-xs">Clique para adicionar</span>
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={handleBannerSelect} />
+              </label>
+            )}
+          </div>
+
           {/* Contact */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -255,8 +282,8 @@ export function PeneiraFormDialog({ open, onOpenChange, criadorId, criadorPerfil
             </div>
           </div>
 
-          <Button onClick={handleSubmit} disabled={createPeneira.isPending} className="w-full gap-2">
-            {createPeneira.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
+          <Button onClick={handleSubmit} disabled={createPeneira.isPending || uploadingBanner} className="w-full gap-2">
+            {(createPeneira.isPending || uploadingBanner) ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
             Criar Peneira
           </Button>
         </div>
