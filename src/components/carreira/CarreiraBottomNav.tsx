@@ -93,6 +93,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   const conexoesPath = carreiraPath('/conexoes');
   const ligaPath = carreiraPath('/liga');
   const descobrirPath = carreiraPath('/descobrir');
+  const eventosPath = carreiraPath('/eventos');
   const ligaAliasPath = carreiraPath('/gamer');
 
   const baseItems = [
