@@ -10,6 +10,7 @@ import { ConnectionsSection } from '@/components/carreira/ConnectionsSection';
 import { EditPerfilRedeDialog } from '@/components/carreira/EditPerfilRedeDialog';
 import { HistoricoProfissionalSection, type HistoricoProfissional } from '@/components/carreira/HistoricoProfissionalSection';
 import { HistoricoProfissionalFormDialog } from '@/components/carreira/HistoricoProfissionalFormDialog';
+import { PeneirasSection } from '@/components/carreira/PeneirasSection';
 
 import { MigrarPerfilBanner } from '@/components/carreira/MigrarPerfilBanner';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
@@ -178,6 +179,8 @@ export default function PerfilPage() {
         {(() => {
           const redeAccent = (redeProfile.dados_perfil as any)?.cor_destaque || '#3b82f6';
           const SCOUTING_TYPES = ['tecnico', 'scout', 'agente_clube', 'escola_esportes', 'empresario'];
+          const PENEIRA_TYPES = ['tecnico', 'scout', 'agente_clube', 'dono_escola'];
+          const showPeneiras = isOwnProfile && PENEIRA_TYPES.includes(redeProfile.tipo);
           const showDescobrir = isOwnProfile && (SCOUTING_TYPES.includes(redeProfile.tipo) || redeProfile.tipo === 'torcedor');
           const NON_HISTORICO_TYPES = ['atleta_filho', 'pai_responsavel', 'influenciador', 'torcedor'];
           const showHistorico = !NON_HISTORICO_TYPES.includes(redeProfile.tipo);
@@ -209,8 +212,8 @@ export default function PerfilPage() {
             toast.success('Experiência removida');
           };
 
-          const tabCount = 3 + (showHistorico ? 1 : 0) + (showDescobrir ? 1 : 0);
-          const gridClass = tabCount === 3 ? 'grid-cols-3' : tabCount === 4 ? 'grid-cols-4' : 'grid-cols-5';
+          const tabCount = 3 + (showHistorico ? 1 : 0) + (showDescobrir ? 1 : 0) + (showPeneiras ? 1 : 0);
+          const gridClass = tabCount <= 3 ? 'grid-cols-3' : tabCount === 4 ? 'grid-cols-4' : tabCount === 5 ? 'grid-cols-5' : 'grid-cols-6';
 
           return (
             <>
@@ -238,6 +241,9 @@ export default function PerfilPage() {
                     <TabsTrigger value="historico" className="flex-1">Histórico</TabsTrigger>
                   )}
                   <TabsTrigger value="conexoes" className="flex-1">Conexões</TabsTrigger>
+                  {showPeneiras && (
+                    <TabsTrigger value="peneiras" className="flex-1">Peneiras</TabsTrigger>
+                  )}
                   {showDescobrir && (
                     <TabsTrigger value="descobrir" className="flex-1">
                       {redeProfile.tipo === 'torcedor' ? 'Atletas' : 'Descobrir'}
@@ -271,6 +277,15 @@ export default function PerfilPage() {
                     currentUserId={currentUserId}
                   />
                 </TabsContent>
+                {showPeneiras && (
+                  <TabsContent value="peneiras">
+                    <PeneirasSection
+                      userId={redeProfile.user_id}
+                      perfilRedeId={redeProfile.id}
+                      perfilRedeTipo={redeProfile.tipo}
+                    />
+                  </TabsContent>
+                )}
                 {showDescobrir && (
                   <TabsContent value="descobrir">
                     <DescobrirAtletasSection />

@@ -1,0 +1,110 @@
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CalendarDays, MapPin, User, Check, X, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { PeneiraConvite, useRespondConvitePeneira } from '@/hooks/usePeneirasData';
+
+interface Props {
+  convite: PeneiraConvite;
+}
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Check }> = {
+  pendente: { label: 'Pendente', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-200', icon: Clock },
+  confirmado: { label: 'Confirmado', color: 'bg-green-500/10 text-green-700 border-green-200', icon: Check },
+  recusado: { label: 'Recusado', color: 'bg-red-500/10 text-red-700 border-red-200', icon: X },
+};
+
+export function PeneiraConviteCard({ convite }: Props) {
+  const respond = useRespondConvitePeneira();
+  const peneira = convite.peneira;
+  if (!peneira) return null;
+
+  const statusConfig = STATUS_CONFIG[convite.status] || STATUS_CONFIG.pendente;
+  const StatusIcon = statusConfig.icon;
+  const criador = peneira.criador_perfil_rede;
+
+  return (
+    <Card className="border-l-4 border-l-primary">
+      <CardContent className="pt-4 space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <CalendarDays className="w-4 h-4 text-primary shrink-0" />
+              <h3 className="font-semibold text-sm line-clamp-2">{peneira.titulo}</h3>
+            </div>
+            {criador && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Avatar className="w-4 h-4">
+                  {criador.foto_url && <AvatarImage src={criador.foto_url} />}
+                  <AvatarFallback><User className="w-2 h-2" /></AvatarFallback>
+                </Avatar>
+                <span>{criador.nome}</span>
+              </div>
+            )}
+          </div>
+          <Badge variant="outline" className={`text-[10px] shrink-0 ${statusConfig.color}`}>
+            <StatusIcon className="w-3 h-3 mr-1" />
+            {statusConfig.label}
+          </Badge>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <CalendarDays className="w-3 h-3" />
+            {format(new Date(peneira.data_evento), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-3 h-3" />
+            {peneira.local_nome}{peneira.cidade ? `, ${peneira.cidade}` : ''}{peneira.estado ? ` - ${peneira.estado}` : ''}
+          </div>
+        </div>
+
+        {peneira.descricao && (
+          <p className="text-xs text-muted-foreground line-clamp-3">{peneira.descricao}</p>
+        )}
+
+        {/* Categories & positions */}
+        {(peneira.categorias?.length > 0 || peneira.posicoes?.length > 0) && (
+          <div className="flex flex-wrap gap-1">
+            {peneira.categorias?.map((c) => (
+              <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
+            ))}
+            {peneira.posicoes?.map((p) => (
+              <Badge key={p} variant="outline" className="text-[10px]">{p}</Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        {convite.status === 'pendente' && (
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              className="flex-1 gap-1.5"
+              onClick={() => respond.mutate({ conviteId: convite.id, status: 'confirmado' })}
+              disabled={respond.isPending}
+            >
+              <Check className="w-4 h-4" />
+              Confirmar Presença
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => respond.mutate({ conviteId: convite.id, status: 'recusado' })}
+              disabled={respond.isPending}
+            >
+              <X className="w-4 h-4" />
+              Recusar
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

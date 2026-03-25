@@ -1279,6 +1279,136 @@ export type Database = {
         }
         Relationships: []
       }
+      peneira_convites: {
+        Row: {
+          atleta_perfil_id: string
+          atleta_user_id: string
+          created_at: string
+          id: string
+          peneira_id: string
+          respondido_em: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          atleta_perfil_id: string
+          atleta_user_id: string
+          created_at?: string
+          id?: string
+          peneira_id: string
+          respondido_em?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          atleta_perfil_id?: string
+          atleta_user_id?: string
+          created_at?: string
+          id?: string
+          peneira_id?: string
+          respondido_em?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peneira_convites_peneira_id_fkey"
+            columns: ["peneira_id"]
+            isOneToOne: false
+            referencedRelation: "peneiras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      peneiras: {
+        Row: {
+          alcance: string
+          banner_url: string | null
+          categorias: string[] | null
+          cidade: string | null
+          contato_email: string | null
+          contato_whatsapp: string | null
+          created_at: string
+          criador_id: string
+          criador_perfil_rede_id: string | null
+          data_evento: string
+          data_fim: string | null
+          descricao: string | null
+          estado: string | null
+          filtro_status_federado: string | null
+          id: string
+          local_endereco: string | null
+          local_nome: string
+          modalidade: string
+          posicoes: string[] | null
+          requisitos: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          vagas: number | null
+        }
+        Insert: {
+          alcance?: string
+          banner_url?: string | null
+          categorias?: string[] | null
+          cidade?: string | null
+          contato_email?: string | null
+          contato_whatsapp?: string | null
+          created_at?: string
+          criador_id: string
+          criador_perfil_rede_id?: string | null
+          data_evento: string
+          data_fim?: string | null
+          descricao?: string | null
+          estado?: string | null
+          filtro_status_federado?: string | null
+          id?: string
+          local_endereco?: string | null
+          local_nome: string
+          modalidade?: string
+          posicoes?: string[] | null
+          requisitos?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          vagas?: number | null
+        }
+        Update: {
+          alcance?: string
+          banner_url?: string | null
+          categorias?: string[] | null
+          cidade?: string | null
+          contato_email?: string | null
+          contato_whatsapp?: string | null
+          created_at?: string
+          criador_id?: string
+          criador_perfil_rede_id?: string | null
+          data_evento?: string
+          data_fim?: string | null
+          descricao?: string | null
+          estado?: string | null
+          filtro_status_federado?: string | null
+          id?: string
+          local_endereco?: string | null
+          local_nome?: string
+          modalidade?: string
+          posicoes?: string[] | null
+          requisitos?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          vagas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peneiras_criador_perfil_rede_id_fkey"
+            columns: ["criador_perfil_rede_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_rede"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfil_atleta: {
         Row: {
           atleta_app_id: string | null
