@@ -53,6 +53,7 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
   });
 
   const isScoutingProfile = perfilRede ? SCOUTING_TYPES.includes(perfilRede.tipo) : false;
+  const isPeneiraCreator = perfilRede ? PENEIRA_TYPES.includes(perfilRede.tipo) : false;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
