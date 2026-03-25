@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Plus, Loader2, ArrowLeft } from 'lucide-react';
-import { useMinhasPeneiras, useMeusConvitesPeneira, useCanCreatePeneira } from '@/hooks/usePeneirasData';
+import { CalendarDays, Plus, Loader2, ArrowLeft, RotateCcw } from 'lucide-react';
+import { useMinhasPeneiras, useMeusConvitesPeneira, useCanCreatePeneira, useRespondConvitePeneira } from '@/hooks/usePeneirasData';
 import { PeneiraFormDialog } from '@/components/carreira/PeneiraFormDialog';
 import { PeneiraCard } from '@/components/carreira/PeneiraCard';
 import { PeneiraConviteCard } from '@/components/carreira/PeneiraConviteCard';
@@ -28,7 +28,6 @@ export default function CarreiraEventosPage() {
     });
   }, [navigate]);
 
-  // Get user's perfil_rede info
   const { data: perfilRede } = useQuery({
     queryKey: ['eventos-perfil-rede', currentUserId],
     queryFn: async () => {
@@ -52,8 +51,8 @@ export default function CarreiraEventosPage() {
   const pendentes = meusConvites.filter((c) => c.status === 'pendente');
   const confirmados = meusConvites.filter((c) => c.status === 'confirmado');
   const respondidos = meusConvites.filter((c) => c.status === 'recusado');
+  const descartados = meusConvites.filter((c) => c.status === 'descartado');
 
-  // Split peneiras by status
   const peneirasAbertas = minhasPeneiras.filter((p) => p.status === 'aberta');
   const peneirasEncerradas = minhasPeneiras.filter((p) => p.status !== 'aberta');
 
@@ -131,11 +130,23 @@ export default function CarreiraEventosPage() {
             </TabsContent>
 
             <TabsContent value="convites" className="space-y-4">
-              <ConvitesContent pendentes={pendentes} confirmados={confirmados} respondidos={respondidos} loading={loadingConvites} />
+              <ConvitesContent
+                pendentes={pendentes}
+                confirmados={confirmados}
+                respondidos={respondidos}
+                descartados={descartados}
+                loading={loadingConvites}
+              />
             </TabsContent>
           </Tabs>
         ) : (
-          <ConvitesContent pendentes={pendentes} confirmados={confirmados} respondidos={respondidos} loading={loadingConvites} />
+          <ConvitesContent
+            pendentes={pendentes}
+            confirmados={confirmados}
+            respondidos={respondidos}
+            descartados={descartados}
+            loading={loadingConvites}
+          />
         )}
       </main>
 
@@ -153,15 +164,42 @@ export default function CarreiraEventosPage() {
   );
 }
 
+function DescartadoRecoverCard({ convite }: { convite: any }) {
+  const respond = useRespondConvitePeneira();
+  const peneira = convite.peneira;
+  if (!peneira) return null;
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate text-foreground">{peneira.titulo}</p>
+        <p className="text-xs text-muted-foreground">{peneira.local_nome}</p>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-1 shrink-0"
+        onClick={() => respond.mutate({ conviteId: convite.id, status: 'confirmado' })}
+        disabled={respond.isPending}
+      >
+        <RotateCcw className="w-3 h-3" />
+        Restaurar
+      </Button>
+    </div>
+  );
+}
+
 function ConvitesContent({
   pendentes,
   confirmados,
   respondidos,
+  descartados,
   loading,
 }: {
   pendentes: any[];
   confirmados: any[];
   respondidos: any[];
+  descartados: any[];
   loading: boolean;
 }) {
   if (loading) {
@@ -172,7 +210,9 @@ function ConvitesContent({
     );
   }
 
-  if (pendentes.length === 0 && confirmados.length === 0 && respondidos.length === 0) {
+  const hasAny = pendentes.length > 0 || confirmados.length > 0 || respondidos.length > 0 || descartados.length > 0;
+
+  if (!hasAny) {
     return (
       <div className="text-center py-12">
         <CalendarDays className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
@@ -204,6 +244,14 @@ function ConvitesContent({
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Recusados</h3>
           {respondidos.map((c) => (
             <PeneiraConviteCard key={c.id} convite={c} />
+          ))}
+        </div>
+      )}
+      {descartados.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ocultos</h3>
+          {descartados.map((c) => (
+            <DescartadoRecoverCard key={c.id} convite={c} />
           ))}
         </div>
       )}

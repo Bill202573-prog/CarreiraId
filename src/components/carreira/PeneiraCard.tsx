@@ -36,6 +36,8 @@ export function PeneiraCard({ peneira, isOwner }: Props) {
 
   const criador = peneira.criador_perfil_rede;
   const confirmados = convites.filter((c) => c.status === 'confirmado').length;
+  const pendentes = convites.filter((c) => c.status === 'pendente').length;
+  const recusados = convites.filter((c) => c.status === 'recusado').length;
 
   const statusLabel = peneira.status === 'aberta' ? 'Aberta' : peneira.status === 'cancelada' ? 'Cancelada' : peneira.status;
   const statusClass = peneira.status === 'aberta'
@@ -105,6 +107,16 @@ export function PeneiraCard({ peneira, isOwner }: Props) {
               </div>
             )}
 
+            {/* Convites summary for owner */}
+            {isOwner && convites.length > 0 && (
+              <div className="flex items-center gap-3 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+                <span className="text-green-600 font-medium">✓ {confirmados}</span>
+                <span className="text-yellow-600 font-medium">⏳ {pendentes}</span>
+                <span className="text-red-600 font-medium">✗ {recusados}</span>
+                <span className="text-muted-foreground ml-auto">{convites.length} convites</span>
+              </div>
+            )}
+
             {/* Owner actions */}
             {isOwner && peneira.status === 'aberta' && (
               <div className="space-y-2 pt-1">
@@ -113,8 +125,7 @@ export function PeneiraCard({ peneira, isOwner }: Props) {
                     <Send className="w-3 h-3" /> Convidar
                   </Button>
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setConvitesListOpen(true)}>
-                    <Eye className="w-3 h-3" />
-                    {confirmados}/{convites.length}
+                    <Eye className="w-3 h-3" /> Ver Convites
                   </Button>
                 </div>
                 <div className="flex gap-2">
@@ -126,6 +137,13 @@ export function PeneiraCard({ peneira, isOwner }: Props) {
                   </Button>
                 </div>
               </div>
+            )}
+
+            {/* Show convites button for cancelled/closed peneiras */}
+            {isOwner && peneira.status !== 'aberta' && convites.length > 0 && (
+              <Button size="sm" variant="outline" className="w-full gap-1.5" onClick={() => setConvitesListOpen(true)}>
+                <Eye className="w-3 h-3" /> Ver Convites ({convites.length})
+              </Button>
             )}
           </div>
         </CardContent>
