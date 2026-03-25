@@ -283,6 +283,7 @@ export default function PerfilPage() {
                       userId={redeProfile.user_id}
                       perfilRedeId={redeProfile.id}
                       perfilRedeTipo={redeProfile.tipo}
+                      accentColor={redeAccent}
                     />
                   </TabsContent>
                 )}
