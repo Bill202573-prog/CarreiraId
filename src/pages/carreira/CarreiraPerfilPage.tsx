@@ -21,6 +21,7 @@ import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { CarreiraPushAutoSubscribe } from '@/components/carreira/CarreiraPushAutoSubscribe';
 import { TutorialAutoShow } from '@/components/carreira/TutorialAutoShow';
 import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
+import { PeneirasSection } from '@/components/carreira/PeneirasSection';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
 import { Button } from '@/components/ui/button';
