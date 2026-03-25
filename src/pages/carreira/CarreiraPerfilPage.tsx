@@ -1001,6 +1001,15 @@ export default function CarreiraPerfilPage() {
               </Card>
             )}
 
+            {/* Peneiras Section */}
+            {isOwner && currentUserId && (
+              <PeneirasSection
+                userId={currentUserId}
+                perfilRedeId={perfil.type === 'rede' ? perfil.id : undefined}
+                perfilRedeTipo={perfil.type === 'rede' ? perfil.tipo : undefined}
+              />
+            )}
+
             {/* Quem viu este perfil — public, below profile header */}
             {perfil.type === 'atleta' && profileViews && profileViews.length > 0 && (
               <ProfileViewsSection views={profileViews} accentColor={accentColor} navigate={navigate} />
