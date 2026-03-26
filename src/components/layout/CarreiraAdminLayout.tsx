@@ -13,7 +13,7 @@ import {
 import { NavLink } from '@/components/NavLink';
 import logoCarreira from '@/assets/logo-carreira-id.png';
 
-import { Settings2, Megaphone, GraduationCap } from 'lucide-react';
+import { Settings2, Megaphone, GraduationCap, Stethoscope } from 'lucide-react';
 
 const navItems = [
   { title: 'Dashboard', url: '/carreira/admin', icon: LayoutDashboard },
@@ -27,6 +27,7 @@ const navItems = [
   { title: 'Performance', url: '/carreira/admin/performance', icon: Trophy },
   { title: 'Moderação', url: '/carreira/admin/moderacao', icon: Shield },
   { title: 'Tutoriais', url: '/carreira/admin/tutoriais', icon: GraduationCap },
+  { title: 'Diagnóstico', url: '/carreira/admin/diagnostico', icon: Stethoscope },
 ];
 
 function CarreiraAdminSidebar() {

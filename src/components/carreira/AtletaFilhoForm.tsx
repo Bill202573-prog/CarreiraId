@@ -102,7 +102,8 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
         .maybeSingle();
 
       if (existingPerfil) {
-        toast.info('Você já possui um perfil de atleta cadastrado.');
+        toast.info('Você já possui um perfil de atleta cadastrado. Redirecionando...', { duration: 4000 });
+        setIsLoading(false);
         await onComplete();
         return;
       }
