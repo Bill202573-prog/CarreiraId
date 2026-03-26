@@ -27,6 +27,7 @@ const navItems = [
   { title: 'Performance', url: '/carreira/admin/performance', icon: Trophy },
   { title: 'Moderação', url: '/carreira/admin/moderacao', icon: Shield },
   { title: 'Tutoriais', url: '/carreira/admin/tutoriais', icon: GraduationCap },
+  { title: 'Diagnóstico', url: '/carreira/admin/diagnostico', icon: Stethoscope },
 ];
 
 function CarreiraAdminSidebar() {
