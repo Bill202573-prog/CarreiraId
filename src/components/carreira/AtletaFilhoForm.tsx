@@ -82,11 +82,21 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
     const cleanPhoneInput = telefoneWhatsapp.replace(/\D/g, '');
     let cleanPhone: string | null = null;
 
-    if (cleanDocInput.length === 11 && validateCPF(cleanDocInput)) {
+    // Validate CPF if provided
+    if (cleanDocInput.length > 0) {
+      if (!validateCPF(cleanDocInput)) {
+        toast.error('CPF inválido. Verifique os números digitados.');
+        return;
+      }
       cleanDoc = cleanDocInput;
     }
 
-    if (cleanPhoneInput.length >= 10 && cleanPhoneInput.length <= 11) {
+    // Validate WhatsApp if provided
+    if (cleanPhoneInput.length > 0) {
+      if (!validatePhone(cleanPhoneInput)) {
+        toast.error('Número de WhatsApp inválido. Use um número real com DDD (ex: 21 99999-9999).');
+        return;
+      }
       cleanPhone = cleanPhoneInput;
     }
 
