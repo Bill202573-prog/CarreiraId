@@ -716,6 +716,13 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
           Criar Perfil
         </Button>
+
+        <p className="text-xs text-center text-muted-foreground mt-3">
+          Dúvidas ou problemas no cadastro?{' '}
+          <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            Fale com o suporte via WhatsApp
+          </a>
+        </p>
       </form>
     </div>
   );
