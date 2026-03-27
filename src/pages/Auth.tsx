@@ -232,10 +232,25 @@ const Auth = () => {
               <PwaInstallButton />
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-700 text-center">
+            <div className="mt-6 pt-6 border-t border-gray-700 text-center space-y-3">
               <p className="text-sm text-gray-400">
                 {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
                 {' '}
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-orange-500 hover:underline font-medium"
+                >
+                  {isLogin ? 'Cadastre-se' : 'Faça login'}
+                </button>
+              </p>
+              <p className="text-xs text-gray-500">
+                Dúvidas ou problemas?{' '}
+                <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-orange-500/80 hover:underline">
+                  Fale com o suporte via WhatsApp
+                </a>
+              </p>
+            </div>
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
