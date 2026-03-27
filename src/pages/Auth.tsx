@@ -251,15 +251,6 @@ const Auth = () => {
                 </a>
               </p>
             </div>
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-orange-500 hover:underline font-medium"
-                >
-                  {isLogin ? 'Cadastre-se' : 'Faça login'}
-                </button>
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
