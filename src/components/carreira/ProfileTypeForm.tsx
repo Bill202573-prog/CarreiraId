@@ -245,23 +245,35 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       return;
     }
 
-    // Validate CPF/CNPJ (relaxed for testing — accept any non-empty value)
+    // Validate CPF/CNPJ
     const cleanDoc = documento.replace(/\D/g, '');
     if (!cleanDoc) {
       toast.error(`${tipoDocumento === 'cnpj' ? 'CNPJ' : 'CPF'} é obrigatório`);
       return;
     }
+    if (!validateDocument(cleanDoc, tipoDocumento)) {
+      toast.error(`${tipoDocumento === 'cnpj' ? 'CNPJ' : 'CPF'} inválido. Verifique os números digitados.`);
+      return;
+    }
 
-    // Validate WhatsApp (relaxed for testing — accept any number with at least 8 digits)
+    // Validate WhatsApp
     const cleanPhone = telefoneWhatsapp.replace(/\D/g, '');
-    if (!cleanPhone || cleanPhone.length < 8) {
+    if (!cleanPhone) {
       toast.error('WhatsApp é obrigatório');
+      return;
+    }
+    if (!validatePhoneNumber(cleanPhone)) {
+      toast.error('Número de WhatsApp inválido. Use um número real com DDD (ex: 21 99999-9999).');
       return;
     }
 
     // Validate email
-    if (!email.trim() || !email.includes('@')) {
+    if (!email.trim()) {
       toast.error('Email é obrigatório');
+      return;
+    }
+    if (!validateEmailAddress(email.trim())) {
+      toast.error('Email inválido. Verifique o endereço digitado.');
       return;
     }
 
