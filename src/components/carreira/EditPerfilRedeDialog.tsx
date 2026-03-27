@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCPF } from '@/lib/cpf-validator';
 import { formatCNPJ } from '@/lib/cnpj-validator';
+import { validateDocument, validatePhone as validatePhoneNumber, validateEmail as validateEmailAddress, formatPhoneMask, SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 import { ColorPicker } from './ColorPicker';
 
 // ── Dynamic field definitions per profile type (mirrors ProfileTypeForm) ──
