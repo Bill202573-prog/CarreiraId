@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, Upload, Lock, Plus, Trash2 } from 'lucide-react';
 import type { ProfileType } from './ProfileTypeSelector';
 import { validateCPF, formatCPF, cleanCPF } from '@/lib/cpf-validator';
 import { validateCNPJ, formatCNPJ } from '@/lib/cnpj-validator';
+import { validatePhone as validatePhoneNumber, validateEmail as validateEmailAddress, validateDocument, SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 
 
 interface Props {
@@ -245,23 +246,35 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       return;
     }
 
-    // Validate CPF/CNPJ (relaxed for testing — accept any non-empty value)
+    // Validate CPF/CNPJ
     const cleanDoc = documento.replace(/\D/g, '');
     if (!cleanDoc) {
       toast.error(`${tipoDocumento === 'cnpj' ? 'CNPJ' : 'CPF'} é obrigatório`);
       return;
     }
+    if (!validateDocument(cleanDoc, tipoDocumento)) {
+      toast.error(`${tipoDocumento === 'cnpj' ? 'CNPJ' : 'CPF'} inválido. Verifique os números digitados.`);
+      return;
+    }
 
-    // Validate WhatsApp (relaxed for testing — accept any number with at least 8 digits)
+    // Validate WhatsApp
     const cleanPhone = telefoneWhatsapp.replace(/\D/g, '');
-    if (!cleanPhone || cleanPhone.length < 8) {
+    if (!cleanPhone) {
       toast.error('WhatsApp é obrigatório');
+      return;
+    }
+    if (!validatePhoneNumber(cleanPhone)) {
+      toast.error('Número de WhatsApp inválido. Use um número real com DDD (ex: 21 99999-9999).');
       return;
     }
 
     // Validate email
-    if (!email.trim() || !email.includes('@')) {
+    if (!email.trim()) {
       toast.error('Email é obrigatório');
+      return;
+    }
+    if (!validateEmailAddress(email.trim())) {
+      toast.error('Email inválido. Verifique o endereço digitado.');
       return;
     }
 
@@ -386,7 +399,10 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       onComplete();
     } catch (err: any) {
       console.error('Erro ao criar perfil:', err);
-      toast.error(err?.message || 'Erro ao criar perfil');
+      toast.error(
+        (err?.message || 'Erro ao criar perfil') +
+        '. Se o problema persistir, entre em contato com o suporte.'
+      );
     }
 
     setIsLoading(false);
@@ -700,6 +716,13 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
           Criar Perfil
         </Button>
+
+        <p className="text-xs text-center text-muted-foreground mt-3">
+          Dúvidas ou problemas no cadastro?{' '}
+          <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            Fale com o suporte via WhatsApp
+          </a>
+        </p>
       </form>
     </div>
   );

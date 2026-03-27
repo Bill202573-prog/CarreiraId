@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCPF } from '@/lib/cpf-validator';
 import { formatCNPJ } from '@/lib/cnpj-validator';
+import { validateDocument, validatePhone as validatePhoneNumber, validateEmail as validateEmailAddress, formatPhoneMask, SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 import { ColorPicker } from './ColorPicker';
 
 // ── Dynamic field definitions per profile type (mirrors ProfileTypeForm) ──
@@ -317,10 +318,29 @@ export function EditPerfilRedeDialog({ open, onOpenChange, perfil }: EditPerfilR
   };
 
   const onSubmit = async (data: FormData) => {
+    // Validate document if provided
+    const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
+    if (cleanDoc) {
+      const docTipo = (data.tipo_documento || 'cpf') as 'cpf' | 'cnpj';
+      if (!validateDocument(cleanDoc, docTipo)) {
+        toast.error(`${docTipo === 'cnpj' ? 'CNPJ' : 'CPF'} inválido. Verifique os números digitados.`);
+        return;
+      }
+    }
+    // Validate phone if provided
+    const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
+    if (cleanPhone && !validatePhoneNumber(cleanPhone)) {
+      toast.error('Número de WhatsApp inválido. Use um número real com DDD.');
+      return;
+    }
+    // Validate email if changed
+    if (contaEmail.trim() && !validateEmailAddress(contaEmail.trim())) {
+      toast.error('Email inválido. Verifique o endereço digitado.');
+      return;
+    }
+
     setSaving(true);
     try {
-      const cleanPhone = (data.telefone_whatsapp || '').replace(/\D/g, '');
-      const cleanDoc = (data.cpf_cnpj || '').replace(/\D/g, '');
 
       // Build new dados_perfil preserving existing keys and updating dynamic fields
       const newDados: Record<string, any> = {

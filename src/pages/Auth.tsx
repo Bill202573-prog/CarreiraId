@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 import { z } from 'zod';
 import logoCarreiraId from '@/assets/logo-carreira-id-dark.png';
 import PwaInstallButton from '@/components/shared/PwaInstallButton';
@@ -28,6 +29,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [nome, setNome] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, signup, user } = useAuth();
   const navigate = useNavigate();
 
@@ -188,16 +190,24 @@ const Auth = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoCapitalize="none"
                     autoCorrect="off"
                     autoComplete={isLogin ? 'current-password' : 'new-password'}
-                    className="pl-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
+                    className="pl-10 pr-10 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
                     disabled={isLoading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -222,7 +232,7 @@ const Auth = () => {
               <PwaInstallButton />
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-700 text-center">
+            <div className="mt-6 pt-6 border-t border-gray-700 text-center space-y-3">
               <p className="text-sm text-gray-400">
                 {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
                 {' '}
@@ -233,6 +243,12 @@ const Auth = () => {
                 >
                   {isLogin ? 'Cadastre-se' : 'Faça login'}
                 </button>
+              </p>
+              <p className="text-xs text-gray-500">
+                Dúvidas ou problemas?{' '}
+                <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-orange-500/80 hover:underline">
+                  Fale com o suporte via WhatsApp
+                </a>
               </p>
             </div>
           </CardContent>

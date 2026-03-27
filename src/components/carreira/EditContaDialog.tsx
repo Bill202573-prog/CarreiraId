@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2, User, Mail, Phone } from 'lucide-react';
+import { validateEmail, validatePhone, formatPhoneMask } from '@/lib/form-validators';
 
 interface EditContaDialogProps {
   open: boolean;
@@ -48,6 +49,15 @@ export function EditContaDialog({ open, onOpenChange }: EditContaDialogProps) {
     if (!user) return;
     if (nome.trim().length < 2) {
       toast.error('Nome deve ter pelo menos 2 caracteres');
+      return;
+    }
+    if (email.trim() && !validateEmail(email.trim())) {
+      toast.error('Email inválido. Verifique o endereço digitado.');
+      return;
+    }
+    const cleanPhone = telefone.replace(/\D/g, '');
+    if (cleanPhone && !validatePhone(cleanPhone)) {
+      toast.error('Número de telefone inválido. Use um número real com DDD.');
       return;
     }
 
@@ -135,9 +145,10 @@ export function EditContaDialog({ open, onOpenChange }: EditContaDialogProps) {
                 <Input
                   id="conta-telefone"
                   value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
+                  onChange={(e) => setTelefone(formatPhoneMask(e.target.value))}
                   className="pl-10"
                   placeholder="(11) 99999-9999"
+                  maxLength={15}
                 />
               </div>
             </div>

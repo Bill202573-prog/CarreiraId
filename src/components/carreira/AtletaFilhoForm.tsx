@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2, Upload, Shield, Lock } from 'lucide-react';
 import { validateCPF, formatCPF } from '@/lib/cpf-validator';
+import { validatePhone, SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 
 interface Props {
   userId: string;
@@ -82,11 +83,21 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
     const cleanPhoneInput = telefoneWhatsapp.replace(/\D/g, '');
     let cleanPhone: string | null = null;
 
-    if (cleanDocInput.length === 11 && validateCPF(cleanDocInput)) {
+    // Validate CPF if provided
+    if (cleanDocInput.length > 0) {
+      if (!validateCPF(cleanDocInput)) {
+        toast.error('CPF inválido. Verifique os números digitados.');
+        return;
+      }
       cleanDoc = cleanDocInput;
     }
 
-    if (cleanPhoneInput.length >= 10 && cleanPhoneInput.length <= 11) {
+    // Validate WhatsApp if provided
+    if (cleanPhoneInput.length > 0) {
+      if (!validatePhone(cleanPhoneInput)) {
+        toast.error('Número de WhatsApp inválido. Use um número real com DDD (ex: 21 99999-9999).');
+        return;
+      }
       cleanPhone = cleanPhoneInput;
     }
 
@@ -194,7 +205,10 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
       await onComplete();
     } catch (err: any) {
       console.error('Erro ao criar perfil do atleta:', err);
-      toast.error(err?.message || 'Erro ao criar perfil');
+      toast.error(
+        (err?.message || 'Erro ao criar perfil') +
+        '. Se o problema persistir, entre em contato com o suporte.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -342,6 +356,13 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
           Criar Perfil do Atleta
         </Button>
+
+        <p className="text-xs text-center text-muted-foreground mt-3">
+          Dúvidas ou problemas no cadastro?{' '}
+          <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            Fale com o suporte via WhatsApp
+          </a>
+        </p>
       </form>
     </div>
   );
