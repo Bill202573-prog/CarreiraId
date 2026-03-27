@@ -205,7 +205,10 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
       await onComplete();
     } catch (err: any) {
       console.error('Erro ao criar perfil do atleta:', err);
-      toast.error(err?.message || 'Erro ao criar perfil');
+      toast.error(
+        (err?.message || 'Erro ao criar perfil') +
+        '. Se o problema persistir, entre em contato com o suporte.'
+      );
     } finally {
       setIsLoading(false);
     }
