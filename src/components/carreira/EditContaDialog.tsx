@@ -51,6 +51,15 @@ export function EditContaDialog({ open, onOpenChange }: EditContaDialogProps) {
       toast.error('Nome deve ter pelo menos 2 caracteres');
       return;
     }
+    if (email.trim() && !validateEmail(email.trim())) {
+      toast.error('Email inválido. Verifique o endereço digitado.');
+      return;
+    }
+    const cleanPhone = telefone.replace(/\D/g, '');
+    if (cleanPhone && !validatePhone(cleanPhone)) {
+      toast.error('Número de telefone inválido. Use um número real com DDD.');
+      return;
+    }
 
     setIsLoading(true);
     try {
