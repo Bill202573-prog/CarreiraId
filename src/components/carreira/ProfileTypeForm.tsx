@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2, Upload, Lock, Plus, Trash2 } from 'lucide-react';
 import type { ProfileType } from './ProfileTypeSelector';
 import { validateCPF, formatCPF, cleanCPF } from '@/lib/cpf-validator';
 import { validateCNPJ, formatCNPJ } from '@/lib/cnpj-validator';
+import { validatePhone as validatePhoneNumber, validateEmail as validateEmailAddress, validateDocument, SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 
 
 interface Props {
