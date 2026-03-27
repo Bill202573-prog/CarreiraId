@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2, User, Mail, Phone } from 'lucide-react';
+import { validateEmail, validatePhone, formatPhoneMask } from '@/lib/form-validators';
 
 interface EditContaDialogProps {
   open: boolean;
