@@ -356,6 +356,13 @@ export function AtletaFilhoForm({ userId, defaultName, inviteCode, onBack, onCom
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
           Criar Perfil do Atleta
         </Button>
+
+        <p className="text-xs text-center text-muted-foreground mt-3">
+          Dúvidas ou problemas no cadastro?{' '}
+          <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            Fale com o suporte via WhatsApp
+          </a>
+        </p>
       </form>
     </div>
   );

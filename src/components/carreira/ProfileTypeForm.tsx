@@ -399,7 +399,10 @@ export function ProfileTypeForm({ type, userId, defaultName, inviteCode, onBack,
       onComplete();
     } catch (err: any) {
       console.error('Erro ao criar perfil:', err);
-      toast.error(err?.message || 'Erro ao criar perfil');
+      toast.error(
+        (err?.message || 'Erro ao criar perfil') +
+        '. Se o problema persistir, entre em contato com o suporte.'
+      );
     }
 
     setIsLoading(false);

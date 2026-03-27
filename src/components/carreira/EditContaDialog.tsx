@@ -145,9 +145,10 @@ export function EditContaDialog({ open, onOpenChange }: EditContaDialogProps) {
                 <Input
                   id="conta-telefone"
                   value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
+                  onChange={(e) => setTelefone(formatPhoneMask(e.target.value))}
                   className="pl-10"
                   placeholder="(11) 99999-9999"
+                  maxLength={15}
                 />
               </div>
             </div>
