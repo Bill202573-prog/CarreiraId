@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2, Upload, Shield, Lock } from 'lucide-react';
 import { validateCPF, formatCPF } from '@/lib/cpf-validator';
+import { validatePhone, SUPPORT_WHATSAPP_URL } from '@/lib/form-validators';
 
 interface Props {
   userId: string;
