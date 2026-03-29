@@ -54,6 +54,18 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
     enabled: !!currentUserId,
   });
 
+  // Check if user is admin
+  const { data: isAdmin } = useQuery({
+    queryKey: ['nav-is-admin', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return false;
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.email === ADMIN_EMAIL;
+    },
+    enabled: !!currentUserId,
+    staleTime: Infinity,
+  });
+
   const isScoutingProfile = perfilRede ? SCOUTING_TYPES.includes(perfilRede.tipo) : false;
   const isPeneiraCreator = perfilRede ? PENEIRA_TYPES.includes(perfilRede.tipo) : false;
 
