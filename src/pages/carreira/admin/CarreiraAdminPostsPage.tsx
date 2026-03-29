@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,13 +26,17 @@ function useAdminPosts(search: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('posts_atleta')
-        .select('*, perfil:perfil_atleta(id, nome, slug, foto_url, user_id, is_public, modalidade)')
-        .order('created_at', { ascending: false }).limit(100);
+        .select('*, perfil:perfil_atleta(id, nome, slug, foto_url, user_id, is_public, modalidade), perfil_rede:perfis_rede(id, nome, slug, foto_url, user_id, tipo)')
+        .order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
-      let posts = (data || []) as unknown as PostAtleta[];
+      let posts = (data || []).map((p: any) => ({
+        ...p,
+        perfil: Array.isArray(p.perfil) ? p.perfil[0] : p.perfil,
+        perfil_rede: Array.isArray(p.perfil_rede) ? p.perfil_rede[0] : p.perfil_rede,
+      })) as unknown as PostAtleta[];
       if (search) {
         const s = search.toLowerCase();
-        posts = posts.filter(p => p.texto?.toLowerCase().includes(s) || p.perfil?.nome?.toLowerCase().includes(s));
+        posts = posts.filter(p => p.texto?.toLowerCase().includes(s) || p.perfil?.nome?.toLowerCase().includes(s) || (p as any).perfil_rede?.nome?.toLowerCase().includes(s));
       }
       return posts;
     },
@@ -57,25 +61,48 @@ function useAutoCreateAdminPerfil() {
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('Não autenticado');
-      const { data: existing } = await supabase.from('perfil_atleta').select('id, nome').eq('user_id', user.id).maybeSingle();
+      const { data: existing } = await supabase.from('perfil_atleta').select('id, nome, foto_url').eq('user_id', user.id).maybeSingle();
       if (existing) {
         // Corrige nome legado "(Admin)" → "Carreira ID"
-        if (existing.nome?.includes('(Admin)')) {
-          await supabase.from('perfil_atleta').update({ nome: 'Carreira ID' }).eq('id', existing.id);
+        const updates: any = {};
+        if (existing.nome?.includes('(Admin)')) updates.nome = 'Carreira ID';
+        // Set logo if missing — upload from static asset
+        if (!existing.foto_url) {
+          try {
+            const logoUrl = await uploadAdminLogo(user.id);
+            if (logoUrl) updates.foto_url = logoUrl;
+          } catch { /* silent */ }
+        }
+        if (Object.keys(updates).length > 0) {
+          await supabase.from('perfil_atleta').update(updates).eq('id', existing.id);
         }
         return existing;
       }
       const nome = 'Carreira ID';
       const slug = generateSlug(nome);
+      let foto_url: string | null = null;
+      try { foto_url = await uploadAdminLogo(user.id); } catch { /* silent */ }
       const { data, error } = await supabase.from('perfil_atleta')
-        .insert({ user_id: user.id, slug, nome, modalidade: 'Plataforma', bio: 'Conta oficial Carreira ID', is_public: true })
+        .insert({ user_id: user.id, slug, nome, modalidade: 'Plataforma', bio: 'Conta oficial Carreira ID', is_public: true, foto_url })
         .select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meu-perfil-atleta'] }); toast.success('Perfil admin criado!'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meu-perfil-atleta'] }); toast.success('Perfil admin atualizado!'); },
     onError: (e: any) => toast.error('Erro: ' + e.message),
   });
+}
+
+async function uploadAdminLogo(userId: string): Promise<string | null> {
+  try {
+    const response = await fetch(new URL('/src/assets/logo-carreira-id-dark.png', window.location.origin).href);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const path = `${userId}/admin-logo.png`;
+    await supabase.storage.from('atleta-fotos').upload(path, blob, { upsert: true, contentType: 'image/png' });
+    const { data } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
+    return data.publicUrl;
+  } catch { return null; }
 }
 
 export default function CarreiraAdminPostsPage() {
@@ -94,6 +121,13 @@ export default function CarreiraAdminPostsPage() {
   const deletePost = useAdminDeletePost();
   const createPost = useCreatePostAtleta();
   const autoCreate = useAutoCreateAdminPerfil();
+
+  // Auto-fix admin profile (logo, name) on load
+  useEffect(() => {
+    if (meuPerfil && (!meuPerfil.foto_url || meuPerfil.nome?.includes('(Admin)'))) {
+      autoCreate.mutate();
+    }
+  }, [meuPerfil?.id]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -219,12 +253,13 @@ export default function CarreiraAdminPostsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-3 flex-1 min-w-0">
                       <Avatar className="w-10 h-10 shrink-0">
-                        {post.perfil?.foto_url && <AvatarImage src={post.perfil.foto_url} />}
+                        {(post.perfil?.foto_url || (post as any).perfil_rede?.foto_url) && <AvatarImage src={post.perfil?.foto_url || (post as any).perfil_rede?.foto_url} />}
                         <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm">{post.perfil?.nome || 'Desconhecido'}</span>
+                          <span className="font-semibold text-sm">{post.perfil?.nome || (post as any).perfil_rede?.nome || 'Desconhecido'}</span>
+                          {(post as any).perfil_rede?.tipo && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{(post as any).perfil_rede.tipo}</span>}
                           <span className="text-xs text-muted-foreground">{format(new Date(post.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                         </div>
                         <p className="text-sm mt-1 line-clamp-3">{post.texto}</p>

@@ -1,4 +1,5 @@
 import { VideoEmbedCard, isVideoUrl } from './VideoEmbedCard';
+import { Instagram } from 'lucide-react';
 
 interface LinkPreview {
   url: string;
@@ -6,6 +7,7 @@ interface LinkPreview {
   description?: string | null;
   image?: string | null;
   site_name?: string | null;
+  type?: string | null;
 }
 
 interface LinkPreviewCardProps {
@@ -24,6 +26,8 @@ export function LinkPreviewCard({ preview }: LinkPreviewCardProps) {
     try { return new URL(preview.url).hostname.replace('www.', ''); } catch { return ''; }
   })();
 
+  const isInstagram = preview.type === 'instagram' || /instagram\.com/i.test(preview.url);
+
   return (
     <a
       href={preview.url}
@@ -31,7 +35,7 @@ export function LinkPreviewCard({ preview }: LinkPreviewCardProps) {
       rel="noopener noreferrer"
       className="block border rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-muted/30"
     >
-      {preview.image && (
+      {preview.image ? (
         <div className="aspect-[2/1] overflow-hidden bg-muted">
           <img
             src={preview.image}
@@ -41,7 +45,11 @@ export function LinkPreviewCard({ preview }: LinkPreviewCardProps) {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </div>
-      )}
+      ) : isInstagram ? (
+        <div className="aspect-[2/1] overflow-hidden bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center">
+          <Instagram className="w-16 h-16 text-white/90" />
+        </div>
+      ) : null}
       <div className="p-3 space-y-1">
         <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
           {preview.site_name || domain}

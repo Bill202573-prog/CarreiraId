@@ -50,8 +50,10 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
     }
   }, [perfilRedeId]);
 
-  const isProfessional = !!perfilRedeId && !!perfilRedeTipo && PROFESSIONAL_TYPES.includes(perfilRedeTipo);
-  // Professionals: no post limit, video up to 2min/40MB, YouTube allowed
+  // Admin profile (no crianca_id, modalidade = 'Plataforma') or professional profile = no limits
+  const isAdmin = !!perfil && !perfil.crianca_id && perfil.modalidade === 'Plataforma';
+  const isProfessional = isAdmin || (!!perfilRedeId && !!perfilRedeTipo && PROFESSIONAL_TYPES.includes(perfilRedeTipo));
+  // Professionals/Admin: no post limit, video up to 2min/40MB, YouTube allowed
   const effectiveLimites = isProfessional
     ? { ...limites, posts_dia: 99, video_seg: 120, video_max_mb: 40, youtube: true }
     : limites;
