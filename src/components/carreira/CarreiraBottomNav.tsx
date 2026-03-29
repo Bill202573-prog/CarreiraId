@@ -148,6 +148,8 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         badge: 0,
       };
 
+  const adminPath = carreiraPath('/admin');
+
   // Build items - professionals get Eventos instead of Liga
   const navItems = [
     ...baseItems,
@@ -166,6 +168,13 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       active: !!profileSlug && location.pathname === carreiraPath(`/${profileSlug}`),
       badge: unreadComunicados || 0,
     },
+    ...(isAdmin ? [{
+      icon: Shield,
+      label: 'Admin',
+      onClick: () => navigate(adminPath, { replace: true }),
+      active: location.pathname.startsWith(adminPath),
+      badge: 0,
+    }] : []),
     {
       icon: LogOut,
       label: 'Sair',
