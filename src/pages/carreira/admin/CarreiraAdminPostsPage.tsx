@@ -26,8 +26,8 @@ function useAdminPosts(search: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('posts_atleta')
-        .select('*, perfil:perfil_atleta(id, nome, slug, foto_url, user_id, is_public, modalidade)')
-        .order('created_at', { ascending: false }).limit(100);
+        .select('*, perfil:perfil_atleta(id, nome, slug, foto_url, user_id, is_public, modalidade), perfil_rede:perfis_rede(id, nome, slug, foto_url, user_id, tipo)')
+        .order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
       let posts = (data || []) as unknown as PostAtleta[];
       if (search) {

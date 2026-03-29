@@ -66,15 +66,21 @@ serve(async (req) => {
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
 
     const rawImage = getMetaContent("og:image") || getMetaContent("twitter:image") || null;
-    // Instagram CDN images often block direct embedding; filter broken ones
+    // Instagram CDN images often block direct embedding; keep only reliable ones
     const image = rawImage && !rawImage.includes("scontent") ? rawImage : null;
+
+    // Detect Instagram URLs and build a useful preview even when OG tags are sparse
+    const isInstagram = /instagram\.com/i.test(url);
+    const ogTitle = getMetaContent("og:title") || getMetaContent("twitter:title") || (titleMatch?.[1] ? decodeHtmlEntities(titleMatch[1].trim()) : null);
+    const ogDescription = getMetaContent("og:description") || getMetaContent("twitter:description") || getMetaContent("description") || null;
 
     const preview = {
       url,
-      title: getMetaContent("og:title") || getMetaContent("twitter:title") || (titleMatch?.[1] ? decodeHtmlEntities(titleMatch[1].trim()) : null),
-      description: getMetaContent("og:description") || getMetaContent("twitter:description") || getMetaContent("description") || null,
+      title: ogTitle || (isInstagram ? "Publicação no Instagram" : null),
+      description: ogDescription || (isInstagram ? "Veja esta publicação no Instagram" : null),
       image,
-      site_name: getMetaContent("og:site_name") || new URL(url).hostname.replace("www.", "").toUpperCase(),
+      site_name: getMetaContent("og:site_name") || (isInstagram ? "Instagram" : new URL(url).hostname.replace("www.", "").toUpperCase()),
+      type: isInstagram ? "instagram" : null,
     };
 
     return new Response(JSON.stringify(preview), {
