@@ -223,12 +223,13 @@ export default function CarreiraAdminPostsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-3 flex-1 min-w-0">
                       <Avatar className="w-10 h-10 shrink-0">
-                        {post.perfil?.foto_url && <AvatarImage src={post.perfil.foto_url} />}
+                        {(post.perfil?.foto_url || (post as any).perfil_rede?.foto_url) && <AvatarImage src={post.perfil?.foto_url || (post as any).perfil_rede?.foto_url} />}
                         <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm">{post.perfil?.nome || 'Desconhecido'}</span>
+                          <span className="font-semibold text-sm">{post.perfil?.nome || (post as any).perfil_rede?.nome || 'Desconhecido'}</span>
+                          {(post as any).perfil_rede?.tipo && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{(post as any).perfil_rede.tipo}</span>}
                           <span className="text-xs text-muted-foreground">{format(new Date(post.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                         </div>
                         <p className="text-sm mt-1 line-clamp-3">{post.texto}</p>
