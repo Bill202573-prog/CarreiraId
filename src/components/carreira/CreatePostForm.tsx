@@ -101,9 +101,30 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const fetchLinkPreviewData = async (url: string) => {
     setFetchingPreview(true);
     try {
+      // Instagram blocks server-side scraping — build preview client-side
+      const isInstagram = /instagram\.com/i.test(url);
+      if (isInstagram) {
+        setLinkPreview({
+          url,
+          title: 'Publicação no Instagram',
+          description: 'Veja esta publicação no Instagram',
+          image: null,
+          site_name: 'Instagram',
+          type: 'instagram',
+        });
+        toast.info('Links do Instagram não permitem pré-visualização de imagem. O link será publicado normalmente.');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('fetch-link-preview', { body: { url } });
-      if (!error && data?.title) setLinkPreview(data);
-    } catch { /* silent */ } finally { setFetchingPreview(false); }
+      if (error || !data?.title) {
+        toast.warning('Não foi possível gerar pré-visualização deste link. Você pode publicar assim mesmo ou descartar.');
+        return;
+      }
+      setLinkPreview(data);
+    } catch {
+      toast.warning('Erro ao buscar pré-visualização do link.');
+    } finally { setFetchingPreview(false); }
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
