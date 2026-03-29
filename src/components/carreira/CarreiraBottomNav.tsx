@@ -1,10 +1,12 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut, Gamepad2, Search, Bell, CalendarDays } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2, Search, Bell, CalendarDays, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import { useUnreadCarreiraComunicados } from '@/hooks/useCarreiraComunicadosData';
+
+const ADMIN_EMAIL = 'carreiraidoficial@gmail.com';
 
 interface CarreiraBottomNavProps {
   currentUserId?: string | null;
