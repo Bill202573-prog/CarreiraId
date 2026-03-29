@@ -61,25 +61,48 @@ function useAutoCreateAdminPerfil() {
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('Não autenticado');
-      const { data: existing } = await supabase.from('perfil_atleta').select('id, nome').eq('user_id', user.id).maybeSingle();
+      const { data: existing } = await supabase.from('perfil_atleta').select('id, nome, foto_url').eq('user_id', user.id).maybeSingle();
       if (existing) {
         // Corrige nome legado "(Admin)" → "Carreira ID"
-        if (existing.nome?.includes('(Admin)')) {
-          await supabase.from('perfil_atleta').update({ nome: 'Carreira ID' }).eq('id', existing.id);
+        const updates: any = {};
+        if (existing.nome?.includes('(Admin)')) updates.nome = 'Carreira ID';
+        // Set logo if missing — upload from static asset
+        if (!existing.foto_url) {
+          try {
+            const logoUrl = await uploadAdminLogo(user.id);
+            if (logoUrl) updates.foto_url = logoUrl;
+          } catch { /* silent */ }
+        }
+        if (Object.keys(updates).length > 0) {
+          await supabase.from('perfil_atleta').update(updates).eq('id', existing.id);
         }
         return existing;
       }
       const nome = 'Carreira ID';
       const slug = generateSlug(nome);
+      let foto_url: string | null = null;
+      try { foto_url = await uploadAdminLogo(user.id); } catch { /* silent */ }
       const { data, error } = await supabase.from('perfil_atleta')
-        .insert({ user_id: user.id, slug, nome, modalidade: 'Plataforma', bio: 'Conta oficial Carreira ID', is_public: true })
+        .insert({ user_id: user.id, slug, nome, modalidade: 'Plataforma', bio: 'Conta oficial Carreira ID', is_public: true, foto_url })
         .select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meu-perfil-atleta'] }); toast.success('Perfil admin criado!'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meu-perfil-atleta'] }); toast.success('Perfil admin atualizado!'); },
     onError: (e: any) => toast.error('Erro: ' + e.message),
   });
+}
+
+async function uploadAdminLogo(userId: string): Promise<string | null> {
+  try {
+    const response = await fetch(new URL('/src/assets/logo-carreira-id-dark.png', window.location.origin).href);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const path = `${userId}/admin-logo.png`;
+    await supabase.storage.from('atleta-fotos').upload(path, blob, { upsert: true, contentType: 'image/png' });
+    const { data } = supabase.storage.from('atleta-fotos').getPublicUrl(path);
+    return data.publicUrl;
+  } catch { return null; }
 }
 
 export default function CarreiraAdminPostsPage() {
