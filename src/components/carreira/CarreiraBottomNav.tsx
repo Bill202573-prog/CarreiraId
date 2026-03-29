@@ -1,10 +1,12 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, User, LogOut, Gamepad2, Search, Bell, CalendarDays } from 'lucide-react';
+import { Home, Users, User, LogOut, Gamepad2, Search, Bell, CalendarDays, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import { useUnreadCarreiraComunicados } from '@/hooks/useCarreiraComunicadosData';
+
+const ADMIN_EMAIL = 'carreiraidoficial@gmail.com';
 
 interface CarreiraBottomNavProps {
   currentUserId?: string | null;
@@ -50,6 +52,18 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       return data;
     },
     enabled: !!currentUserId,
+  });
+
+  // Check if user is admin
+  const { data: isAdmin } = useQuery({
+    queryKey: ['nav-is-admin', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return false;
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.email === ADMIN_EMAIL;
+    },
+    enabled: !!currentUserId,
+    staleTime: Infinity,
   });
 
   const isScoutingProfile = perfilRede ? SCOUTING_TYPES.includes(perfilRede.tipo) : false;
@@ -134,6 +148,8 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
         badge: 0,
       };
 
+  const adminPath = carreiraPath('/admin');
+
   // Build items - professionals get Eventos instead of Liga
   const navItems = [
     ...baseItems,
@@ -152,6 +168,13 @@ export function CarreiraBottomNav({ currentUserId, profileSlug }: CarreiraBottom
       active: !!profileSlug && location.pathname === carreiraPath(`/${profileSlug}`),
       badge: unreadComunicados || 0,
     },
+    ...(isAdmin ? [{
+      icon: Shield,
+      label: 'Admin',
+      onClick: () => navigate(adminPath, { replace: true }),
+      active: location.pathname.startsWith(adminPath),
+      badge: 0,
+    }] : []),
     {
       icon: LogOut,
       label: 'Sair',
