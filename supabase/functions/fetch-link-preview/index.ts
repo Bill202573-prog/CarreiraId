@@ -5,6 +5,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Decode HTML entities like &#xe7; &quot; &#x2013; etc.
+function decodeHtmlEntities(str: string): string {
+  if (!str) return str;
+  return str
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,7 +38,11 @@ serve(async (req) => {
 
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; AtletaID/1.0)" },
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+      },
     });
     clearTimeout(timeout);
 
@@ -40,18 +58,22 @@ serve(async (req) => {
       ];
       for (const pattern of patterns) {
         const match = html.match(pattern);
-        if (match) return match[1];
+        if (match) return decodeHtmlEntities(match[1]);
       }
       return null;
     };
 
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
 
+    const rawImage = getMetaContent("og:image") || getMetaContent("twitter:image") || null;
+    // Instagram CDN images often block direct embedding; filter broken ones
+    const image = rawImage && !rawImage.includes("scontent") ? rawImage : null;
+
     const preview = {
       url,
-      title: getMetaContent("og:title") || getMetaContent("twitter:title") || titleMatch?.[1]?.trim() || null,
+      title: getMetaContent("og:title") || getMetaContent("twitter:title") || (titleMatch?.[1] ? decodeHtmlEntities(titleMatch[1].trim()) : null),
       description: getMetaContent("og:description") || getMetaContent("twitter:description") || getMetaContent("description") || null,
-      image: getMetaContent("og:image") || getMetaContent("twitter:image") || null,
+      image,
       site_name: getMetaContent("og:site_name") || new URL(url).hostname.replace("www.", "").toUpperCase(),
     };
 
