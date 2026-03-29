@@ -122,6 +122,13 @@ export default function CarreiraAdminPostsPage() {
   const createPost = useCreatePostAtleta();
   const autoCreate = useAutoCreateAdminPerfil();
 
+  // Auto-fix admin profile (logo, name) on load
+  useEffect(() => {
+    if (meuPerfil && (!meuPerfil.foto_url || meuPerfil.nome?.includes('(Admin)'))) {
+      autoCreate.mutate();
+    }
+  }, [meuPerfil?.id]);
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (images.length + files.length > 3) { toast.error('Máximo 3 imagens'); return; }
