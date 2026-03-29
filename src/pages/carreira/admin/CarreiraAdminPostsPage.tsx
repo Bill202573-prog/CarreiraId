@@ -29,10 +29,14 @@ function useAdminPosts(search: string) {
         .select('*, perfil:perfil_atleta(id, nome, slug, foto_url, user_id, is_public, modalidade), perfil_rede:perfis_rede(id, nome, slug, foto_url, user_id, tipo)')
         .order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
-      let posts = (data || []) as unknown as PostAtleta[];
+      let posts = (data || []).map((p: any) => ({
+        ...p,
+        perfil: Array.isArray(p.perfil) ? p.perfil[0] : p.perfil,
+        perfil_rede: Array.isArray(p.perfil_rede) ? p.perfil_rede[0] : p.perfil_rede,
+      })) as unknown as PostAtleta[];
       if (search) {
         const s = search.toLowerCase();
-        posts = posts.filter(p => p.texto?.toLowerCase().includes(s) || p.perfil?.nome?.toLowerCase().includes(s));
+        posts = posts.filter(p => p.texto?.toLowerCase().includes(s) || p.perfil?.nome?.toLowerCase().includes(s) || (p as any).perfil_rede?.nome?.toLowerCase().includes(s));
       }
       return posts;
     },
