@@ -95,7 +95,7 @@ function useAutoCreateAdminPerfil() {
 
 async function uploadAdminLogo(userId: string): Promise<string | null> {
   try {
-    const response = await fetch(new URL('/src/assets/logo-carreira-id-dark.png', window.location.origin).href);
+    const response = await fetch('/images/logo-carreira-id-dark.png');
     if (!response.ok) return null;
     const blob = await response.blob();
     const path = `${userId}/admin-logo.png`;
