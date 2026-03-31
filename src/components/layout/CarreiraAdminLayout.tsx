@@ -13,13 +13,14 @@ import {
 import { NavLink } from '@/components/NavLink';
 import logoCarreira from '@/assets/logo-carreira-id.png';
 
-import { Settings2, Megaphone, GraduationCap, Stethoscope } from 'lucide-react';
+import { Settings2, Megaphone, GraduationCap, Stethoscope, Bell } from 'lucide-react';
 
 const navItems = [
   { title: 'Dashboard', url: '/carreira/admin', icon: LayoutDashboard },
   { title: 'Perfis', url: '/carreira/admin/perfis', icon: Users },
   { title: 'Posts', url: '/carreira/admin/posts', icon: FileText },
   { title: 'Comunicados', url: '/carreira/admin/comunicados', icon: Megaphone },
+  { title: 'Notificações Push', url: '/carreira/admin/push', icon: Bell },
   { title: 'Assinaturas', url: '/carreira/admin/assinaturas', icon: CreditCard },
   { title: 'Planos & Features', url: '/carreira/admin/planos', icon: Settings2 },
   { title: 'Atividades Externas', url: '/carreira/admin/atividades', icon: Activity },
