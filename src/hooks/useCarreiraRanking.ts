@@ -27,10 +27,15 @@ export function useCarreiraRanking(limit = 100) {
 
       const { data: atletaProfiles } = await supabase
         .from('perfil_atleta')
-        .select('user_id, nome, foto_url, slug')
+        .select('user_id, nome, foto_url, slug, modalidade')
         .in('user_id', userIds);
 
-      const atletaMap = new Map((atletaProfiles || []).map((perfil) => [perfil.user_id, perfil]));
+      // Exclude institutional/platform profiles (e.g. "Carreira ID")
+      const atletaMap = new Map(
+        (atletaProfiles || [])
+          .filter((p) => p.modalidade !== 'Plataforma')
+          .map((perfil) => [perfil.user_id, perfil])
+      );
       const atletasOnly = gamData.filter((g) => atletaMap.has(g.user_id));
 
       return atletasOnly.map((g, idx) => {

@@ -113,6 +113,7 @@ const App = () => (
               <Route path="/carreira/admin/comunicados" element={<CarreiraAdminComunicadosPage />} />
               <Route path="/carreira/admin/tutoriais" element={<CarreiraAdminTutoriaisPage />} />
               <Route path="/carreira/admin/diagnostico" element={<CarreiraAdminDiagnosticoPage />} />
+              <Route path="/carreira/admin/push" element={<CarreiraAdminPushPage />} />
               <Route path="/perfil/:userId" element={<PerfilPage />} />
               <Route path="/escola/:slug" element={<EscolaPerfilPage />} />
               {/* Atleta ID / escolinhas — rotas secundárias */}
