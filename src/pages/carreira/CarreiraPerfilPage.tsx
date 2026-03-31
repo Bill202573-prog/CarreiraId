@@ -153,6 +153,9 @@ function useSearchPeople(query: string) {
         .ilike('nome', searchTerm)
         .limit(10);
 
+      // Collect user_ids already covered by athlete profiles to avoid duplicates
+      const atletaUserIds = new Set((atletaResults || []).map((a: any) => a.user_id));
+
       // Search in perfis_rede by name
       const { data: redeByName } = await supabase
         .from('perfis_rede')
@@ -181,8 +184,11 @@ function useSearchPeople(query: string) {
         }
       });
 
+      // Filter out rede profiles that already have an athlete profile (same user_id)
+      const filteredRede = Array.from(redeMap.values()).filter((r: any) => !atletaUserIds.has(r.user_id)).slice(0, 10);
+
       return {
-        rede: Array.from(redeMap.values()).slice(0, 10),
+        rede: filteredRede,
         atletas: atletaResults || [],
       };
     },
