@@ -850,6 +850,17 @@ export default function CarreiraPerfilPage() {
                 </div>
               )}
 
+              {isAnonymous && isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <button
+                    onClick={() => requireAuth('contact')}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    🔒 Cadastre-se para ver contatos
+                  </button>
+                </div>
+              )}
+
               {/* Followers & Connections */}
               <div className="mt-3 pt-3 border-t border-border space-y-1">
                 <div className="text-xs text-muted-foreground">
