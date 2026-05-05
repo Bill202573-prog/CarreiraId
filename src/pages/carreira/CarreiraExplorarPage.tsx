@@ -1,17 +1,19 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CarreiraBottomNav } from '@/components/carreira/CarreiraBottomNav';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PostAtleta } from '@/hooks/useCarreiraData';
 import { PostCard } from '@/components/carreira/PostCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Loader2, Rss, UserPlus, Users, Copy, Check, Search, X } from 'lucide-react';
+import { Loader2, Rss, UserPlus, Users, Copy, Check, Search, X, LogIn } from 'lucide-react';
 import { ConectarButton } from '@/components/carreira/ConectarButton';
 import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
+import { AnonymousFeedCTA } from '@/components/carreira/AnonymousFeedCTA';
+import { useAnonymousGate, FEED_ANON_POST_LIMIT } from '@/hooks/useAnonymousGate';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useCarreiraSession } from '@/hooks/useCarreiraSession';
@@ -269,6 +271,7 @@ export default function CarreiraExplorarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: searchResults } = useSearchPeopleExplorar(searchQuery);
+  const { trackPostView, requireAuth, shouldShowFeedCTA } = useAnonymousGate();
 
   const hasProfile = !!meuPerfil || !!meuPerfilRede;
 
@@ -291,9 +294,7 @@ export default function CarreiraExplorarPage() {
     );
   }
 
-  if (!sessionUserId || !hasProfile) {
-    return <Navigate to={carreiraPath('/cadastro')} replace />;
-  }
+  const isAnonymous = !sessionUserId;
 
   const inviteLink = meuPerfilRede?.convite_codigo
     ? `${window.location.origin}${carreiraPath('/cadastro')}?convite=${meuPerfilRede.convite_codigo}`
@@ -362,35 +363,50 @@ export default function CarreiraExplorarPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <NotificacoesBell />
-            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}>
-              <Users className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Conexões</span>
-              {connectionsCount > 0 && (
-                <span className="ml-1 text-xs bg-primary/10 text-primary rounded-full px-1.5">{connectionsCount}</span>
-              )}
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
-              const { data: pa } = await supabase
-                .from('perfil_atleta')
-                .select('slug')
-                .eq('user_id', sessionUserId!)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-              const { data: pr } = await supabase
-                .from('perfis_rede')
-                .select('slug')
-                .eq('user_id', sessionUserId!)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-              const slug = pa?.slug || pr?.slug;
-              if (slug) navigate(carreiraPath(`/${slug}`));
-              else navigate(carreiraPath(`/perfil/${sessionUserId}`));
-            }}>
-              Meu Perfil
-            </Button>
+            {isAnonymous ? (
+              <>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate('/auth')}>
+                  <LogIn className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Entrar</span>
+                </Button>
+                <Button size="sm" className="h-8 text-xs" onClick={() => navigate('/cadastro?from=feed_header')}>
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Criar conta
+                </Button>
+              </>
+            ) : (
+              <>
+                <NotificacoesBell />
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}>
+                  <Users className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Conexões</span>
+                  {connectionsCount > 0 && (
+                    <span className="ml-1 text-xs bg-primary/10 text-primary rounded-full px-1.5">{connectionsCount}</span>
+                  )}
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
+                  const { data: pa } = await supabase
+                    .from('perfil_atleta')
+                    .select('slug')
+                    .eq('user_id', sessionUserId!)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                  const { data: pr } = await supabase
+                    .from('perfis_rede')
+                    .select('slug')
+                    .eq('user_id', sessionUserId!)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                  const slug = pa?.slug || pr?.slug;
+                  if (slug) navigate(carreiraPath(`/${slug}`));
+                  else navigate(carreiraPath(`/perfil/${sessionUserId}`));
+                }}>
+                  Meu Perfil
+                </Button>
+              </>
+            )}
           </div>
         </div>
         {/* Row 2: Search bar — mobile only */}
@@ -462,44 +478,60 @@ export default function CarreiraExplorarPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-6">
           {/* Left sidebar */}
           <aside className="hidden lg:block space-y-4">
-            <Card className="p-4 text-center">
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="" className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2 text-xl font-bold text-primary">
-                  {profileName[0]}
+            {isAnonymous ? (
+              <Card className="p-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <UserPlus className="w-6 h-6 text-primary" />
                 </div>
-              )}
-              <h3 className="font-semibold text-foreground text-sm">{profileName}</h3>
-              <p className="text-xs text-muted-foreground">{profileType}</p>
-              <div className="mt-3 pt-3 border-t border-border">
-                <button
-                  onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}
-                  className="text-xs text-primary hover:underline font-medium"
-                >
-                  {connectionsCount} {connectionsCount === 1 ? 'conexão' : 'conexões'}
-                </button>
-              </div>
-            </Card>
-
-            {inviteLink && (
-              <Card className="p-4">
-                <p className="text-xs text-muted-foreground mb-2">Convide para sua rede:</p>
-                <Button size="sm" variant="outline" className="w-full text-xs" onClick={handleCopyInvite}>
-                  {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
-                  {copied ? 'Copiado!' : 'Copiar link de convite'}
+                <h3 className="font-semibold text-foreground text-sm">Junte-se ao Carreira ID</h3>
+                <p className="text-[11px] text-muted-foreground mt-1 mb-3">
+                  Crie seu perfil grátis e siga atletas em ascensão.
+                </p>
+                <Button size="sm" className="w-full text-xs" onClick={() => navigate('/cadastro?from=feed_sidebar')}>
+                  Criar conta grátis
                 </Button>
               </Card>
-            )}
+            ) : (
+              <>
+                <Card className="p-4 text-center">
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt="" className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2 text-xl font-bold text-primary">
+                      {profileName[0]}
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-foreground text-sm">{profileName}</h3>
+                  <p className="text-xs text-muted-foreground">{profileType}</p>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <button
+                      onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}
+                      className="text-xs text-primary hover:underline font-medium"
+                    >
+                      {connectionsCount} {connectionsCount === 1 ? 'conexão' : 'conexões'}
+                    </button>
+                  </div>
+                </Card>
 
-            {/* Descobrir Atletas — for scouting profiles on desktop */}
-            {meuPerfilRede && ['tecnico', 'scout', 'agente_clube'].includes(meuPerfilRede.tipo) && (
-              <Card className="p-4">
-                <Button size="sm" className="w-full text-xs" onClick={() => navigate(carreiraPath('/descobrir'))}>
-                  <Search className="w-3.5 h-3.5 mr-1" />
-                  Descobrir Atletas
-                </Button>
-              </Card>
+                {inviteLink && (
+                  <Card className="p-4">
+                    <p className="text-xs text-muted-foreground mb-2">Convide para sua rede:</p>
+                    <Button size="sm" variant="outline" className="w-full text-xs" onClick={handleCopyInvite}>
+                      {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                      {copied ? 'Copiado!' : 'Copiar link de convite'}
+                    </Button>
+                  </Card>
+                )}
+
+                {meuPerfilRede && ['tecnico', 'scout', 'agente_clube'].includes(meuPerfilRede.tipo) && (
+                  <Card className="p-4">
+                    <Button size="sm" className="w-full text-xs" onClick={() => navigate(carreiraPath('/descobrir'))}>
+                      <Search className="w-3.5 h-3.5 mr-1" />
+                      Descobrir Atletas
+                    </Button>
+                  </Card>
+                )}
+              </>
             )}
           </aside>
 
@@ -519,16 +551,25 @@ export default function CarreiraExplorarPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={post} showAuthor={true} />
+                {(isAnonymous ? posts.slice(0, FEED_ANON_POST_LIMIT) : posts).map((post) => (
+                  <AnonAwarePostCard
+                    key={post.id}
+                    post={post}
+                    isAnonymous={isAnonymous}
+                    onView={trackPostView}
+                    onAction={requireAuth}
+                  />
                 ))}
+                {isAnonymous && posts.length >= FEED_ANON_POST_LIMIT && (
+                  <AnonymousFeedCTA />
+                )}
               </div>
             )}
           </div>
 
           {/* Right sidebar — Suggestions */}
           <aside className="hidden lg:block space-y-4">
-            {suggestions && suggestions.length > 0 && (
+            {!isAnonymous && suggestions && suggestions.length > 0 && (
               <Card className="p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Sugestões para conectar</h3>
                 <div className="space-y-3">
@@ -601,3 +642,40 @@ export default function CarreiraExplorarPage() {
     </div>
   );
 }
+
+
+
+function AnonAwarePostCard({
+  post,
+  isAnonymous,
+  onView,
+  onAction,
+}: {
+  post: PostAtleta;
+  isAnonymous: boolean;
+  onView: (id: string) => void;
+  onAction: (reason: any) => boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isAnonymous || !ref.current) return;
+    const el = ref.current;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          onView(post.id);
+          obs.disconnect();
+        }
+      });
+    }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [isAnonymous, post.id, onView]);
+
+  return (
+    <div ref={ref}>
+      <PostCard post={post} showAuthor={true} />
+    </div>
+  );
+}
+

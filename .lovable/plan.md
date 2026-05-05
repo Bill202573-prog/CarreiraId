@@ -1,73 +1,83 @@
+## Objetivo
+Liberar a timeline pública do Carreira ID para visitantes não autenticados, com atritos progressivos que incentivem o cadastro nas ações de maior valor.
 
+## Composição final (ajustada)
 
-## Analysis
+### 1. Feed aberto
+- **10 posts livres** para visitantes não logados (sem bloqueio antes disso).
+- Após o 10º post, exibir um **CTA leve inline** ("Crie sua conta grátis para continuar acompanhando os atletas") — não bloqueia scroll, mas o feed para de carregar mais até o cadastro.
+- Mostrar somente posts de perfis públicos (`perfil_atleta.is_public = true`), priorizando highlights, atividades e atletas em destaque.
+- Esconder dados sensíveis (telefones, e-mails, contatos) das views públicas.
 
-### Root Cause: Likes/Comments Not Working
+### 2. Ações (sempre exigem login)
+Curtir, comentar, seguir, enviar mensagem, ver contatos, salvar, qualquer mutação → abrir `<SignupPromptDialog>` antes da ação.
 
-The console log reveals the core issue: `fetchUserData: missing profile` with `PGRST116` (0 rows). The user is authenticated via Supabase Auth but has **no row in the `profiles` table**. This causes `AuthContext` to return `user: null`, which means:
+### 3. Perfil público
+- **Preview liberado** sem login: foto, nome, modalidade, cidade, posição, bio curta, 3 últimos posts, totais (jogos, gols, conquistas).
+- **Bloqueado**: lista completa de atividades, conexões, experiências detalhadas, contatos (WhatsApp/Instagram), comentários e o feed completo do perfil. Cada seção bloqueada mostra um overlay "Cadastre-se grátis para ver tudo".
 
-1. **Like button**: Calls `toggleLike.mutate()` but `usePostLike` checks `user?.id` — since `user` is null, it throws "Usuário não autenticado" and rolls back.
-2. **Comment button**: Same issue — `user?.id` is undefined, so the comment silently fails.
+### 4. Gatilhos de cadastro
+Rastreados em `localStorage` (`cid_anon_state`):
+- **1ª tentativa de interação** (curtir/comentar/seguir/contato) → modal cheio "Crie sua conta para interagir".
+- **10 posts vistos** no feed → CTA inline + bloqueio de carregamento adicional.
+- **2 perfis abertos** → modal "Você está explorando bastante! Crie sua conta para acompanhar esses atletas".
 
-This is the same issue on ALL profiles (João Guilherme, Pedro Henrique, etc.) — the **viewing user** doesn't have a `profiles` row, not the profile being viewed.
+## Implementação técnica
 
-### Fix: Fallback to Supabase Session for Interactions
+**Rotas (App.tsx)**
+- Tornar públicas: `/feed`, `/explorar`, `/:slug`, `/escola/:slug`.
+- Demais rotas continuam protegidas (redirect para `/cadastro?next=…`).
 
-The like and comment hooks should fall back to `supabase.auth.getUser()` when the `profiles` table row is missing. The `useCreateComment` already does this (`(await supabase.auth.getUser()).data.user?.id`), but `usePostLike` relies on `useAuth()` which returns null.
+**Hook `useAnonymousGate` (novo)**
+- Estado em `localStorage`: `{ postsViewed, profilesViewed, interactionAttempted, dismissedAt }`.
+- API: `trackPostView()`, `trackProfileView(slug)`, `requireAuth(reason)`, `shouldShowFeedCTA()`.
+- Centraliza disparo do `<SignupPromptDialog>` via context.
 
-### Other Issues Identified
+**Componente `<SignupPromptDialog>`**
+- Modal único, variantes por `reason`: `interaction`, `feed_limit`, `profile_limit`, `contact`, `deep_content`.
+- CTA primário "Criar conta grátis" → `/cadastro?from=<reason>`; secundário "Já tenho conta" → `/auth`.
 
-1. **Experiência — no edit/delete buttons**: The `carreira-experiencia` tab renders experience items inline without edit/delete controls. Need to add edit and delete buttons, plus an `useUpdateCarreiraExperiencia` mutation.
+**Feed (`CarreiraExplorarPage`)**
+- Quando `useCarreiraSession().userId` é nulo:
+  - Carregar até 10 posts públicos; chamar `trackPostView()` no IntersectionObserver de cada card.
+  - Após o 10º, renderizar `<AnonymousFeedCTA>` no lugar do botão "carregar mais".
+  - Passar `accentColor` e `onAction={requireAuth}` ao `PostCard` para interceptar curtir/comentar.
 
-2. **Atividades — edit button opens blank form**: The `onEdit` callback in `CarreiraTimeline` just opens `setAtividadeFormOpen(true)` without passing the activity data to `editingActivity`. The form opens blank instead of pre-filled.
+**`PostCard`**
+- Substituir `toast.error('Faça login…')` por `requireAuth('interaction')` quando não autenticado.
+- Cliques em link de autor incrementam `trackProfileView`.
 
-3. **Atividades — title styling**: The `AtividadePublicaCard` has `tipoLabel` rendered inside a `Badge` which has underline-like styling. Should match the experience pattern with accent color.
+**Perfil público (`CarreiraPerfilPage`)**
+- Branch para sessão nula:
+  - Renderizar `<PerfilPublicoPreview>` com dados resumidos.
+  - Seções profundas (timeline completa, contatos, experiências, conexões) viram `<LockedSection reason="deep_content">` com blur + CTA.
+  - Disparar `trackProfileView(slug)` no mount.
 
-4. **Tab content card border**: The tab content wrapper at line 252 uses default `border bg-card` — should use accent-colored border like other cards.
+**RLS / dados**
+- Sem mudanças: políticas já permitem leitura pública de `perfil_atleta` (is_public), `posts_atleta` de perfis públicos, `atividades_externas` (`tornar_publico=true`).
+- Auditar hooks usados nos fluxos anônimos para nunca consultar `perfis_rede` privados, `carreira_assinaturas`, e-mails ou telefones.
 
-5. **Photo upload in atividades**: Need to verify the `AtividadeExternaPhotoUpload` component works and triggers instant updates.
+**Analytics**
+- Eventos GTM/Pixel: `anon_post_view`, `anon_profile_view`, `anon_prompt_shown` (com `reason`), `anon_prompt_cta_click`, `anon_feed_limit_hit` — para medir conversão da campanha do Facebook.
 
----
+**Admin / config**
+Adicionar em `saas_config`:
+- `feed_anon_post_limit` (default 10)
+- `feed_anon_profile_limit` (default 2)
+- `feed_anon_enabled` (default true)
 
-## Plan
+Permite ajustar os limites sem deploy.
 
-### 1. Fix Like/Comment Authentication (Root Cause)
+## Fora do escopo desta entrega
+- SEO/meta-tags por perfil e SSR/prerender.
+- Open Graph rico para compartilhamento de post.
+- Login social no fluxo de cadastro pelo prompt (mantém o atual).
 
-In `src/hooks/useCarreiraData.ts`, modify `usePostLike` to fall back to `supabase.auth.getSession()` when `useAuth().user` is null. This allows Carreira-only users (who have no `profiles` row) to still interact.
-
-Also fix `usePostComments` query and `useCreateComment` to handle the same scenario.
-
-### 2. Add Edit/Delete to Experiência Items
-
-In `src/components/carreira/CarreiraTimeline.tsx`:
-- Add edit and delete buttons (Pencil, Trash2) to each experience item in the `carreira-experiencia` tab.
-- Track `editingExperiencia` state to pass to `ExperienciaFormDialog`.
-
-In `src/hooks/useCarreiraExperienciasData.ts`:
-- Add `useUpdateCarreiraExperiencia` mutation hook.
-
-In `src/components/carreira/ExperienciaFormDialog.tsx`:
-- Accept an optional `editingExperiencia` prop to pre-fill the form for editing.
-
-### 3. Fix Atividade Edit Button
-
-In `src/components/carreira/CarreiraTimeline.tsx`:
-- Track `editingActivity` state.
-- Pass `editingActivity` to `CarreiraAtividadeFormDialog` instead of always opening a blank form.
-- Update `onEdit` callback in `AtividadePublicaCard` to set the editing state.
-
-### 4. Standardize Visual Styling
-
-- **Tab content container** (line 252 in CarreiraTimeline): Apply accent-colored border (`borderColor: accentColor + '50'`, `borderWidth: 2`).
-- **AtividadePublicaCard**: Apply accent-colored border matching the experiência pattern (border width 2, accent color at 50% opacity). Remove underline from title badge.
-- **Experiência items**: Apply consistent accent-colored borders and background.
-
-### 5. Instant Photo Updates for Atividades
-
-Ensure that after photo upload in `CarreiraAtividadeFormDialog`, the atividades query is invalidated so photos appear immediately without page refresh.
-
-### Technical Summary
-
-- **Files to modify**: `useCarreiraData.ts` (auth fallback), `CarreiraTimeline.tsx` (edit states, styling), `useCarreiraExperienciasData.ts` (update hook), `ExperienciaFormDialog.tsx` (edit mode), `AtividadePublicaCard.tsx` (styling).
-- **No database changes needed** — existing RLS policies already support all operations.
-
+## Resumo do que será entregue
+1. Rotas públicas `/feed`, `/explorar`, `/:slug`, `/escola/:slug`.
+2. Hook `useAnonymousGate` + provider + `<SignupPromptDialog>`.
+3. Feed público com 10 posts livres e CTA leve depois.
+4. Perfil público em modo preview com seções profundas bloqueadas.
+5. Ações (curtir/comentar/seguir/contato) sempre pedem login.
+6. Gatilhos: 1 interação, 10 posts, 2 perfis.
+7. Configuração admin via `saas_config` e eventos de analytics.

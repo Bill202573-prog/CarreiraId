@@ -38,6 +38,8 @@ import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
 import { useCarreiraRanking } from '@/hooks/useCarreiraRanking';
+import { useAnonymousGate } from '@/hooks/useAnonymousGate';
+import { LockedSection } from '@/components/carreira/AnonymousFeedCTA';
 
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
@@ -290,8 +292,14 @@ export default function CarreiraPerfilPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
-  
+  const isAnonymous = !currentUserId;
+  const { trackProfileView, requireAuth } = useAnonymousGate();
   const [mySlug, setMySlug] = useState<string | null>(null);
+
+  // Track profile view for anonymous visitors (drives gating after N profiles)
+  useEffect(() => {
+    if (isAnonymous && perfil?.slug) trackProfileView(perfil.slug);
+  }, [isAnonymous, perfil?.slug, trackProfileView]);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -651,6 +659,17 @@ export default function CarreiraPerfilPage() {
                 </Button>
               </>
             )}
+            {isAnonymous && (
+              <>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate('/auth')}>
+                  Entrar
+                </Button>
+                <Button size="sm" className="h-8 text-xs" style={{ backgroundColor: accentColor }} onClick={() => navigate('/cadastro?from=perfil_header')}>
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Criar conta
+                </Button>
+              </>
+            )}
           </div>
         </div>
         {/* Row 2: Search bar + theme toggle — mobile only */}
@@ -804,7 +823,7 @@ export default function CarreiraPerfilPage() {
               )}
 
               {/* Contact links for network profiles */}
-              {isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
+              {!isAnonymous && isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
                 <div className="mt-3 flex flex-col gap-1.5 text-xs border-t border-border pt-3">
                   {instagramHandle && (
                     <a
@@ -842,6 +861,17 @@ export default function CarreiraPerfilPage() {
                 </div>
               )}
 
+              {isAnonymous && isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <button
+                    onClick={() => requireAuth('contact')}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    🔒 Cadastre-se para ver contatos
+                  </button>
+                </div>
+              )}
+
               {/* Followers & Connections */}
               <div className="mt-3 pt-3 border-t border-border space-y-1">
                 <div className="text-xs text-muted-foreground">
@@ -852,6 +882,17 @@ export default function CarreiraPerfilPage() {
 
               {/* Actions */}
               <div className="mt-3 space-y-2">
+                {isAnonymous && !isOwner && (
+                  <>
+                    <Button size="sm" className="w-full text-xs h-8" style={{ backgroundColor: accentColor }} onClick={() => requireAuth('connect')}>
+                      <UserPlus className="w-3.5 h-3.5 mr-1" />Conectar
+                    </Button>
+                    <Button size="sm" variant="outline" className="w-full text-xs h-8" style={{ borderColor: `${accentColor}50`, color: accentColor }} onClick={() => requireAuth('follow')}>
+                      <UserPlus className="w-3.5 h-3.5 mr-1" />Seguir
+                    </Button>
+                  </>
+                )}
+
                 {!isOwner && currentUserId && !isDonoEscolaProfile && (
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                 )}
@@ -880,7 +921,9 @@ export default function CarreiraPerfilPage() {
                   </div>
                 )}
 
-                <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
+                {!isAnonymous && (
+                  <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
+                )}
                 <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} />
               </div>
               </div>
