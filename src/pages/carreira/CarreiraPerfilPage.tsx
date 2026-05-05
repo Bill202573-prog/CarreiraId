@@ -871,6 +871,17 @@ export default function CarreiraPerfilPage() {
 
               {/* Actions */}
               <div className="mt-3 space-y-2">
+                {isAnonymous && !isOwner && (
+                  <>
+                    <Button size="sm" className="w-full text-xs h-8" style={{ backgroundColor: accentColor }} onClick={() => requireAuth('connect')}>
+                      <UserPlus className="w-3.5 h-3.5 mr-1" />Conectar
+                    </Button>
+                    <Button size="sm" variant="outline" className="w-full text-xs h-8" style={{ borderColor: `${accentColor}50`, color: accentColor }} onClick={() => requireAuth('follow')}>
+                      <UserPlus className="w-3.5 h-3.5 mr-1" />Seguir
+                    </Button>
+                  </>
+                )}
+
                 {!isOwner && currentUserId && !isDonoEscolaProfile && (
                   <ConectarButton targetUserId={perfil.user_id} currentUserId={currentUserId} accentColor={accentColor} />
                 )}
@@ -899,7 +910,9 @@ export default function CarreiraPerfilPage() {
                   </div>
                 )}
 
-                <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
+                {!isAnonymous && (
+                  <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
+                )}
                 <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} />
               </div>
               </div>
