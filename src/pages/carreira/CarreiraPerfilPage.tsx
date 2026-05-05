@@ -659,6 +659,17 @@ export default function CarreiraPerfilPage() {
                 </Button>
               </>
             )}
+            {isAnonymous && (
+              <>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate('/auth')}>
+                  Entrar
+                </Button>
+                <Button size="sm" className="h-8 text-xs" style={{ backgroundColor: accentColor }} onClick={() => navigate('/cadastro?from=perfil_header')}>
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Criar conta
+                </Button>
+              </>
+            )}
           </div>
         </div>
         {/* Row 2: Search bar + theme toggle — mobile only */}
