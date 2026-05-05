@@ -294,6 +294,7 @@ export default function CarreiraPerfilPage() {
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
   const isAnonymous = !currentUserId;
   const { trackProfileView, requireAuth } = useAnonymousGate();
+  const [mySlug, setMySlug] = useState<string | null>(null);
 
   // Track profile view for anonymous visitors (drives gating after N profiles)
   useEffect(() => {
