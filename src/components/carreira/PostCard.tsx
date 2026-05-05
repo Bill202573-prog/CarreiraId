@@ -118,7 +118,7 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
   const handleComment = async () => {
     if (!commentText.trim()) return;
     const uid = user?.id || effectiveUserId;
-    if (!uid) { toast.error('Faça login para comentar'); return; }
+    if (!uid) { requireAuth('interaction'); return; }
     await createComment.mutateAsync({ postId: post.id, texto: commentText.trim(), userId: uid });
     setCommentText('');
   };
