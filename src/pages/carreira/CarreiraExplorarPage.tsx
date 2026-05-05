@@ -642,3 +642,51 @@ export default function CarreiraExplorarPage() {
     </div>
   );
 }
+
+import { useRef as _useRef } from 'react';
+
+function AnonAwarePostCard({
+  post,
+  isAnonymous,
+  onView,
+  onAction,
+}: {
+  post: PostAtleta;
+  isAnonymous: boolean;
+  onView: (id: string) => void;
+  onAction: (reason: any) => boolean;
+}) {
+  const ref = _useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isAnonymous || !ref.current) return;
+    const el = ref.current;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          onView(post.id);
+          obs.disconnect();
+        }
+      });
+    }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [isAnonymous, post.id, onView]);
+
+  return (
+    <div ref={ref} onClickCapture={(e) => {
+      if (!isAnonymous) return;
+      const target = e.target as HTMLElement;
+      // Allow author link clicks (will navigate to public profile)
+      if (target.closest('a[href]')) return;
+      // Block interaction buttons
+      if (target.closest('button')) {
+        e.preventDefault();
+        e.stopPropagation();
+        onAction('interaction');
+      }
+    }}>
+      <PostCard post={post} showAuthor={true} />
+    </div>
+  );
+}
+
