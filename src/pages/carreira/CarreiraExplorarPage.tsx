@@ -535,16 +535,25 @@ export default function CarreiraExplorarPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={post} showAuthor={true} />
+                {(isAnonymous ? posts.slice(0, FEED_ANON_POST_LIMIT) : posts).map((post) => (
+                  <AnonAwarePostCard
+                    key={post.id}
+                    post={post}
+                    isAnonymous={isAnonymous}
+                    onView={trackPostView}
+                    onAction={requireAuth}
+                  />
                 ))}
+                {isAnonymous && posts.length >= FEED_ANON_POST_LIMIT && (
+                  <AnonymousFeedCTA />
+                )}
               </div>
             )}
           </div>
 
           {/* Right sidebar — Suggestions */}
           <aside className="hidden lg:block space-y-4">
-            {suggestions && suggestions.length > 0 && (
+            {!isAnonymous && suggestions && suggestions.length > 0 && (
               <Card className="p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Sugestões para conectar</h3>
                 <div className="space-y-3">
