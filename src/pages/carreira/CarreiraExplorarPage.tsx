@@ -656,7 +656,7 @@ function AnonAwarePostCard({
   onView: (id: string) => void;
   onAction: (reason: any) => boolean;
 }) {
-  const ref = _useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!isAnonymous || !ref.current) return;
     const el = ref.current;
