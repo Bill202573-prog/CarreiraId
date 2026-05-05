@@ -812,7 +812,7 @@ export default function CarreiraPerfilPage() {
               )}
 
               {/* Contact links for network profiles */}
-              {isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
+              {!isAnonymous && isRedeProfile && (instagramHandle || siteUrl || (perfil.whatsapp_publico && whatsappDigits)) && (
                 <div className="mt-3 flex flex-col gap-1.5 text-xs border-t border-border pt-3">
                   {instagramHandle && (
                     <a
