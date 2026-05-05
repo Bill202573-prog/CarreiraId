@@ -38,6 +38,8 @@ import logoCarreira from '@/assets/logo-carreira-id-dark.png';
 import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import { useCarreiraTheme } from '@/hooks/useCarreiraTheme';
 import { useCarreiraRanking } from '@/hooks/useCarreiraRanking';
+import { useAnonymousGate } from '@/hooks/useAnonymousGate';
+import { LockedSection } from '@/components/carreira/AnonymousFeedCTA';
 
 const TYPE_LABELS: Record<string, string> = {
   professor: 'Professor',
