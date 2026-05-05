@@ -13,7 +13,7 @@ import { NotificacoesBell } from '@/components/carreira/NotificacoesBell';
 import { AnonymousFeedCTA } from '@/components/carreira/AnonymousFeedCTA';
 import { useAnonymousGate, FEED_ANON_POST_LIMIT } from '@/hooks/useAnonymousGate';
 import logoCarreira from '@/assets/logo-carreira-id-dark.png';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useCarreiraSession } from '@/hooks/useCarreiraSession';
