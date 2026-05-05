@@ -292,8 +292,13 @@ export default function CarreiraPerfilPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { theme: carreiraTheme, isDarkTheme, setDarkTheme } = useCarreiraTheme();
   const isOwner = !!(currentUserId && perfil && currentUserId === perfil.user_id);
-  
-  const [mySlug, setMySlug] = useState<string | null>(null);
+  const isAnonymous = !currentUserId;
+  const { trackProfileView, requireAuth } = useAnonymousGate();
+
+  // Track profile view for anonymous visitors (drives gating after N profiles)
+  useEffect(() => {
+    if (isAnonymous && perfil?.slug) trackProfileView(perfil.slug);
+  }, [isAnonymous, perfil?.slug, trackProfileView]);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
