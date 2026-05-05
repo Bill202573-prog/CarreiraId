@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { LinkPreviewCard } from './LinkPreviewCard';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
+import { useAnonymousGate } from '@/hooks/useAnonymousGate';
 
 interface PostCardProps {
   post: PostAtleta;
