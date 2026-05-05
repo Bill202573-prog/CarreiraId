@@ -54,6 +54,7 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
   const { data: comments } = usePostComments(post.id);
   const createComment = useCreateComment();
   const isAuthenticated = !!user?.id || !!effectiveUserId;
+  const { requireAuth } = useAnonymousGate();
 
   // Resolve author from perfil_atleta or perfis_rede
   const perfilAtleta = post.perfil;
