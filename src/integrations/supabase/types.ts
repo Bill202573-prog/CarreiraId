@@ -2045,7 +2045,6 @@ export type Database = {
         Args: { check_crianca_id: string; check_user_id: string }
         Returns: boolean
       }
-      unaccent: { Args: { "": string }; Returns: string }
       verificar_badges_convites: {
         Args: { p_user_id: string }
         Returns: undefined
