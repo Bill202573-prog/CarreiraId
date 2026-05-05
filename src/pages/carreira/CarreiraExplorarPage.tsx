@@ -478,44 +478,60 @@ export default function CarreiraExplorarPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_280px] gap-6">
           {/* Left sidebar */}
           <aside className="hidden lg:block space-y-4">
-            <Card className="p-4 text-center">
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="" className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2 text-xl font-bold text-primary">
-                  {profileName[0]}
+            {isAnonymous ? (
+              <Card className="p-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                  <UserPlus className="w-6 h-6 text-primary" />
                 </div>
-              )}
-              <h3 className="font-semibold text-foreground text-sm">{profileName}</h3>
-              <p className="text-xs text-muted-foreground">{profileType}</p>
-              <div className="mt-3 pt-3 border-t border-border">
-                <button
-                  onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}
-                  className="text-xs text-primary hover:underline font-medium"
-                >
-                  {connectionsCount} {connectionsCount === 1 ? 'conexão' : 'conexões'}
-                </button>
-              </div>
-            </Card>
-
-            {inviteLink && (
-              <Card className="p-4">
-                <p className="text-xs text-muted-foreground mb-2">Convide para sua rede:</p>
-                <Button size="sm" variant="outline" className="w-full text-xs" onClick={handleCopyInvite}>
-                  {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
-                  {copied ? 'Copiado!' : 'Copiar link de convite'}
+                <h3 className="font-semibold text-foreground text-sm">Junte-se ao Carreira ID</h3>
+                <p className="text-[11px] text-muted-foreground mt-1 mb-3">
+                  Crie seu perfil grátis e siga atletas em ascensão.
+                </p>
+                <Button size="sm" className="w-full text-xs" onClick={() => navigate('/cadastro?from=feed_sidebar')}>
+                  Criar conta grátis
                 </Button>
               </Card>
-            )}
+            ) : (
+              <>
+                <Card className="p-4 text-center">
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt="" className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2 text-xl font-bold text-primary">
+                      {profileName[0]}
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-foreground text-sm">{profileName}</h3>
+                  <p className="text-xs text-muted-foreground">{profileType}</p>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <button
+                      onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}
+                      className="text-xs text-primary hover:underline font-medium"
+                    >
+                      {connectionsCount} {connectionsCount === 1 ? 'conexão' : 'conexões'}
+                    </button>
+                  </div>
+                </Card>
 
-            {/* Descobrir Atletas — for scouting profiles on desktop */}
-            {meuPerfilRede && ['tecnico', 'scout', 'agente_clube'].includes(meuPerfilRede.tipo) && (
-              <Card className="p-4">
-                <Button size="sm" className="w-full text-xs" onClick={() => navigate(carreiraPath('/descobrir'))}>
-                  <Search className="w-3.5 h-3.5 mr-1" />
-                  Descobrir Atletas
-                </Button>
-              </Card>
+                {inviteLink && (
+                  <Card className="p-4">
+                    <p className="text-xs text-muted-foreground mb-2">Convide para sua rede:</p>
+                    <Button size="sm" variant="outline" className="w-full text-xs" onClick={handleCopyInvite}>
+                      {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                      {copied ? 'Copiado!' : 'Copiar link de convite'}
+                    </Button>
+                  </Card>
+                )}
+
+                {meuPerfilRede && ['tecnico', 'scout', 'agente_clube'].includes(meuPerfilRede.tipo) && (
+                  <Card className="p-4">
+                    <Button size="sm" className="w-full text-xs" onClick={() => navigate(carreiraPath('/descobrir'))}>
+                      <Search className="w-3.5 h-3.5 mr-1" />
+                      Descobrir Atletas
+                    </Button>
+                  </Card>
+                )}
+              </>
             )}
           </aside>
 
