@@ -363,35 +363,50 @@ export default function CarreiraExplorarPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <NotificacoesBell />
-            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}>
-              <Users className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Conexões</span>
-              {connectionsCount > 0 && (
-                <span className="ml-1 text-xs bg-primary/10 text-primary rounded-full px-1.5">{connectionsCount}</span>
-              )}
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
-              const { data: pa } = await supabase
-                .from('perfil_atleta')
-                .select('slug')
-                .eq('user_id', sessionUserId!)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-              const { data: pr } = await supabase
-                .from('perfis_rede')
-                .select('slug')
-                .eq('user_id', sessionUserId!)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-              const slug = pa?.slug || pr?.slug;
-              if (slug) navigate(carreiraPath(`/${slug}`));
-              else navigate(carreiraPath(`/perfil/${sessionUserId}`));
-            }}>
-              Meu Perfil
-            </Button>
+            {isAnonymous ? (
+              <>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate('/auth')}>
+                  <LogIn className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Entrar</span>
+                </Button>
+                <Button size="sm" className="h-8 text-xs" onClick={() => navigate('/cadastro?from=feed_header')}>
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  Criar conta
+                </Button>
+              </>
+            ) : (
+              <>
+                <NotificacoesBell />
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => navigate(carreiraPath(`/perfil/${sessionUserId}`))}>
+                  <Users className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Conexões</span>
+                  {connectionsCount > 0 && (
+                    <span className="ml-1 text-xs bg-primary/10 text-primary rounded-full px-1.5">{connectionsCount}</span>
+                  )}
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={async () => {
+                  const { data: pa } = await supabase
+                    .from('perfil_atleta')
+                    .select('slug')
+                    .eq('user_id', sessionUserId!)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                  const { data: pr } = await supabase
+                    .from('perfis_rede')
+                    .select('slug')
+                    .eq('user_id', sessionUserId!)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                  const slug = pa?.slug || pr?.slug;
+                  if (slug) navigate(carreiraPath(`/${slug}`));
+                  else navigate(carreiraPath(`/perfil/${sessionUserId}`));
+                }}>
+                  Meu Perfil
+                </Button>
+              </>
+            )}
           </div>
         </div>
         {/* Row 2: Search bar — mobile only */}
