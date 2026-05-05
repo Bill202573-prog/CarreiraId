@@ -271,6 +271,7 @@ export default function CarreiraExplorarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: searchResults } = useSearchPeopleExplorar(searchQuery);
+  const { trackPostView, requireAuth, shouldShowFeedCTA } = useAnonymousGate();
 
   const hasProfile = !!meuPerfil || !!meuPerfilRede;
 
