@@ -673,18 +673,7 @@ function AnonAwarePostCard({
   }, [isAnonymous, post.id, onView]);
 
   return (
-    <div ref={ref} onClickCapture={(e) => {
-      if (!isAnonymous) return;
-      const target = e.target as HTMLElement;
-      // Allow author link clicks (will navigate to public profile)
-      if (target.closest('a[href]')) return;
-      // Block interaction buttons
-      if (target.closest('button')) {
-        e.preventDefault();
-        e.stopPropagation();
-        onAction('interaction');
-      }
-    }}>
+    <div ref={ref}>
       <PostCard post={post} showAuthor={true} />
     </div>
   );
