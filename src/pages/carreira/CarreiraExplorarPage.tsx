@@ -293,9 +293,7 @@ export default function CarreiraExplorarPage() {
     );
   }
 
-  if (!sessionUserId || !hasProfile) {
-    return <Navigate to={carreiraPath('/cadastro')} replace />;
-  }
+  const isAnonymous = !sessionUserId;
 
   const inviteLink = meuPerfilRede?.convite_codigo
     ? `${window.location.origin}${carreiraPath('/cadastro')}?convite=${meuPerfilRede.convite_codigo}`
