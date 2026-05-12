@@ -77,6 +77,10 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
       : '#';
   
   const isOwner = (perfilAtleta?.user_id === user?.id) || (perfilRede?.user_id === user?.id);
+  const isAdmin = user?.role === 'admin';
+  const canManage = isOwner || isAdmin;
+  const canEdit = canManage;
+  const isEdited = post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 60_000;
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR });
   const hasAuthor = !!(perfilAtleta || perfilRede);
 
