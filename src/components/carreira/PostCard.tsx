@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ThumbsUp, MessageCircle, Share2, Send, MoreHorizontal, Trash2, User, Loader2 } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Share2, Send, MoreHorizontal, Trash2, User, Loader2, Pencil } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { PostAtleta, usePostLike, useDeletePostAtleta, usePostComments, useCreateComment } from '@/hooks/useCarreiraData';
+import { PostAtleta, usePostLike, useDeletePostAtleta, useUpdatePostAtleta, usePostComments, useCreateComment } from '@/hooks/useCarreiraData';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -17,6 +17,8 @@ import { Link } from 'react-router-dom';
 import { LinkPreviewCard } from './LinkPreviewCard';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useAnonymousGate } from '@/hooks/useAnonymousGate';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PostCardProps {
   post: PostAtleta;
@@ -48,6 +50,10 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
   const { user } = useAuth();
   const { isLiked, toggleLike, effectiveUserId } = usePostLike(post.id);
   const deletePost = useDeletePostAtleta();
+  const updatePost = useUpdatePostAtleta();
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitulo, setEditTitulo] = useState('');
+  const [editTexto, setEditTexto] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -71,6 +77,10 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
       : '#';
   
   const isOwner = (perfilAtleta?.user_id === user?.id) || (perfilRede?.user_id === user?.id);
+  const isAdmin = user?.role === 'admin';
+  const canManage = isOwner || isAdmin;
+  const canEdit = canManage;
+  const isEdited = post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 60_000;
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR });
   const hasAuthor = !!(perfilAtleta || perfilRede);
 
@@ -127,6 +137,20 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
     try { await deletePost.mutateAsync({ postId: post.id, autorId: post.autor_id }); } catch { /* hook handles */ }
   };
 
+  const openEdit = () => {
+    setEditTitulo(postTitulo || '');
+    setEditTexto(post.texto || '');
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTexto.trim()) { toast.error('O texto não pode ficar vazio'); return; }
+    try {
+      await updatePost.mutateAsync({ postId: post.id, titulo: editTitulo, texto: editTexto.trim() });
+      setEditOpen(false);
+    } catch { /* hook handles toast */ }
+  };
+
   const handleComment = async () => {
     if (!commentText.trim()) return;
     const uid = user?.id || effectiveUserId;
@@ -153,11 +177,13 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
                   {authorSubtitle && (
                     <p className="text-[11px] text-muted-foreground leading-tight">{authorSubtitle}</p>
                   )}
-                  <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {timeAgo}{isEdited && <span className="ml-1 italic">(editado)</span>}
+                  </span>
                 </div>
               </div>
               
-              {isOwner && (
+              {canManage && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -165,6 +191,11 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    {canEdit && (
+                      <DropdownMenuItem onClick={openEdit}>
+                        <Pencil className="w-4 h-4 mr-2" />Editar
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                       <Trash2 className="w-4 h-4 mr-2" />Excluir
                     </DropdownMenuItem>
@@ -308,6 +339,41 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
           <img src={selectedImage} alt="Imagem ampliada" className="max-w-full max-h-full object-contain rounded-lg" />
         </div>
       )}
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar publicação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Título curto (opcional)</label>
+              <Input
+                value={editTitulo}
+                onChange={(e) => setEditTitulo(e.target.value.slice(0, 80))}
+                placeholder="Ex: Treino de finalização"
+                maxLength={80}
+              />
+              <p className="text-[10px] text-muted-foreground text-right mt-0.5">{editTitulo.length}/80</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Texto</label>
+              <Textarea
+                value={editTexto}
+                onChange={(e) => setEditTexto(e.target.value)}
+                rows={6}
+                placeholder="O que você quer compartilhar?"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditOpen(false)} disabled={updatePost.isPending}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={updatePost.isPending || !editTexto.trim()}>
+              {updatePost.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

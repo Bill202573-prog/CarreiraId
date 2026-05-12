@@ -422,6 +422,34 @@ export function useCreatePostAtleta() {
   });
 }
 
+// Hook to update a post (titulo + texto)
+export function useUpdatePostAtleta() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ postId, titulo, texto }: { postId: string; titulo?: string | null; texto: string }) => {
+      const { data: post, error } = await supabase
+        .from('posts_atleta')
+        .update({ titulo: titulo?.trim() || null, texto })
+        .eq('id', postId)
+        .select()
+        .single();
+      if (error) throw error;
+      return post;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts-atleta'] });
+      queryClient.invalidateQueries({ queryKey: ['posts-rede'] });
+      queryClient.invalidateQueries({ queryKey: ['feed-posts-global'] });
+      queryClient.invalidateQueries({ queryKey: ['feed-posts-connections'] });
+      toast.success('Post atualizado!');
+    },
+    onError: (error: any) => {
+      toast.error('Erro ao atualizar post: ' + error.message);
+    },
+  });
+}
+
 // Hook to delete a post
 export function useDeletePostAtleta() {
   const queryClient = useQueryClient();
