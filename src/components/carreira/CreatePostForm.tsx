@@ -268,6 +268,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
       await createPost.mutateAsync(postData);
 
       // Reset form
+      setTitulo('');
       setTexto('');
       setImages([]);
       removeVideo();
