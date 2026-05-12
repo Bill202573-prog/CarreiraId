@@ -176,6 +176,9 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
         )}
 
         <CardContent className={cn("px-3 pb-2", !showAuthor && "pt-3")}>
+          {postTitulo && (
+            <h3 className="text-base font-bold leading-snug mb-1">{postTitulo}</h3>
+          )}
           {post.texto && (
             <p className="text-sm whitespace-pre-wrap mb-2">{renderTextWithLinks(post.texto, !!(linkPreview && linkPreview.title))}</p>
           )}
