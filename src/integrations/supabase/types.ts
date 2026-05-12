@@ -1710,6 +1710,7 @@ export type Database = {
           link_preview: Json | null
           perfil_rede_id: string | null
           texto: string
+          titulo: string | null
           updated_at: string
           video_url: string | null
           visibilidade: string
@@ -1724,6 +1725,7 @@ export type Database = {
           link_preview?: Json | null
           perfil_rede_id?: string | null
           texto: string
+          titulo?: string | null
           updated_at?: string
           video_url?: string | null
           visibilidade?: string
@@ -1738,6 +1740,7 @@ export type Database = {
           link_preview?: Json | null
           perfil_rede_id?: string | null
           texto?: string
+          titulo?: string | null
           updated_at?: string
           video_url?: string | null
           visibilidade?: string

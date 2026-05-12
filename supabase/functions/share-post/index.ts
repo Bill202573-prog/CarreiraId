@@ -8,6 +8,8 @@ const corsHeaders = {
 
 const APP_BASE = "https://carreiraid.com.br";
 
+const CRAWLER_UA_RE = /(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|pinterest|googlebot|bingbot|applebot|yandex|baiduspider|duckduckbot|embedly|skypeuripreview|redditbot|tumblr|vkshare|quora|outbrain|w3c_validator|opengraph)/i;
+
 function escapeHtml(str: string): string {
   return (str || "")
     .replace(/&/g, "&amp;")
@@ -29,6 +31,16 @@ serve(async (req) => {
     return new Response("Post id required", { status: 400 });
   }
 
+  const userAgent = req.headers.get("user-agent") || "";
+  const isCrawler = CRAWLER_UA_RE.test(userAgent);
+  const internalRoute = `${APP_BASE}/post/${postId}`;
+  const canonical = `${APP_BASE}/p/${postId}`;
+
+  // Humans → redirect straight to the SPA post route
+  if (!isCrawler) {
+    return Response.redirect(internalRoute, 302);
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -36,15 +48,13 @@ serve(async (req) => {
 
   const { data: post } = await supabase
     .from("posts_atleta")
-    .select("id, texto, imagens_urls, video_url, perfil:perfil_atleta(nome, foto_url, slug), perfil_rede:perfis_rede(nome, foto_url, slug, user_id)")
+    .select("id, titulo, texto, imagens_urls, video_url, perfil:perfil_atleta(nome, foto_url, slug), perfil_rede:perfis_rede(nome, foto_url, slug, user_id)")
     .eq("id", postId)
     .maybeSingle();
 
-  const canonical = `${APP_BASE}/p/${postId}`;
-
   if (!post) {
     return new Response(
-      `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=${APP_BASE}"></head><body>Post não encontrado</body></html>`,
+      `<!DOCTYPE html><html><head><title>Carreira ID</title></head><body>Post não encontrado</body></html>`,
       { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } },
     );
   }
@@ -56,9 +66,21 @@ serve(async (req) => {
   const authorPhoto = author?.foto_url || null;
 
   const rawText = (post.texto || "").trim();
-  const excerpt = rawText.length > 200 ? rawText.slice(0, 197) + "..." : rawText;
-  const title = `${authorName} no Carreira ID`;
-  const description = excerpt || `Veja a publicação de ${authorName} no Carreira ID`;
+  const rawTitulo = (post.titulo || "").trim();
+
+  // Title cascade: titulo curto → primeiras palavras do texto → fallback
+  let title: string;
+  if (rawTitulo) {
+    title = rawTitulo;
+  } else if (rawText) {
+    title = rawText.length > 70 ? rawText.slice(0, 67) + "..." : rawText;
+  } else {
+    title = `Publicação de ${authorName}`;
+  }
+
+  const description = rawText
+    ? (rawText.length > 200 ? rawText.slice(0, 197) + "..." : rawText)
+    : `Veja a publicação de ${authorName} no Carreira ID`;
 
   const image = (post.imagens_urls && post.imagens_urls[0]) || authorPhoto || `${APP_BASE}/og-default.png`;
 
@@ -84,12 +106,11 @@ serve(async (req) => {
 <meta name="twitter:title" content="${escapeHtml(title)}" />
 <meta name="twitter:description" content="${escapeHtml(description)}" />
 <meta name="twitter:image" content="${escapeHtml(image)}" />
-
-<meta http-equiv="refresh" content="0; url=${canonical}" />
-<script>window.location.replace(${JSON.stringify(canonical)});</script>
 </head>
 <body>
-<p>Redirecionando para <a href="${canonical}">${escapeHtml(title)}</a>...</p>
+<h1>${escapeHtml(title)}</h1>
+<p>${escapeHtml(description)}</p>
+<p><a href="${internalRoute}">Abrir no Carreira ID</a></p>
 </body>
 </html>`;
 
