@@ -137,7 +137,19 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
     try { await deletePost.mutateAsync({ postId: post.id, autorId: post.autor_id }); } catch { /* hook handles */ }
   };
 
-  const handleComment = async () => {
+  const openEdit = () => {
+    setEditTitulo(postTitulo || '');
+    setEditTexto(post.texto || '');
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTexto.trim()) { toast.error('O texto não pode ficar vazio'); return; }
+    try {
+      await updatePost.mutateAsync({ postId: post.id, titulo: editTitulo, texto: editTexto.trim() });
+      setEditOpen(false);
+    } catch { /* hook handles toast */ }
+  };
     if (!commentText.trim()) return;
     const uid = user?.id || effectiveUserId;
     if (!uid) { requireAuth('interaction'); return; }
