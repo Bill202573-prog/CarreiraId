@@ -254,6 +254,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
 
       // Create post
       const postData: any = {
+        titulo: titulo.trim() || undefined,
         texto: texto.trim(),
         imagens_urls: imageUrls,
         video_url: videoUrl,
