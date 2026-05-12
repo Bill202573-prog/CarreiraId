@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ThumbsUp, MessageCircle, Share2, Send, MoreHorizontal, Trash2, User, Loader2 } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Share2, Send, MoreHorizontal, Trash2, User, Loader2, Pencil } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { PostAtleta, usePostLike, useDeletePostAtleta, usePostComments, useCreateComment } from '@/hooks/useCarreiraData';
+import { PostAtleta, usePostLike, useDeletePostAtleta, useUpdatePostAtleta, usePostComments, useCreateComment } from '@/hooks/useCarreiraData';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -17,6 +17,8 @@ import { Link } from 'react-router-dom';
 import { LinkPreviewCard } from './LinkPreviewCard';
 import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useAnonymousGate } from '@/hooks/useAnonymousGate';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PostCardProps {
   post: PostAtleta;
