@@ -50,6 +50,7 @@ export interface PostAtleta {
   id: string;
   autor_id: string;
   perfil_rede_id?: string | null;
+  titulo?: string | null;
   texto: string;
   imagens_urls: string[];
   video_url?: string | null;
