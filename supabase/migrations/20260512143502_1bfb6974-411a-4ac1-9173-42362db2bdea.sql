@@ -1,0 +1,1 @@
+ALTER TABLE public.posts_atleta ADD COLUMN IF NOT EXISTS titulo text;
