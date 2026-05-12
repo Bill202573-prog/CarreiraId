@@ -76,11 +76,25 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
 
   const linkPreview = post.link_preview || (post as any).link_preview;
 
+  // Permalink do post (rota interna que abre só este post)
+  const postPermalink = `${window.location.origin}/p/${post.id}`;
+  // URL com OG meta tags (preview rico no WhatsApp/redes)
+  const SUPABASE_PROJECT = 'fppsotlycinwqsjpoybg';
+  const shareUrl = `https://${SUPABASE_PROJECT}.supabase.co/functions/v1/share-post?id=${post.id}`;
+
+  const buildShareText = () => {
+    const excerpt = post.texto ? (post.texto.length > 140 ? post.texto.slice(0, 137) + '…' : post.texto) : '';
+    const lines = [`🏆 ${authorName} no Carreira ID`];
+    if (excerpt) lines.push('', `"${excerpt}"`);
+    lines.push('', `📲 ${shareUrl}`);
+    return lines.join('\n');
+  };
+
   const handleShare = async () => {
-    const postText = post.texto.substring(0, 100) + (post.texto.length > 100 ? '...' : '');
-    const shareUrl = `${window.location.origin}${authorLink}`;
     const shareTitle = `${authorName} no Carreira ID`;
-    const shareText = `🏆 ${postText}\n\n📲 Confira no Carreira ID`;
+    const shareText = post.texto
+      ? (post.texto.length > 200 ? post.texto.slice(0, 197) + '…' : post.texto)
+      : `Veja a publicação de ${authorName} no Carreira ID`;
 
     // Try Web Share API (only works in secure contexts, not iframes)
     try {
@@ -94,20 +108,16 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
     }
 
     // Clipboard fallback
-    const fullText = `${shareTitle}\n${shareText}\n${shareUrl}`;
     try {
-      await navigator.clipboard.writeText(fullText);
-      toast.success('Link copiado para a área de transferência!');
+      await navigator.clipboard.writeText(buildShareText());
+      toast.success('Link e prévia copiados!');
     } catch {
-      // Final fallback: prompt with text
       toast.info('Copie o link: ' + shareUrl);
     }
   };
 
   const handleSend = () => {
-    const url = `${window.location.origin}${authorLink}`;
-    const text = `🏆 Confira o perfil de ${authorName} no *Carreira ID*!\n\n📲 ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(buildShareText())}`, '_blank');
   };
 
   const handleDelete = async () => {
