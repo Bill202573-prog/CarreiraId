@@ -385,8 +385,9 @@ export function useCreatePostAtleta() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { autor_id?: string; perfil_rede_id?: string; texto: string; imagens_urls?: string[]; video_url?: string; link_preview?: any }) => {
+    mutationFn: async (data: { autor_id?: string; perfil_rede_id?: string; titulo?: string; texto: string; imagens_urls?: string[]; video_url?: string; link_preview?: any }) => {
       const insertData: any = {
+        titulo: data.titulo?.trim() || null,
         texto: data.texto,
         imagens_urls: data.imagens_urls || [],
         video_url: data.video_url || null,
