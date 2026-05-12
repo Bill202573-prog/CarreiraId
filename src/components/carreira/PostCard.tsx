@@ -150,6 +150,8 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
       setEditOpen(false);
     } catch { /* hook handles toast */ }
   };
+
+  const handleComment = async () => {
     if (!commentText.trim()) return;
     const uid = user?.id || effectiveUserId;
     if (!uid) { requireAuth('interaction'); return; }
