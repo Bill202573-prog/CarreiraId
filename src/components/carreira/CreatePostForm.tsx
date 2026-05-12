@@ -60,6 +60,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
   const effectivePostsLimitReached = isProfessional ? false : postsDiaCount >= limites.posts_dia;
   const effectiveCanUploadVideo = isProfessional ? true : temAcesso('video_seg');
   
+  const [titulo, setTitulo] = useState('');
   const [texto, setTexto] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [videoFile, setVideoFile] = useState<{ file: File; preview: string; duration: number } | null>(null);
