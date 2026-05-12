@@ -92,6 +92,8 @@ const App = () => (
               <Route path="/minha" element={<CarreiraLinkedinPage />} />
               <Route path="/feed" element={<CarreiraExplorarPage />} />
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
+              <Route path="/post/:postId" element={<CarreiraPostPage />} />
+              {/* Legacy alias: /p/:id (also used by social-share edge function) */}
               <Route path="/p/:postId" element={<CarreiraPostPage />} />
               <Route path="/conexoes" element={<CarreiraConexoesPage />} />
               <Route path="/liga" element={<CarreiraGamerPage />} />
