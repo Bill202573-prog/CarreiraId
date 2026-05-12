@@ -177,11 +177,13 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
                   {authorSubtitle && (
                     <p className="text-[11px] text-muted-foreground leading-tight">{authorSubtitle}</p>
                   )}
-                  <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {timeAgo}{isEdited && <span className="ml-1 italic">(editado)</span>}
+                  </span>
                 </div>
               </div>
               
-              {isOwner && (
+              {canManage && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -189,6 +191,11 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    {canEdit && (
+                      <DropdownMenuItem onClick={openEdit}>
+                        <Pencil className="w-4 h-4 mr-2" />Editar
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                       <Trash2 className="w-4 h-4 mr-2" />Excluir
                     </DropdownMenuItem>
