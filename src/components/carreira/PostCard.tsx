@@ -93,7 +93,7 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
   };
 
   const handleShare = async () => {
-    const shareTitle = `${authorName} no Carreira ID`;
+    const shareTitle = postTitulo?.trim() || `${authorName} no Carreira ID`;
     const shareText = post.texto
       ? (post.texto.length > 200 ? post.texto.slice(0, 197) + '…' : post.texto)
       : `Veja a publicação de ${authorName} no Carreira ID`;
