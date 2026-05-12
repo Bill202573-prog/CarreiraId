@@ -311,6 +311,20 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
           </Avatar>
           
           <div className="flex-1 space-y-3">
+            <div className="space-y-1">
+              <input
+                type="text"
+                placeholder="Título curto (opcional)"
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value.slice(0, 80))}
+                disabled={postsLimitReached}
+                maxLength={80}
+                className="w-full bg-transparent border-0 p-0 text-base font-semibold placeholder:text-muted-foreground/70 focus:outline-none focus:ring-0"
+              />
+              {titulo.length > 0 && (
+                <div className="text-[10px] text-muted-foreground text-right">{titulo.length}/80</div>
+              )}
+            </div>
             <Textarea
               placeholder={postsLimitReached ? `Limite de posts diários atingido (${limites.posts_dia}/${limites.posts_dia})` : "O que está acontecendo na sua jornada esportiva?"}
               value={texto}
