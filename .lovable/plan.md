@@ -1,83 +1,75 @@
 ## Objetivo
-Liberar a timeline pública do Carreira ID para visitantes não autenticados, com atritos progressivos que incentivem o cadastro nas ações de maior valor.
 
-## Composição final (ajustada)
+1. O link compartilhado deve ser sempre `https://carreiraid.com.br/p/:postId` — sem domínio do Supabase, sem `functions/v1/...` na barra do navegador nem nas prévias.
+2. O título exibido nas prévias (WhatsApp, redes sociais, navegador) deve usar um **título curto** do próprio post (que você vai começar a preencher), em vez de "Carreira ID no Carreira ID".
 
-### 1. Feed aberto
-- **10 posts livres** para visitantes não logados (sem bloqueio antes disso).
-- Após o 10º post, exibir um **CTA leve inline** ("Crie sua conta grátis para continuar acompanhando os atletas") — não bloqueia scroll, mas o feed para de carregar mais até o cadastro.
-- Mostrar somente posts de perfis públicos (`perfil_atleta.is_public = true`), priorizando highlights, atividades e atletas em destaque.
-- Esconder dados sensíveis (telefones, e-mails, contatos) das views públicas.
+---
 
-### 2. Ações (sempre exigem login)
-Curtir, comentar, seguir, enviar mensagem, ver contatos, salvar, qualquer mutação → abrir `<SignupPromptDialog>` antes da ação.
+## Parte A — Link limpo no compartilhamento
 
-### 3. Perfil público
-- **Preview liberado** sem login: foto, nome, modalidade, cidade, posição, bio curta, 3 últimos posts, totais (jogos, gols, conquistas).
-- **Bloqueado**: lista completa de atividades, conexões, experiências detalhadas, contatos (WhatsApp/Instagram), comentários e o feed completo do perfil. Cada seção bloqueada mostra um overlay "Cadastre-se grátis para ver tudo".
+### A1. Rewrite no Vercel
+Em `vercel.json`, antes do catch-all SPA, adicionar:
 
-### 4. Gatilhos de cadastro
-Rastreados em `localStorage` (`cid_anon_state`):
-- **1ª tentativa de interação** (curtir/comentar/seguir/contato) → modal cheio "Crie sua conta para interagir".
-- **10 posts vistos** no feed → CTA inline + bloqueio de carregamento adicional.
-- **2 perfis abertos** → modal "Você está explorando bastante! Crie sua conta para acompanhar esses atletas".
+- `source: "/p/:id"` → `destination: "https://fppsotlycinwqsjpoybg.supabase.co/functions/v1/share-post?id=:id"`
 
-## Implementação técnica
+A barra do navegador continua mostrando `carreiraid.com.br/p/<id>`; o conteúdo vem da edge function (com OG tags).
 
-**Rotas (App.tsx)**
-- Tornar públicas: `/feed`, `/explorar`, `/:slug`, `/escola/:slug`.
-- Demais rotas continuam protegidas (redirect para `/cadastro?next=…`).
+### A2. Edge function `share-post` — separar bot de humano
+Hoje ela sempre devolve `meta refresh` para `/p/:id`. Com o rewrite isso causaria loop. Ajustar:
 
-**Hook `useAnonymousGate` (novo)**
-- Estado em `localStorage`: `{ postsViewed, profilesViewed, interactionAttempted, dismissedAt }`.
-- API: `trackPostView()`, `trackProfileView(slug)`, `requireAuth(reason)`, `shouldShowFeedCTA()`.
-- Centraliza disparo do `<SignupPromptDialog>` via context.
+- User-Agent de crawler (facebookexternalhit, WhatsApp, Twitterbot, LinkedInBot, Slackbot, TelegramBot, Discordbot, etc.) → devolver só o HTML com OG/Twitter tags, sem redirect.
+- Qualquer outro User-Agent (humano em navegador) → responder `302` para `/post/:postId` (rota SPA do post).
 
-**Componente `<SignupPromptDialog>`**
-- Modal único, variantes por `reason`: `interaction`, `feed_limit`, `profile_limit`, `contact`, `deep_content`.
-- CTA primário "Criar conta grátis" → `/cadastro?from=<reason>`; secundário "Já tenho conta" → `/auth`.
+### A3. Mover rota SPA do post
+Em `src/App.tsx`, a página do post passa de `/p/:postId` para `/post/:postId`. O link público continua sendo `/p/:id`; só a rota interna do React Router muda.
 
-**Feed (`CarreiraExplorarPage`)**
-- Quando `useCarreiraSession().userId` é nulo:
-  - Carregar até 10 posts públicos; chamar `trackPostView()` no IntersectionObserver de cada card.
-  - Após o 10º, renderizar `<AnonymousFeedCTA>` no lugar do botão "carregar mais".
-  - Passar `accentColor` e `onAction={requireAuth}` ao `PostCard` para interceptar curtir/comentar.
+### A4. Botão de compartilhar
+Em `src/components/carreira/PostCard.tsx`, trocar a `shareUrl` para:
 
-**`PostCard`**
-- Substituir `toast.error('Faça login…')` por `requireAuth('interaction')` quando não autenticado.
-- Cliques em link de autor incrementam `trackProfileView`.
+- `https://carreiraid.com.br/p/${post.id}`
 
-**Perfil público (`CarreiraPerfilPage`)**
-- Branch para sessão nula:
-  - Renderizar `<PerfilPublicoPreview>` com dados resumidos.
-  - Seções profundas (timeline completa, contatos, experiências, conexões) viram `<LockedSection reason="deep_content">` com blur + CTA.
-  - Disparar `trackProfileView(slug)` no mount.
+Remover qualquer referência ao subdomínio do Supabase no texto e nos handlers (WhatsApp, copiar link, navigator.share).
 
-**RLS / dados**
-- Sem mudanças: políticas já permitem leitura pública de `perfil_atleta` (is_public), `posts_atleta` de perfis públicos, `atividades_externas` (`tornar_publico=true`).
-- Auditar hooks usados nos fluxos anônimos para nunca consultar `perfis_rede` privados, `carreira_assinaturas`, e-mails ou telefones.
+---
 
-**Analytics**
-- Eventos GTM/Pixel: `anon_post_view`, `anon_profile_view`, `anon_prompt_shown` (com `reason`), `anon_prompt_cta_click`, `anon_feed_limit_hit` — para medir conversão da campanha do Facebook.
+## Parte B — Título curto do post
 
-**Admin / config**
-Adicionar em `saas_config`:
-- `feed_anon_post_limit` (default 10)
-- `feed_anon_profile_limit` (default 2)
-- `feed_anon_enabled` (default true)
+### B1. Banco de dados
+Adicionar coluna em `posts_atleta`:
 
-Permite ajustar os limites sem deploy.
+- `titulo` `text` — opcional, máx. 80 caracteres (validação no app).
 
-## Fora do escopo desta entrega
-- SEO/meta-tags por perfil e SSR/prerender.
-- Open Graph rico para compartilhamento de post.
-- Login social no fluxo de cadastro pelo prompt (mantém o atual).
+Sem mudança de RLS.
 
-## Resumo do que será entregue
-1. Rotas públicas `/feed`, `/explorar`, `/:slug`, `/escola/:slug`.
-2. Hook `useAnonymousGate` + provider + `<SignupPromptDialog>`.
-3. Feed público com 10 posts livres e CTA leve depois.
-4. Perfil público em modo preview com seções profundas bloqueadas.
-5. Ações (curtir/comentar/seguir/contato) sempre pedem login.
-6. Gatilhos: 1 interação, 10 posts, 2 perfis.
-7. Configuração admin via `saas_config` e eventos de analytics.
+### B2. Edge function `share-post`
+Trocar a montagem do título por uma cascata:
+
+1. Se `post.titulo` estiver preenchido → usar como `<title>`, `og:title`, `twitter:title`.
+2. Caso contrário, se `post.texto` tiver conteúdo → usar as primeiras ~70 chars do texto como título.
+3. Caso contrário → fallback "Publicação de {nome do autor}".
+
+A `og:description` continua usando o trecho do texto (excerpt ~200 chars).
+
+### B3. Frontend — criação/edição de post
+- Em `src/components/atleta-id/CreatePostForm.tsx` (e qualquer formulário equivalente): adicionar campo opcional "Título curto" (input text, contador, máx. 80).
+- `PostCard.tsx`: se `post.titulo` existir, exibir acima do texto com destaque visual leve (sem mudar o layout geral).
+- Atualizar tipos em `src/integrations/supabase/types.ts` virá automaticamente após a migração.
+
+---
+
+## Arquivos afetados
+
+- `vercel.json` — rewrite específica antes do catch-all.
+- `supabase/functions/share-post/index.ts` — User-Agent split + título a partir de `titulo`.
+- `src/App.tsx` — rota do post `/p/:postId` → `/post/:postId`.
+- `src/components/carreira/PostCard.tsx` — `shareUrl` no domínio próprio + render do `titulo`.
+- `src/components/atleta-id/CreatePostForm.tsx` (e form de edição, se houver) — campo "Título curto".
+- Migração SQL — `ALTER TABLE posts_atleta ADD COLUMN titulo text`.
+
+---
+
+## Notas
+
+- Preview do Lovable não tem o `vercel.json` aplicado, então o link limpo só funciona no domínio publicado. Em preview o link continuará apontando para a edge function direto.
+- Lista de bots pode ser ampliada depois, conforme aparecerem novos crawlers relevantes.
+- Posts antigos sem `titulo` continuam funcionando — caem no fallback do texto.
