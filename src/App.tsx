@@ -19,6 +19,7 @@ const ShortIndicacaoRedirect = lazy(() => import("./pages/ShortIndicacaoRedirect
 const CarreiraLinkedinPage = lazy(() => import("./pages/carreira/CarreiraLinkedinPage"));
 const CarreiraPerfilPage = lazy(() => import("./pages/carreira/CarreiraPerfilPage"));
 const CarreiraExplorarPage = lazy(() => import("./pages/carreira/CarreiraExplorarPage"));
+const CarreiraPostPage = lazy(() => import("./pages/carreira/CarreiraPostPage"));
 // Retrocompatibilidade com links antigos do Atleta ID
 const AtletaIdLinkedinPage = lazy(() => import("./pages/atletaid/AtletaIdLinkedinPage"));
 const AtletaIdPerfilPage = lazy(() => import("./pages/atletaid/AtletaIdPerfilPage"));
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/minha" element={<CarreiraLinkedinPage />} />
               <Route path="/feed" element={<CarreiraExplorarPage />} />
               <Route path="/explorar" element={<CarreiraExplorarPage />} /> {/* retrocompat */}
+              <Route path="/p/:postId" element={<CarreiraPostPage />} />
               <Route path="/conexoes" element={<CarreiraConexoesPage />} />
               <Route path="/liga" element={<CarreiraGamerPage />} />
               <Route path="/liga/pontos" element={<CarreiraGamerPontosPage />} />
