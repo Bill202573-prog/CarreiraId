@@ -339,6 +339,41 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
           <img src={selectedImage} alt="Imagem ampliada" className="max-w-full max-h-full object-contain rounded-lg" />
         </div>
       )}
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar publicação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Título curto (opcional)</label>
+              <Input
+                value={editTitulo}
+                onChange={(e) => setEditTitulo(e.target.value.slice(0, 80))}
+                placeholder="Ex: Treino de finalização"
+                maxLength={80}
+              />
+              <p className="text-[10px] text-muted-foreground text-right mt-0.5">{editTitulo.length}/80</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Texto</label>
+              <Textarea
+                value={editTexto}
+                onChange={(e) => setEditTexto(e.target.value)}
+                rows={6}
+                placeholder="O que você quer compartilhar?"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditOpen(false)} disabled={updatePost.isPending}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={updatePost.isPending || !editTexto.trim()}>
+              {updatePost.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
