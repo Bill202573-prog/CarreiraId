@@ -1,75 +1,42 @@
-## Objetivo
+## Diagnóstico
 
-1. O link compartilhado deve ser sempre `https://carreiraid.com.br/p/:postId` — sem domínio do Supabase, sem `functions/v1/...` na barra do navegador nem nas prévias.
-2. O título exibido nas prévias (WhatsApp, redes sociais, navegador) deve usar um **título curto** do próprio post (que você vai começar a preencher), em vez de "Carreira ID no Carreira ID".
+Hoje **ninguém** consegue editar postagens pela UI:
+- O `PostCard.tsx` só tem o botão **Excluir** no dropdown do dono. Não existe ação "Editar" em lugar nenhum.
+- No banco, só há política de UPDATE para autores de perfil de atleta. **Não há política de UPDATE para perfis de rede (escola/profissional/torcedor) nem para admins** — então mesmo se a UI existisse, posts de admins (via `perfis_rede`) e edições de admin em qualquer post seriam bloqueados pela RLS.
 
----
+## Plano
 
-## Parte A — Link limpo no compartilhamento
+### 1. Banco de dados (RLS)
+Adicionar políticas UPDATE em `posts_atleta`:
+- "Perfis rede podem atualizar seus posts" — autores via `perfil_rede_id`.
+- "Admins podem atualizar qualquer post" — usando `has_role(auth.uid(), 'admin')`.
 
-### A1. Rewrite no Vercel
-Em `vercel.json`, antes do catch-all SPA, adicionar:
+### 2. Hook de edição
+Em `src/hooks/useCarreiraData.ts` criar `useUpdatePostAtleta()`:
+- Recebe `{ postId, titulo, texto, autorId, perfilRedeId }`.
+- Faz `update` em `posts_atleta` (campos: `titulo`, `texto`).
+- Invalida queries de feed/perfil para refletir.
+- Toast de sucesso/erro.
 
-- `source: "/p/:id"` → `destination: "https://fppsotlycinwqsjpoybg.supabase.co/functions/v1/share-post?id=:id"`
+### 3. UI de edição
+Em `src/components/carreira/PostCard.tsx`:
+- Adicionar item **"Editar"** no `DropdownMenu`, visível para `isOwner` **ou** admin (via `useUserRole`/`useAuth` → checar role).
+- Ao clicar, abrir um `Dialog` simples com:
+  - Input "Título curto" (até 80 chars, com contador).
+  - Textarea para `texto`.
+  - Botões Cancelar / Salvar.
+- Após salvar, exibir indicador `(editado)` ao lado do tempo, baseado em `updated_at > created_at + 1min`.
 
-A barra do navegador continua mostrando `carreiraid.com.br/p/<id>`; o conteúdo vem da edge function (com OG tags).
+### 4. Escopo da edição
+- Editáveis: `titulo` e `texto`.
+- **Não editáveis nesta versão**: imagens, vídeo, link preview, visibilidade. (Mantém o escopo pequeno e seguro; podemos expandir depois.)
+- Conteúdo editado passa pela mesma checagem de moderação já usada na criação (regex de `blocked_words` + OpenAI), reutilizando o helper existente.
 
-### A2. Edge function `share-post` — separar bot de humano
-Hoje ela sempre devolve `meta refresh` para `/p/:id`. Com o rewrite isso causaria loop. Ajustar:
+### 5. Arquivos afetados
+- `supabase/migrations/<novo>.sql` — políticas RLS.
+- `src/hooks/useCarreiraData.ts` — novo hook `useUpdatePostAtleta`.
+- `src/components/carreira/PostCard.tsx` — item "Editar" no dropdown + dialog de edição.
+- (Opcional) novo `src/components/carreira/EditPostDialog.tsx` para isolar o formulário.
 
-- User-Agent de crawler (facebookexternalhit, WhatsApp, Twitterbot, LinkedInBot, Slackbot, TelegramBot, Discordbot, etc.) → devolver só o HTML com OG/Twitter tags, sem redirect.
-- Qualquer outro User-Agent (humano em navegador) → responder `302` para `/post/:postId` (rota SPA do post).
-
-### A3. Mover rota SPA do post
-Em `src/App.tsx`, a página do post passa de `/p/:postId` para `/post/:postId`. O link público continua sendo `/p/:id`; só a rota interna do React Router muda.
-
-### A4. Botão de compartilhar
-Em `src/components/carreira/PostCard.tsx`, trocar a `shareUrl` para:
-
-- `https://carreiraid.com.br/p/${post.id}`
-
-Remover qualquer referência ao subdomínio do Supabase no texto e nos handlers (WhatsApp, copiar link, navigator.share).
-
----
-
-## Parte B — Título curto do post
-
-### B1. Banco de dados
-Adicionar coluna em `posts_atleta`:
-
-- `titulo` `text` — opcional, máx. 80 caracteres (validação no app).
-
-Sem mudança de RLS.
-
-### B2. Edge function `share-post`
-Trocar a montagem do título por uma cascata:
-
-1. Se `post.titulo` estiver preenchido → usar como `<title>`, `og:title`, `twitter:title`.
-2. Caso contrário, se `post.texto` tiver conteúdo → usar as primeiras ~70 chars do texto como título.
-3. Caso contrário → fallback "Publicação de {nome do autor}".
-
-A `og:description` continua usando o trecho do texto (excerpt ~200 chars).
-
-### B3. Frontend — criação/edição de post
-- Em `src/components/atleta-id/CreatePostForm.tsx` (e qualquer formulário equivalente): adicionar campo opcional "Título curto" (input text, contador, máx. 80).
-- `PostCard.tsx`: se `post.titulo` existir, exibir acima do texto com destaque visual leve (sem mudar o layout geral).
-- Atualizar tipos em `src/integrations/supabase/types.ts` virá automaticamente após a migração.
-
----
-
-## Arquivos afetados
-
-- `vercel.json` — rewrite específica antes do catch-all.
-- `supabase/functions/share-post/index.ts` — User-Agent split + título a partir de `titulo`.
-- `src/App.tsx` — rota do post `/p/:postId` → `/post/:postId`.
-- `src/components/carreira/PostCard.tsx` — `shareUrl` no domínio próprio + render do `titulo`.
-- `src/components/atleta-id/CreatePostForm.tsx` (e form de edição, se houver) — campo "Título curto".
-- Migração SQL — `ALTER TABLE posts_atleta ADD COLUMN titulo text`.
-
----
-
-## Notas
-
-- Preview do Lovable não tem o `vercel.json` aplicado, então o link limpo só funciona no domínio publicado. Em preview o link continuará apontando para a edge function direto.
-- Lista de bots pode ser ampliada depois, conforme aparecerem novos crawlers relevantes.
-- Posts antigos sem `titulo` continuam funcionando — caem no fallback do texto.
+### Observação
+Postagens publicadas pelo admin (carreiraid) entram via `perfis_rede` (perfil de rede do admin). Com a política de admin acima, ele pode editar tanto seus próprios posts quanto qualquer outro, se necessário para moderação.
