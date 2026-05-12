@@ -76,15 +76,17 @@ export function PostCard({ post, showAuthor = true, accentColor }: PostCardProps
 
   const linkPreview = post.link_preview || (post as any).link_preview;
 
-  // Permalink do post (rota interna que abre só este post)
-  const postPermalink = `${window.location.origin}/p/${post.id}`;
-  // URL com OG meta tags (preview rico no WhatsApp/redes)
-  const SUPABASE_PROJECT = 'fppsotlycinwqsjpoybg';
-  const shareUrl = `https://${SUPABASE_PROJECT}.supabase.co/functions/v1/share-post?id=${post.id}`;
+  // Link público de compartilhamento (no domínio próprio).
+  // Em produção, /p/:id é roteado pela edge function share-post (OG tags) e
+  // redireciona humanos para /post/:id (rota SPA). Em preview/local cai direto na SPA.
+  const shareUrl = `https://carreiraid.com.br/p/${post.id}`;
+
+  const postTitulo = (post as any).titulo as string | undefined;
 
   const buildShareText = () => {
     const excerpt = post.texto ? (post.texto.length > 140 ? post.texto.slice(0, 137) + '…' : post.texto) : '';
-    const lines = [`🏆 ${authorName} no Carreira ID`];
+    const headline = postTitulo?.trim() || `${authorName} no Carreira ID`;
+    const lines = [`🏆 ${headline}`];
     if (excerpt) lines.push('', `"${excerpt}"`);
     lines.push('', `📲 ${shareUrl}`);
     return lines.join('\n');
