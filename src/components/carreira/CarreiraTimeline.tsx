@@ -427,6 +427,19 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             childName={perfil.nome}
             editingExperiencia={editingExperiencia}
           />
+          <JornadaCampeonatoFormDialog
+            open={campeonatoFormOpen}
+            onOpenChange={(open) => { setCampeonatoFormOpen(open); if (!open) setEditingCampeonato(null); }}
+            criancaId={perfil.crianca_id}
+            editingCampeonato={editingCampeonato}
+          />
+          <JornadaJogoFormDialog
+            open={jogoFormOpen}
+            onOpenChange={(open) => { setJogoFormOpen(open); if (!open) setEditingJogo(null); }}
+            criancaId={perfil.crianca_id}
+            campeonatos={jornada.data.campeonatos}
+            editingJogo={editingJogo}
+          />
         </>
       )}
 
