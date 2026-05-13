@@ -10,6 +10,11 @@ import { CarreiraStatsCards } from './CarreiraStatsCards';
 import { JornadaTimeline } from './JornadaTimeline';
 import { CarreiraAtividadeFormDialog } from './CarreiraAtividadeFormDialog';
 import { ExperienciaFormDialog } from './ExperienciaFormDialog';
+import { JornadaEsportivaSection } from './JornadaEsportivaSection';
+import { JornadaCampeonatoFormDialog } from './JornadaCampeonatoFormDialog';
+import { JornadaJogoFormDialog } from './JornadaJogoFormDialog';
+import { useJornada } from '@/hooks/useJornada';
+import type { CampeonatoComJogos, JogoComMidia } from '@/types/jornada-esportiva';
 import { useCarreiraAtividadeLimit } from '@/hooks/useCarreiraFreemium';
 import { useCarreiraPlano } from '@/hooks/useCarreiraPlano';
 import { PlanBadge } from './FeatureGate';
@@ -57,6 +62,10 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   const [editingActivity, setEditingActivity] = useState<AtividadeExterna | null>(null);
   const [editingExperiencia, setEditingExperiencia] = useState<CarreiraExperiencia | null>(null);
   const [deleteExpId, setDeleteExpId] = useState<string | null>(null);
+  const [campeonatoFormOpen, setCampeonatoFormOpen] = useState(false);
+  const [jogoFormOpen, setJogoFormOpen] = useState(false);
+  const [editingCampeonato, setEditingCampeonato] = useState<CampeonatoComJogos | null>(null);
+  const [editingJogo, setEditingJogo] = useState<JogoComMidia | null>(null);
 
   const { data: posts, isLoading: postsLoading } = usePostsAtleta(perfil.id);
   const isPlatformProfile = perfil.modalidade === 'Plataforma' || !perfil.crianca_id;
@@ -65,6 +74,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   const { data: experiencias, isLoading: experienciasLoading } = useCarreiraExperiencias(isPlatformProfile ? undefined : perfil.crianca_id);
   const { data: limitResult } = useCarreiraAtividadeLimit(isOwner && perfil.crianca_id ? perfil.crianca_id : null);
   const deleteExperiencia = useDeleteCarreiraExperiencia();
+  const jornada = useJornada(isPlatformProfile ? null : perfil.crianca_id);
 
   const hasEscolinhaData = (escolinhas?.length || 0) > 0;
   const hasSyncedData = perfil.atleta_id_vinculado === true;
@@ -303,11 +313,31 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
           </div>
         );
       case 'jornada':
-        return (
-          <JornadaTimeline
-            criancaId={perfil.crianca_id}
-            dadosPublicos={{ ...dadosPublicos, premiacoes: false, conquistas: false }}
+        return jornada.isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <JornadaEsportivaSection
+            campeonatos={jornada.data.campeonatos}
+            amistosos={jornada.data.amistosos}
+            estatisticas={jornada.data.estatisticas}
+            isOwner={isOwner}
             accentColor={accentColor}
+            onAddCampeonato={() => { setEditingCampeonato(null); setCampeonatoFormOpen(true); }}
+            onAddJogo={() => { setEditingJogo(null); setJogoFormOpen(true); }}
+            onEditCampeonato={(c) => { setEditingCampeonato(c); setCampeonatoFormOpen(true); }}
+            onEditJogo={(j) => { setEditingJogo(j); setJogoFormOpen(true); }}
+            onDeleteCampeonato={async (id) => {
+              if (!confirm('Excluir este campeonato e todos os seus jogos?')) return;
+              try { await jornada.excluirCampeonato(id); toast.success('Campeonato excluído'); }
+              catch (e: any) { toast.error(e.message || 'Erro ao excluir'); }
+            }}
+            onDeleteJogo={async (id) => {
+              if (!confirm('Excluir este jogo?')) return;
+              try { await jornada.excluirJogo(id); toast.success('Jogo excluído'); }
+              catch (e: any) { toast.error(e.message || 'Erro ao excluir'); }
+            }}
           />
         );
       case 'premiacoes':
@@ -396,6 +426,19 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             criancaId={perfil.crianca_id}
             childName={perfil.nome}
             editingExperiencia={editingExperiencia}
+          />
+          <JornadaCampeonatoFormDialog
+            open={campeonatoFormOpen}
+            onOpenChange={(open) => { setCampeonatoFormOpen(open); if (!open) setEditingCampeonato(null); }}
+            criancaId={perfil.crianca_id}
+            editingCampeonato={editingCampeonato}
+          />
+          <JornadaJogoFormDialog
+            open={jogoFormOpen}
+            onOpenChange={(open) => { setJogoFormOpen(open); if (!open) setEditingJogo(null); }}
+            criancaId={perfil.crianca_id}
+            campeonatos={jornada.data.campeonatos}
+            editingJogo={editingJogo}
           />
         </>
       )}
