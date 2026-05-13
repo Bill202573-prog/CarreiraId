@@ -74,6 +74,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   const { data: experiencias, isLoading: experienciasLoading } = useCarreiraExperiencias(isPlatformProfile ? undefined : perfil.crianca_id);
   const { data: limitResult } = useCarreiraAtividadeLimit(isOwner && perfil.crianca_id ? perfil.crianca_id : null);
   const deleteExperiencia = useDeleteCarreiraExperiencia();
+  const jornada = useJornada(isPlatformProfile ? null : perfil.crianca_id);
 
   const hasEscolinhaData = (escolinhas?.length || 0) > 0;
   const hasSyncedData = perfil.atleta_id_vinculado === true;
