@@ -27,7 +27,7 @@ export function CarreiraCampeonatoCard({
   campeonato, isOwner, accentColor = '#3b82f6',
   onEdit, onDelete, onEditJogo, onDeleteJogo,
 }: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const c = campeonato;
 
   const fmt = (d?: string | null) => {
