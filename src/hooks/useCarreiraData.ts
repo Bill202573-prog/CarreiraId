@@ -733,8 +733,9 @@ export function useToggleFollow() {
 async function convertHeicIfNeeded(file: File): Promise<File> {
   if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
     const heic2any = (await import('heic2any')).default;
-    const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 }) as Blob;
-    return new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), { type: 'image/jpeg' });
+    const blobResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+    const blob = Array.isArray(blobResult) ? blobResult[0] : blobResult;
+    return new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
   }
   return file;
 }

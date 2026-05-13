@@ -19,6 +19,30 @@ import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useNavigate } from 'react-router-dom';
 import heic2any from 'heic2any';
 
+// Helper to convert HEIC/HEIF to JPEG
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                 file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+  if (!isHeic) return file;
+
+  try {
+    const blobResult = await heic2any({
+      blob: file,
+      toType: 'image/jpeg',
+      quality: 0.85,
+    });
+
+    const convertedBlob = Array.isArray(blobResult) ? blobResult[0] : blobResult;
+    const newFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+
+    return new File([convertedBlob], newFileName, { type: 'image/jpeg' });
+  } catch (error) {
+    console.error('Error converting HEIC:', error);
+    throw new Error('Não foi possível converter a imagem HEIC');
+  }
+}
+
 interface CreatePostFormProps {
   perfil?: PerfilAtleta;
   perfilRedeId?: string;
@@ -128,7 +152,7 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
     } finally { setFetchingPreview(false); }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
     if (images.length + files.length > 3) {
@@ -136,26 +160,39 @@ export function CreatePostForm({ perfil, perfilRedeId, perfilRedeNome, perfilRed
       return;
     }
 
-    files.forEach((file) => {
-      if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic') && !file.name.toLowerCase().endsWith('.heif')) {
-        toast.error('Apenas imagens são permitidas');
-        return;
+    for (const file of files) {
+      const isImage = file.type.startsWith('image/') ||
+                      file.name.toLowerCase().endsWith('.heic') ||
+                      file.name.toLowerCase().endsWith('.heif');
+      if (!isImage) {
+        toast.error(`Arquivo não suportado: ${file.name}`);
+        continue;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Cada imagem deve ter no máximo 5MB');
-        return;
+      if (file.size > 15 * 1024 * 1024) {
+        toast.error(`Imagem muito grande: ${file.name}. Máximo 15MB.`);
+        continue;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImages((prev) => [
-          ...prev,
-          { file, preview: e.target?.result as string },
-        ]);
-      };
-      reader.readAsDataURL(file);
-    });
+      try {
+        // Convert HEIC/HEIF to JPEG for preview and upload compatibility
+        const processedFile = await convertHeicToJpeg(file);
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setImages((prev) => {
+            if (prev.length >= 3) {
+              toast.error('Máximo de 3 imagens por post');
+              return prev;
+            }
+            return [...prev, { file: processedFile, preview: ev.target?.result as string }];
+          });
+        };
+        reader.readAsDataURL(processedFile);
+      } catch (err: any) {
+        toast.error(err?.message || `Erro ao processar ${file.name}`);
+      }
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
