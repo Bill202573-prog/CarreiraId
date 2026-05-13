@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Upload, X, Image as ImageIcon, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJornada } from '@/hooks/useJornada';
-import { supabase } from '@/integrations/supabase/client';
 import type { CampeonatoComJogos, JogoComMidia, PosicaoJogo } from '@/types/jornada-esportiva';
 
 interface Props {
