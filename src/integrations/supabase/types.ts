@@ -475,6 +475,51 @@ export type Database = {
         }
         Relationships: []
       }
+      carreira_campeonatos: {
+        Row: {
+          abrangencia:
+            | Database["public"]["Enums"]["torneio_abrangencia_novo"]
+            | null
+          created_at: string
+          criado_por: string
+          crianca_id: string
+          data_final: string | null
+          data_inicio: string
+          id: string
+          nome: string
+          organizador: string | null
+          updated_at: string
+        }
+        Insert: {
+          abrangencia?:
+            | Database["public"]["Enums"]["torneio_abrangencia_novo"]
+            | null
+          created_at?: string
+          criado_por: string
+          crianca_id: string
+          data_final?: string | null
+          data_inicio: string
+          id?: string
+          nome: string
+          organizador?: string | null
+          updated_at?: string
+        }
+        Update: {
+          abrangencia?:
+            | Database["public"]["Enums"]["torneio_abrangencia_novo"]
+            | null
+          created_at?: string
+          criado_por?: string
+          crianca_id?: string
+          data_final?: string | null
+          data_inicio?: string
+          id?: string
+          nome?: string
+          organizador?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       carreira_comunicados: {
         Row: {
           ativo: boolean | null
@@ -603,6 +648,93 @@ export type Database = {
           tipo_instituicao?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      carreira_jogo_midias: {
+        Row: {
+          created_at: string
+          id: string
+          jogo_id: string
+          ordem: number | null
+          tipo_midia: Database["public"]["Enums"]["tipo_midia_enum"]
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jogo_id: string
+          ordem?: number | null
+          tipo_midia: Database["public"]["Enums"]["tipo_midia_enum"]
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jogo_id?: string
+          ordem?: number | null
+          tipo_midia?: Database["public"]["Enums"]["tipo_midia_enum"]
+          url?: string
+        }
+        Relationships: []
+      }
+      carreira_jogos: {
+        Row: {
+          assistencias: number | null
+          campeonato_id: string | null
+          created_at: string
+          criado_por: string
+          crianca_id: string
+          data_jogo: string
+          fase_campeonato: string | null
+          gols_marcados: number | null
+          id: string
+          local: string | null
+          observacoes: string | null
+          placar_adversario: number | null
+          placar_time_atleta: number | null
+          posicao_jogo: string | null
+          time_adversario: string
+          tipo_jogo: Database["public"]["Enums"]["tipo_jogo_enum"]
+          updated_at: string
+        }
+        Insert: {
+          assistencias?: number | null
+          campeonato_id?: string | null
+          created_at?: string
+          criado_por: string
+          crianca_id: string
+          data_jogo: string
+          fase_campeonato?: string | null
+          gols_marcados?: number | null
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          placar_adversario?: number | null
+          placar_time_atleta?: number | null
+          posicao_jogo?: string | null
+          time_adversario: string
+          tipo_jogo: Database["public"]["Enums"]["tipo_jogo_enum"]
+          updated_at?: string
+        }
+        Update: {
+          assistencias?: number | null
+          campeonato_id?: string | null
+          created_at?: string
+          criado_por?: string
+          crianca_id?: string
+          data_jogo?: string
+          fase_campeonato?: string | null
+          gols_marcados?: number | null
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          placar_adversario?: number | null
+          placar_time_atleta?: number | null
+          posicao_jogo?: string | null
+          time_adversario?: string
+          tipo_jogo?: Database["public"]["Enums"]["tipo_jogo_enum"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2067,8 +2199,15 @@ export type Database = {
         | "competicao_torneio"
         | "jogo_amistoso_externo"
         | "outro"
+      tipo_jogo_enum: "campeonato" | "amistoso"
+      tipo_midia_enum: "foto" | "video"
       torneio_abrangencia:
         | "municipal"
+        | "regional"
+        | "estadual"
+        | "nacional"
+        | "internacional"
+      torneio_abrangencia_novo:
         | "regional"
         | "estadual"
         | "nacional"
@@ -2215,8 +2354,16 @@ export const Constants = {
         "jogo_amistoso_externo",
         "outro",
       ],
+      tipo_jogo_enum: ["campeonato", "amistoso"],
+      tipo_midia_enum: ["foto", "video"],
       torneio_abrangencia: [
         "municipal",
+        "regional",
+        "estadual",
+        "nacional",
+        "internacional",
+      ],
+      torneio_abrangencia_novo: [
         "regional",
         "estadual",
         "nacional",
