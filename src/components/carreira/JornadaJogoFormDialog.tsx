@@ -32,12 +32,13 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
   const [saving, setSaving] = useState(false);
   const [campeonatoId, setCampeonatoId] = useState<string>(NONE);
   const [dataJogo, setDataJogo] = useState('');
+  const [timeAtleta, setTimeAtleta] = useState('');
   const [adversario, setAdversario] = useState('');
+  const [local, setLocal] = useState('');
   const [placarA, setPlacarA] = useState('');
   const [placarB, setPlacarB] = useState('');
   const [gols, setGols] = useState('');
   const [assist, setAssist] = useState('');
-  const [posicao, setPosicao] = useState<string>(NONE);
   const [fase, setFase] = useState('');
   const [obs, setObs] = useState('');
   const [novosArquivos, setNovosArquivos] = useState<File[]>([]);
@@ -47,12 +48,13 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
     if (open) {
       setCampeonatoId(editingJogo?.campeonato_id || NONE);
       setDataJogo(editingJogo?.data_jogo?.slice(0, 10) || '');
+      setTimeAtleta(editingJogo?.time_atleta || '');
       setAdversario(editingJogo?.time_adversario || '');
+      setLocal(editingJogo?.local || '');
       setPlacarA(editingJogo?.placar_time_atleta?.toString() ?? '');
       setPlacarB(editingJogo?.placar_adversario?.toString() ?? '');
       setGols(editingJogo?.gols_marcados?.toString() ?? '');
       setAssist(editingJogo?.assistencias?.toString() ?? '');
-      setPosicao(editingJogo?.posicao_jogo || NONE);
       setFase(editingJogo?.fase_campeonato || '');
       setObs(editingJogo?.observacoes || '');
       setNovosArquivos([]);
@@ -65,11 +67,15 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
     if (!files) return;
     const ok: File[] = [];
     Array.from(files).forEach((f) => {
-      const isImg = f.type.startsWith('image/');
-      const isVid = f.type.startsWith('video/');
+      const name = f.name.toLowerCase();
+      const isImg = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?|avif)$/i.test(name);
+      const isVid = f.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(name);
       if (!isImg && !isVid) { toast.error(`${f.name}: formato não suportado`); return; }
-      if (isImg && f.size > MAX_IMG) { toast.error(`${f.name}: imagem > 10MB`); return; }
-      if (isVid && f.size > MAX_VIDEO) { toast.error(`${f.name}: vídeo > 50MB`); return; }
+      if (isImg && f.size > MAX_IMG) { toast.error(`${f.name}: imagem > 15MB`); return; }
+      if (isVid && f.size > MAX_VIDEO) { toast.error(`${f.name}: vídeo > 100MB`); return; }
+      if (/\.(heic|heif)$/i.test(name)) {
+        toast.warning(`${f.name}: HEIC pode não exibir miniatura em alguns navegadores`);
+      }
       ok.push(f);
     });
     setNovosArquivos((prev) => [...prev, ...ok]);
