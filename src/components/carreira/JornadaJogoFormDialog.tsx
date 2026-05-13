@@ -157,12 +157,12 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Data *</Label>
-              <Input type="date" value={dataJogo} onChange={(e) => setDataJogo(e.target.value)} />
+              <Label>Meu time</Label>
+              <Input value={timeAtleta} onChange={(e) => setTimeAtleta(e.target.value)} placeholder="Ex: Serra Macaense" />
             </div>
             <div>
               <Label>Adversário *</Label>
-              <Input value={adversario} onChange={(e) => setAdversario(e.target.value)} placeholder="Ex: Time XYZ" />
+              <Input value={adversario} onChange={(e) => setAdversario(e.target.value)} placeholder="Ex: Bonsucesso" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -177,6 +177,16 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <Label>Data *</Label>
+              <Input type="date" value={dataJogo} onChange={(e) => setDataJogo(e.target.value)} />
+            </div>
+            <div>
+              <Label>Local</Label>
+              <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex: Estádio Municipal" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <Label>Gols marcados</Label>
               <Input type="number" min={0} value={gols} onChange={(e) => setGols(e.target.value)} />
             </div>
@@ -185,23 +195,9 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
               <Input type="number" min={0} value={assist} onChange={(e) => setAssist(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Posição</Label>
-              <Select value={posicao} onValueChange={setPosicao}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>Não informado</SelectItem>
-                  {POSICOES.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Fase</Label>
-              <Input value={fase} onChange={(e) => setFase(e.target.value)} placeholder="Ex: Final" />
-            </div>
+          <div>
+            <Label>Fase</Label>
+            <Input value={fase} onChange={(e) => setFase(e.target.value)} placeholder="Ex: Final" />
           </div>
           <div>
             <Label>Observações</Label>
