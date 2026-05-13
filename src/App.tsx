@@ -107,6 +107,8 @@ const App = () => (
               <Route path="/contato" element={<ContatoPage />} />
               <Route path="/planos" element={<CarreiraPlanosPage />} />
               <Route path="/eventos" element={<CarreiraEventosPage />} />
+              <Route path="/jornada-esportiva" element={<JornadaEsportivaPage />} />
+              <Route path="/atleta/jornada-esportiva" element={<JornadaEsportivaPage />} />
               {/* Carreira ID — Admin */}
               <Route path="/carreira/admin" element={<CarreiraAdminDashboard />} />
               <Route path="/carreira/admin/perfis" element={<CarreiraAdminPerfisPage />} />
