@@ -19,6 +19,30 @@ import { carreiraPath } from '@/hooks/useCarreiraBasePath';
 import { useNavigate } from 'react-router-dom';
 import heic2any from 'heic2any';
 
+// Helper to convert HEIC/HEIF to JPEG
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                 file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+  if (!isHeic) return file;
+
+  try {
+    const blobResult = await heic2any({
+      blob: file,
+      toType: 'image/jpeg',
+      quality: 0.85,
+    });
+
+    const convertedBlob = Array.isArray(blobResult) ? blobResult[0] : blobResult;
+    const newFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+
+    return new File([convertedBlob], newFileName, { type: 'image/jpeg' });
+  } catch (error) {
+    console.error('Error converting HEIC:', error);
+    throw new Error('Não foi possível converter a imagem HEIC');
+  }
+}
+
 interface CreatePostFormProps {
   perfil?: PerfilAtleta;
   perfilRedeId?: string;
