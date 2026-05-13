@@ -28,7 +28,7 @@ const MAX_IMG = 10 * 1024 * 1024;
 const MAX_VIDEO = 50 * 1024 * 1024;
 
 export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonatos, editingJogo }: Props) {
-  const { criarJogo, editarJogo, adicionarMidiasJogo, excluirMidia, fetchData } = useJornada(criancaId);
+  const { criarJogo, editarJogo, adicionarMidiasJogo, excluirMidia } = useJornada(criancaId);
   const [saving, setSaving] = useState(false);
   const [campeonatoId, setCampeonatoId] = useState<string>(NONE);
   const [dataJogo, setDataJogo] = useState('');
