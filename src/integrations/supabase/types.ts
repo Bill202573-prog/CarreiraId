@@ -486,6 +486,7 @@ export type Database = {
           data_final: string | null
           data_inicio: string
           id: string
+          logo_url: string | null
           nome: string
           organizador: string | null
           updated_at: string
@@ -500,6 +501,7 @@ export type Database = {
           data_final?: string | null
           data_inicio: string
           id?: string
+          logo_url?: string | null
           nome: string
           organizador?: string | null
           updated_at?: string
@@ -514,6 +516,7 @@ export type Database = {
           data_final?: string | null
           data_inicio?: string
           id?: string
+          logo_url?: string | null
           nome?: string
           organizador?: string | null
           updated_at?: string
@@ -714,7 +717,7 @@ export type Database = {
           placar_time_atleta?: number | null
           posicao_jogo?: string | null
           time_adversario: string
-          tipo_jogo: Database["public"]["Enums"]["tipo_jogo_enum"]
+          tipo_jogo?: Database["public"]["Enums"]["tipo_jogo_enum"]
           updated_at?: string
         }
         Update: {

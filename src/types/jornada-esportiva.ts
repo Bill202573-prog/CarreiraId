@@ -21,6 +21,7 @@ export interface Campeonato {
   abrangencia: TorneioAbrangencia;
   data_inicio: string;
   data_final?: string;
+  logo_url?: string | null;
   created_at: string;
 }
 
@@ -83,6 +84,7 @@ export interface CreateCampeonatoInput {
   abrangencia: TorneioAbrangencia;
   data_inicio: string;
   data_final?: string;
+  logo_url?: string | null;
 }
 
 export interface CreateJogoInput {
