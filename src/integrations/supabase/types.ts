@@ -698,6 +698,7 @@ export type Database = {
           placar_time_atleta: number | null
           posicao_jogo: string | null
           time_adversario: string
+          time_atleta: string | null
           tipo_jogo: Database["public"]["Enums"]["tipo_jogo_enum"]
           updated_at: string
         }
@@ -717,6 +718,7 @@ export type Database = {
           placar_time_atleta?: number | null
           posicao_jogo?: string | null
           time_adversario: string
+          time_atleta?: string | null
           tipo_jogo?: Database["public"]["Enums"]["tipo_jogo_enum"]
           updated_at?: string
         }
@@ -736,6 +738,7 @@ export type Database = {
           placar_time_atleta?: number | null
           posicao_jogo?: string | null
           time_adversario?: string
+          time_atleta?: string | null
           tipo_jogo?: Database["public"]["Enums"]["tipo_jogo_enum"]
           updated_at?: string
         }
