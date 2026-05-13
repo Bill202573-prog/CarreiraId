@@ -84,6 +84,7 @@ export interface CreateCampeonatoInput {
   abrangencia: TorneioAbrangencia;
   data_inicio: string;
   data_final?: string;
+  logo_url?: string | null;
 }
 
 export interface CreateJogoInput {
