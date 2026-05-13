@@ -104,12 +104,13 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
       const payload = {
         campeonato_id: campeonatoId === NONE ? null : campeonatoId,
         data_jogo: dataJogo,
+        time_atleta: timeAtleta.trim() || null,
         time_adversario: adversario.trim(),
+        local: local.trim() || undefined,
         placar_time_atleta: num(placarA),
         placar_adversario: num(placarB),
         gols_marcados: num(gols),
         assistencias: num(assist),
-        posicao_jogo: posicao === NONE ? undefined : (posicao as PosicaoJogo),
         fase_campeonato: fase.trim() || undefined,
         observacoes: obs.trim() || undefined,
       };
