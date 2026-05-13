@@ -4,11 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Upload, X, Image as ImageIcon, Video } from 'lucide-react';
+import { Loader2, Upload, X, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJornada } from '@/hooks/useJornada';
-import type { CampeonatoComJogos, JogoComMidia, PosicaoJogo } from '@/types/jornada-esportiva';
+import type { CampeonatoComJogos, JogoComMidia } from '@/types/jornada-esportiva';
 
 interface Props {
   open: boolean;
