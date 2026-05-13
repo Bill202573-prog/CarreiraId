@@ -202,30 +202,100 @@ export function useJornada(criancaId: string | undefined | null) {
   );
 
   const criarJogo = useCallback(
-    async (input: CreateJogoInput) => {
+    async (input: CreateJogoInput): Promise<string> => {
       if (!criancaId) throw new Error('Atleta não definido');
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) throw new Error('Não autenticado');
-      const { error } = await (supabase as any).from('carreira_jogos').insert({
-        crianca_id: criancaId,
-        criado_por: uid,
-        campeonato_id: input.campeonato_id || null,
-        data_jogo: input.data_jogo,
-        time_adversario: input.time_adversario,
-        local: input.local,
-        placar_time_atleta: input.placar_time_atleta,
-        placar_adversario: input.placar_adversario,
-        gols_marcados: input.gols_marcados,
-        assistencias: input.assistencias,
-        posicao_jogo: input.posicao_jogo,
-        observacoes: input.observacoes,
-        fase_campeonato: input.fase_campeonato,
-      });
+      const { data: inserted, error } = await (supabase as any)
+        .from('carreira_jogos')
+        .insert({
+          crianca_id: criancaId,
+          criado_por: uid,
+          campeonato_id: input.campeonato_id || null,
+          tipo_jogo: input.campeonato_id ? 'campeonato' : 'amistoso',
+          data_jogo: input.data_jogo,
+          time_adversario: input.time_adversario,
+          local: input.local,
+          placar_time_atleta: input.placar_time_atleta,
+          placar_adversario: input.placar_adversario,
+          gols_marcados: input.gols_marcados,
+          assistencias: input.assistencias,
+          posicao_jogo: input.posicao_jogo,
+          observacoes: input.observacoes,
+          fase_campeonato: input.fase_campeonato,
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+      await fetchData();
+      return inserted.id as string;
+    },
+    [criancaId, fetchData],
+  );
+
+  const editarJogo = useCallback(
+    async (id: string, input: CreateJogoInput) => {
+      const { error } = await (supabase as any)
+        .from('carreira_jogos')
+        .update({
+          campeonato_id: input.campeonato_id || null,
+          tipo_jogo: input.campeonato_id ? 'campeonato' : 'amistoso',
+          data_jogo: input.data_jogo,
+          time_adversario: input.time_adversario,
+          local: input.local,
+          placar_time_atleta: input.placar_time_atleta,
+          placar_adversario: input.placar_adversario,
+          gols_marcados: input.gols_marcados,
+          assistencias: input.assistencias,
+          posicao_jogo: input.posicao_jogo,
+          observacoes: input.observacoes,
+          fase_campeonato: input.fase_campeonato,
+        })
+        .eq('id', id);
       if (error) throw error;
       await fetchData();
     },
-    [criancaId, fetchData],
+    [fetchData],
+  );
+
+  const uploadArquivo = useCallback(
+    async (file: File, subdir: 'campeonatos' | 'jogos'): Promise<string> => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) throw new Error('Não autenticado');
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${uid}/${subdir}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('jornada-midias').upload(path, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('jornada-midias').getPublicUrl(path);
+      return data.publicUrl;
+    },
+    [],
+  );
+
+  const adicionarMidiasJogo = useCallback(
+    async (jogoId: string, files: File[]) => {
+      if (!files.length) return;
+      const rows: { jogo_id: string; tipo_midia: 'foto' | 'video'; url: string; ordem: number }[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const url = await uploadArquivo(f, 'jogos');
+        rows.push({
+          jogo_id: jogoId,
+          tipo_midia: f.type.startsWith('video') ? 'video' : 'foto',
+          url,
+          ordem: i,
+        });
+      }
+      const { error } = await (supabase as any).from('carreira_jogo_midias').insert(rows);
+      if (error) throw error;
+      await fetchData();
+    },
+    [uploadArquivo, fetchData],
   );
 
   const adicionarMidia = useCallback(
