@@ -26,6 +26,9 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
     catch { return j.data_jogo; }
   })();
 
+  const meuTime = j.time_atleta?.trim() || 'Meu time';
+  const temPlacar = j.placar_time_atleta != null && j.placar_adversario != null;
+
   return (
     <div
       className="flex items-start gap-3 p-3 rounded-lg"
@@ -33,18 +36,21 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-sm">vs {j.time_adversario}</span>
-          {j.placar_time_atleta != null && j.placar_adversario != null && (
+          <span className="font-medium text-sm">
+            {meuTime} <span className="text-muted-foreground">x</span> {j.time_adversario}
+          </span>
+          {temPlacar && (
             <span className={`font-bold text-sm ${placarColor}`}>
               {j.placar_time_atleta} x {j.placar_adversario}
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">{dataFmt}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {dataFmt}{j.local ? ` • ${j.local}` : ''}
+        </p>
         <div className="flex flex-wrap gap-1.5 mt-1.5 text-[11px]">
           {!!j.gols_marcados && <Tag>⚽ {j.gols_marcados} gol(s)</Tag>}
           {!!j.assistencias && <Tag>🎯 {j.assistencias} assist</Tag>}
-          {j.posicao_jogo && <Tag>{j.posicao_jogo}</Tag>}
           {j.fase_campeonato && <Tag>{j.fase_campeonato}</Tag>}
         </div>
         {j.observacoes && <p className="text-xs text-muted-foreground mt-1.5">{j.observacoes}</p>}
@@ -56,12 +62,28 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
                 href={m.url_midia}
                 target="_blank"
                 rel="noreferrer"
-                className="aspect-square rounded overflow-hidden bg-muted block"
+                className="aspect-square rounded overflow-hidden bg-muted block relative"
               >
                 {m.tipo_midia === 'video' ? (
                   <video src={m.url_midia} className="w-full h-full object-cover" />
                 ) : (
-                  <img src={m.url_midia} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img
+                    src={m.url_midia}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      el.style.display = 'none';
+                      const p = el.parentElement;
+                      if (p && !p.querySelector('.midia-fallback')) {
+                        const div = document.createElement('div');
+                        div.className = 'midia-fallback w-full h-full flex items-center justify-center text-[10px] text-muted-foreground p-1 text-center';
+                        div.textContent = 'Pré-visualização indisponível (HEIC?)';
+                        p.appendChild(div);
+                      }
+                    }}
+                  />
                 )}
               </a>
             ))}
