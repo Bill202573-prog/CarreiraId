@@ -24,8 +24,8 @@ const POSICOES: PosicaoJogo[] = [
 ];
 
 const NONE = '__none__';
-const MAX_IMG = 10 * 1024 * 1024;
-const MAX_VIDEO = 50 * 1024 * 1024;
+const MAX_IMG = 15 * 1024 * 1024;
+const MAX_VIDEO = 100 * 1024 * 1024;
 
 export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonatos, editingJogo }: Props) {
   const { criarJogo, editarJogo, adicionarMidiasJogo, excluirMidia } = useJornada(criancaId);
