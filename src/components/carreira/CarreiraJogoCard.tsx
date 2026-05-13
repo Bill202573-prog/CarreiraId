@@ -48,6 +48,25 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
           {j.fase_campeonato && <Tag>{j.fase_campeonato}</Tag>}
         </div>
         {j.observacoes && <p className="text-xs text-muted-foreground mt-1.5">{j.observacoes}</p>}
+        {j.midias && j.midias.length > 0 && (
+          <div className="grid grid-cols-4 gap-1 mt-2">
+            {j.midias.slice(0, 8).map((m) => (
+              <a
+                key={m.id}
+                href={m.url_midia}
+                target="_blank"
+                rel="noreferrer"
+                className="aspect-square rounded overflow-hidden bg-muted block"
+              >
+                {m.tipo_midia === 'video' ? (
+                  <video src={m.url_midia} className="w-full h-full object-cover" />
+                ) : (
+                  <img src={m.url_midia} alt="" className="w-full h-full object-cover" loading="lazy" />
+                )}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
       {isOwner && (
         <div className="flex items-center gap-0.5 shrink-0">
