@@ -37,6 +37,7 @@ export interface Jogo {
   gols_marcados?: number;
   assistencias?: number;
   posicao_jogo?: PosicaoJogo;
+  time_atleta?: string | null;
   observacoes?: string;
   fase_campeonato?: string;
   created_at: string;
@@ -97,6 +98,7 @@ export interface CreateJogoInput {
   gols_marcados?: number;
   assistencias?: number;
   posicao_jogo?: PosicaoJogo;
+  time_atleta?: string | null;
   observacoes?: string;
   fase_campeonato?: string;
 }

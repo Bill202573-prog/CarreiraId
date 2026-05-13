@@ -1,0 +1,1 @@
+ALTER TABLE public.carreira_jogos ADD COLUMN IF NOT EXISTS time_atleta text;

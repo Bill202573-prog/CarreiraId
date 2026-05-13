@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Upload, X, Image as ImageIcon, Video } from 'lucide-react';
+import { Loader2, Upload, X, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJornada } from '@/hooks/useJornada';
-import type { CampeonatoComJogos, JogoComMidia, PosicaoJogo } from '@/types/jornada-esportiva';
+import type { CampeonatoComJogos, JogoComMidia } from '@/types/jornada-esportiva';
 
 interface Props {
   open: boolean;
@@ -18,26 +18,22 @@ interface Props {
   editingJogo?: JogoComMidia | null;
 }
 
-const POSICOES: PosicaoJogo[] = [
-  'goleiro', 'lateral-esquerdo', 'lateral-direito', 'zagueiro',
-  'volante', 'meia', 'meia-atacante', 'ala', 'atacante', 'ponta',
-];
-
 const NONE = '__none__';
-const MAX_IMG = 10 * 1024 * 1024;
-const MAX_VIDEO = 50 * 1024 * 1024;
+const MAX_IMG = 15 * 1024 * 1024;
+const MAX_VIDEO = 100 * 1024 * 1024;
 
 export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonatos, editingJogo }: Props) {
   const { criarJogo, editarJogo, adicionarMidiasJogo, excluirMidia } = useJornada(criancaId);
   const [saving, setSaving] = useState(false);
   const [campeonatoId, setCampeonatoId] = useState<string>(NONE);
   const [dataJogo, setDataJogo] = useState('');
+  const [timeAtleta, setTimeAtleta] = useState('');
   const [adversario, setAdversario] = useState('');
+  const [local, setLocal] = useState('');
   const [placarA, setPlacarA] = useState('');
   const [placarB, setPlacarB] = useState('');
   const [gols, setGols] = useState('');
   const [assist, setAssist] = useState('');
-  const [posicao, setPosicao] = useState<string>(NONE);
   const [fase, setFase] = useState('');
   const [obs, setObs] = useState('');
   const [novosArquivos, setNovosArquivos] = useState<File[]>([]);
@@ -47,12 +43,13 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
     if (open) {
       setCampeonatoId(editingJogo?.campeonato_id || NONE);
       setDataJogo(editingJogo?.data_jogo?.slice(0, 10) || '');
+      setTimeAtleta(editingJogo?.time_atleta || '');
       setAdversario(editingJogo?.time_adversario || '');
+      setLocal(editingJogo?.local || '');
       setPlacarA(editingJogo?.placar_time_atleta?.toString() ?? '');
       setPlacarB(editingJogo?.placar_adversario?.toString() ?? '');
       setGols(editingJogo?.gols_marcados?.toString() ?? '');
       setAssist(editingJogo?.assistencias?.toString() ?? '');
-      setPosicao(editingJogo?.posicao_jogo || NONE);
       setFase(editingJogo?.fase_campeonato || '');
       setObs(editingJogo?.observacoes || '');
       setNovosArquivos([]);
@@ -65,11 +62,15 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
     if (!files) return;
     const ok: File[] = [];
     Array.from(files).forEach((f) => {
-      const isImg = f.type.startsWith('image/');
-      const isVid = f.type.startsWith('video/');
+      const name = f.name.toLowerCase();
+      const isImg = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?|avif)$/i.test(name);
+      const isVid = f.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(name);
       if (!isImg && !isVid) { toast.error(`${f.name}: formato não suportado`); return; }
-      if (isImg && f.size > MAX_IMG) { toast.error(`${f.name}: imagem > 10MB`); return; }
-      if (isVid && f.size > MAX_VIDEO) { toast.error(`${f.name}: vídeo > 50MB`); return; }
+      if (isImg && f.size > MAX_IMG) { toast.error(`${f.name}: imagem > 15MB`); return; }
+      if (isVid && f.size > MAX_VIDEO) { toast.error(`${f.name}: vídeo > 100MB`); return; }
+      if (/\.(heic|heif)$/i.test(name)) {
+        toast.warning(`${f.name}: HEIC pode não exibir miniatura em alguns navegadores`);
+      }
       ok.push(f);
     });
     setNovosArquivos((prev) => [...prev, ...ok]);
@@ -98,12 +99,13 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
       const payload = {
         campeonato_id: campeonatoId === NONE ? null : campeonatoId,
         data_jogo: dataJogo,
+        time_atleta: timeAtleta.trim() || null,
         time_adversario: adversario.trim(),
+        local: local.trim() || undefined,
         placar_time_atleta: num(placarA),
         placar_adversario: num(placarB),
         gols_marcados: num(gols),
         assistencias: num(assist),
-        posicao_jogo: posicao === NONE ? undefined : (posicao as PosicaoJogo),
         fase_campeonato: fase.trim() || undefined,
         observacoes: obs.trim() || undefined,
       };
@@ -150,12 +152,12 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Data *</Label>
-              <Input type="date" value={dataJogo} onChange={(e) => setDataJogo(e.target.value)} />
+              <Label>Meu time</Label>
+              <Input value={timeAtleta} onChange={(e) => setTimeAtleta(e.target.value)} placeholder="Ex: Serra Macaense" />
             </div>
             <div>
               <Label>Adversário *</Label>
-              <Input value={adversario} onChange={(e) => setAdversario(e.target.value)} placeholder="Ex: Time XYZ" />
+              <Input value={adversario} onChange={(e) => setAdversario(e.target.value)} placeholder="Ex: Bonsucesso" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -170,6 +172,16 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <Label>Data *</Label>
+              <Input type="date" value={dataJogo} onChange={(e) => setDataJogo(e.target.value)} />
+            </div>
+            <div>
+              <Label>Local</Label>
+              <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Ex: Estádio Municipal" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <Label>Gols marcados</Label>
               <Input type="number" min={0} value={gols} onChange={(e) => setGols(e.target.value)} />
             </div>
@@ -178,23 +190,9 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
               <Input type="number" min={0} value={assist} onChange={(e) => setAssist(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Posição</Label>
-              <Select value={posicao} onValueChange={setPosicao}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>Não informado</SelectItem>
-                  {POSICOES.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Fase</Label>
-              <Input value={fase} onChange={(e) => setFase(e.target.value)} placeholder="Ex: Final" />
-            </div>
+          <div>
+            <Label>Fase</Label>
+            <Input value={fase} onChange={(e) => setFase(e.target.value)} placeholder="Ex: Final" />
           </div>
           <div>
             <Label>Observações</Label>
@@ -255,7 +253,7 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
                 ref={fileRef}
                 type="file"
                 hidden
-                accept="image/*,video/*"
+                accept="image/*,video/*,.heic,.heif"
                 multiple
                 onChange={(e) => { handleFiles(e.target.files); if (fileRef.current) fileRef.current.value = ''; }}
               />
