@@ -313,11 +313,31 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
           </div>
         );
       case 'jornada':
-        return (
-          <JornadaTimeline
-            criancaId={perfil.crianca_id}
-            dadosPublicos={{ ...dadosPublicos, premiacoes: false, conquistas: false }}
+        return jornada.isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <JornadaEsportivaSection
+            campeonatos={jornada.data.campeonatos}
+            amistosos={jornada.data.amistosos}
+            estatisticas={jornada.data.estatisticas}
+            isOwner={isOwner}
             accentColor={accentColor}
+            onAddCampeonato={() => { setEditingCampeonato(null); setCampeonatoFormOpen(true); }}
+            onAddJogo={() => { setEditingJogo(null); setJogoFormOpen(true); }}
+            onEditCampeonato={(c) => { setEditingCampeonato(c); setCampeonatoFormOpen(true); }}
+            onEditJogo={(j) => { setEditingJogo(j); setJogoFormOpen(true); }}
+            onDeleteCampeonato={async (id) => {
+              if (!confirm('Excluir este campeonato e todos os seus jogos?')) return;
+              try { await jornada.excluirCampeonato(id); toast.success('Campeonato excluído'); }
+              catch (e: any) { toast.error(e.message || 'Erro ao excluir'); }
+            }}
+            onDeleteJogo={async (id) => {
+              if (!confirm('Excluir este jogo?')) return;
+              try { await jornada.excluirJogo(id); toast.success('Jogo excluído'); }
+              catch (e: any) { toast.error(e.message || 'Erro ao excluir'); }
+            }}
           />
         );
       case 'premiacoes':
