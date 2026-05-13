@@ -174,11 +174,31 @@ export function useJornada(criancaId: string | undefined | null) {
         abrangencia: input.abrangencia,
         data_inicio: input.data_inicio,
         data_final: input.data_final,
+        logo_url: input.logo_url ?? null,
       });
       if (error) throw error;
       await fetchData();
     },
     [criancaId, fetchData],
+  );
+
+  const editarCampeonato = useCallback(
+    async (id: string, input: CreateCampeonatoInput) => {
+      const { error } = await (supabase as any)
+        .from('carreira_campeonatos')
+        .update({
+          nome: input.nome,
+          organizador: input.organizador,
+          abrangencia: input.abrangencia,
+          data_inicio: input.data_inicio,
+          data_final: input.data_final,
+          logo_url: input.logo_url ?? null,
+        })
+        .eq('id', id);
+      if (error) throw error;
+      await fetchData();
+    },
+    [fetchData],
   );
 
   const criarJogo = useCallback(
