@@ -253,7 +253,7 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
                 ref={fileRef}
                 type="file"
                 hidden
-                accept="image/*,video/*"
+                accept="image/*,video/*,.heic,.heif"
                 multiple
                 onChange={(e) => { handleFiles(e.target.files); if (fileRef.current) fileRef.current.value = ''; }}
               />
