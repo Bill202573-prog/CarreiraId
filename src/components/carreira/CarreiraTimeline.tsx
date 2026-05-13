@@ -62,6 +62,10 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   const [editingActivity, setEditingActivity] = useState<AtividadeExterna | null>(null);
   const [editingExperiencia, setEditingExperiencia] = useState<CarreiraExperiencia | null>(null);
   const [deleteExpId, setDeleteExpId] = useState<string | null>(null);
+  const [campeonatoFormOpen, setCampeonatoFormOpen] = useState(false);
+  const [jogoFormOpen, setJogoFormOpen] = useState(false);
+  const [editingCampeonato, setEditingCampeonato] = useState<CampeonatoComJogos | null>(null);
+  const [editingJogo, setEditingJogo] = useState<JogoComMidia | null>(null);
 
   const { data: posts, isLoading: postsLoading } = usePostsAtleta(perfil.id);
   const isPlatformProfile = perfil.modalidade === 'Plataforma' || !perfil.crianca_id;
