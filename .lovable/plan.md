@@ -1,42 +1,81 @@
-## Diagnóstico
+## Objetivo
 
-Hoje **ninguém** consegue editar postagens pela UI:
-- O `PostCard.tsx` só tem o botão **Excluir** no dropdown do dono. Não existe ação "Editar" em lugar nenhum.
-- No banco, só há política de UPDATE para autores de perfil de atleta. **Não há política de UPDATE para perfis de rede (escola/profissional/torcedor) nem para admins** — então mesmo se a UI existisse, posts de admins (via `perfis_rede`) e edições de admin em qualquer post seriam bloqueados pela RLS.
+Substituir o `JornadaTimeline` (read-only, dados sincronizados) pelo novo `JornadaEsportiva` editável na aba "Jornada Esportiva" do perfil em `CarreiraTimeline.tsx`, seguindo o mesmo padrão arquitetural de Experiência (pai busca dados + abre dialogs, filho "burro" só renderiza).
 
-## Plano
+A aba "Premiações" continua usando `JornadaTimeline` (não está no escopo).
 
-### 1. Banco de dados (RLS)
-Adicionar políticas UPDATE em `posts_atleta`:
-- "Perfis rede podem atualizar seus posts" — autores via `perfil_rede_id`.
-- "Admins podem atualizar qualquer post" — usando `has_role(auth.uid(), 'admin')`.
+## Arquivos a criar (em `src/components/carreira/`)
 
-### 2. Hook de edição
-Em `src/hooks/useCarreiraData.ts` criar `useUpdatePostAtleta()`:
-- Recebe `{ postId, titulo, texto, autorId, perfilRedeId }`.
-- Faz `update` em `posts_atleta` (campos: `titulo`, `texto`).
-- Invalida queries de feed/perfil para refletir.
-- Toast de sucesso/erro.
+1. **`JornadaEsportivaSection.tsx`** — componente apresentacional
+   - Props: `campeonatos`, `amistosos`, `estatisticas`, `isOwner`, `accentColor`, `onAddCampeonato`, `onAddJogo`, `onEditCampeonato`, `onEditJogo`, `onDeleteCampeonato`, `onDeleteJogo`
+   - Renderiza grid de 4 `StatCard` (Jogos, Gols, Assistências, Vitórias)
+   - Sub-tabs internos (state local) "Campeonatos" / "Amistosos"
+   - Botões "Novo Campeonato" e "Novo Jogo" só se `isOwner`
+   - Lista de `CarreiraCampeonatoCard` ou `CarreiraJogoCard`
+   - Empty states e visual alinhado com `ExperienciaSection`
 
-### 3. UI de edição
-Em `src/components/carreira/PostCard.tsx`:
-- Adicionar item **"Editar"** no `DropdownMenu`, visível para `isOwner` **ou** admin (via `useUserRole`/`useAuth` → checar role).
-- Ao clicar, abrir um `Dialog` simples com:
-  - Input "Título curto" (até 80 chars, com contador).
-  - Textarea para `texto`.
-  - Botões Cancelar / Salvar.
-- Após salvar, exibir indicador `(editado)` ao lado do tempo, baseado em `updated_at > created_at + 1min`.
+2. **`JornadaCampeonatoFormDialog.tsx`** — dialog CRUD campeonato
+   - Props: `open`, `onOpenChange`, `criancaId`, `editingCampeonato?`
+   - Usa shadcn `Dialog` (igual `ExperienciaFormDialog`)
+   - Campos: nome*, organizador, abrangência (Select), data_inicio*, data_final
+   - Validação básica + estados loading/erro com `toast`
+   - Chama `useJornada(criancaId).criarCampeonato`
 
-### 4. Escopo da edição
-- Editáveis: `titulo` e `texto`.
-- **Não editáveis nesta versão**: imagens, vídeo, link preview, visibilidade. (Mantém o escopo pequeno e seguro; podemos expandir depois.)
-- Conteúdo editado passa pela mesma checagem de moderação já usada na criação (regex de `blocked_words` + OpenAI), reutilizando o helper existente.
+3. **`JornadaJogoFormDialog.tsx`** — dialog CRUD jogo
+   - Props: `open`, `onOpenChange`, `criancaId`, `campeonatos`, `editingJogo?`
+   - Campos: campeonato (Select opcional), data_jogo*, time_adversario*, placares, gols, assistências, posição (Select), fase, observações
+   - Chama `useJornada(criancaId).criarJogo`
 
-### 5. Arquivos afetados
-- `supabase/migrations/<novo>.sql` — políticas RLS.
-- `src/hooks/useCarreiraData.ts` — novo hook `useUpdatePostAtleta`.
-- `src/components/carreira/PostCard.tsx` — item "Editar" no dropdown + dialog de edição.
-- (Opcional) novo `src/components/carreira/EditPostDialog.tsx` para isolar o formulário.
+4. **`CarreiraCampeonatoCard.tsx`** — card read-only de campeonato
+   - Reaproveita lógica visual do existente `src/components/jornada/CampeonatoCard.tsx` mas com cores via `accentColor` e botões edit/delete condicionais a `isOwner`
+   - Renderiza lista interna de `CarreiraJogoCard`
 
-### Observação
-Postagens publicadas pelo admin (carreiraid) entram via `perfis_rede` (perfil de rede do admin). Com a política de admin acima, ele pode editar tanto seus próprios posts quanto qualquer outro, se necessário para moderação.
+5. **`CarreiraJogoCard.tsx`** — card read-only de jogo
+   - Placar com cor por resultado (verde/vermelho/cinza)
+   - Tags de gols/assists/posição/fase
+   - Botões edit/delete condicionais a `isOwner`
+
+6. **`StatCard.tsx`** — card de estatística simples
+   - Props: `label`, `value`, `icon?`, `accentColor?`
+
+Nota: os componentes em `src/components/jornada/*` (criados anteriormente para a página standalone) ficam intactos — não serão tocados nem deletados nesta etapa.
+
+## Modificações em `src/components/carreira/CarreiraTimeline.tsx`
+
+1. **Imports**: adicionar `useJornada`, `JornadaEsportivaSection`, `JornadaCampeonatoFormDialog`, `JornadaJogoFormDialog`. Remover import de `JornadaTimeline` apenas se não for mais usado em "premiacoes" — manter pois case 'premiacoes' continua usando.
+
+2. **State** (junto aos demais):
+   ```
+   const [campeonatoFormOpen, setCampeonatoFormOpen] = useState(false);
+   const [jogoFormOpen, setJogoFormOpen] = useState(false);
+   const [editingCampeonato, setEditingCampeonato] = useState<CampeonatoComJogos | null>(null);
+   const [editingJogo, setEditingJogo] = useState<JogoComMidia | null>(null);
+   ```
+
+3. **Hook** (após `useCarreiraExperiencias`):
+   ```
+   const { data: jornada, excluirCampeonato, excluirJogo } =
+     useJornada(isPlatformProfile ? undefined : perfil.crianca_id);
+   ```
+
+4. **Handlers**: `handleEditCampeonato`, `handleEditJogo`, `handleDeleteCampeonato`, `handleDeleteJogo` (com `confirm`).
+
+5. **Case `'jornada'`**: substituir o `<JornadaTimeline ... />` atual pelo novo `<JornadaEsportivaSection ... />` recebendo `jornada.campeonatos`, `jornada.amistosos`, `jornada.estatisticas` e os handlers.
+
+6. **Dialogs**: adicionar `<JornadaCampeonatoFormDialog>` e `<JornadaJogoFormDialog>` no bloco de dialogs existente (apenas se `isOwner && perfil.crianca_id`).
+
+## Reutilização (não criar)
+
+- `src/types/jornada-esportiva.ts` — usar como está
+- `src/hooks/useJornada.ts` — usar como está
+
+## Pendência de RLS
+
+Para INSERT/SELECT funcionar, as policies RLS propostas anteriormente em `carreira_campeonatos`, `carreira_jogos`, `carreira_jogo_midias` precisam estar aplicadas. Se ainda não foram aprovadas, eu reenvio a migração antes de testar o CRUD.
+
+## Checklist
+
+- [ ] Criar 6 componentes novos em `src/components/carreira/`
+- [ ] Editar `CarreiraTimeline.tsx` (state, hook, handlers, case, dialogs)
+- [ ] Verificar build limpo
+- [ ] Confirmar RLS aplicada (caso contrário rodar migração)
