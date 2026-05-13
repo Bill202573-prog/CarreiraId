@@ -18,11 +18,6 @@ interface Props {
   editingJogo?: JogoComMidia | null;
 }
 
-const POSICOES: PosicaoJogo[] = [
-  'goleiro', 'lateral-esquerdo', 'lateral-direito', 'zagueiro',
-  'volante', 'meia', 'meia-atacante', 'ala', 'atacante', 'ponta',
-];
-
 const NONE = '__none__';
 const MAX_IMG = 15 * 1024 * 1024;
 const MAX_VIDEO = 100 * 1024 * 1024;
