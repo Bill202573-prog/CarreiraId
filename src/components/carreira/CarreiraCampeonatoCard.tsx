@@ -42,10 +42,14 @@ export function CarreiraCampeonatoCard({
     >
       <div className="p-3 flex items-start gap-3">
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
           style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
         >
-          <Trophy className="w-5 h-5" />
+          {c.logo_url ? (
+            <img src={c.logo_url} alt={c.nome} className="w-full h-full object-cover" />
+          ) : (
+            <Trophy className="w-5 h-5" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
