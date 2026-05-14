@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronDown, ChevronUp, Pencil, Trash2, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { CampeonatoComJogos, JogoComMidia, TorneioAbrangencia } from '@/types/jornada-esportiva';
+import type { CampeonatoComJogos, JogoComMidia, PosicaoFinalCampeonato, TorneioAbrangencia } from '@/types/jornada-esportiva';
 import { CarreiraJogoCard } from './CarreiraJogoCard';
 
 const ABRANGENCIA_LABEL: Record<TorneioAbrangencia, string> = {
@@ -11,6 +11,26 @@ const ABRANGENCIA_LABEL: Record<TorneioAbrangencia, string> = {
   estadual: 'Estadual',
   nacional: 'Nacional',
   internacional: 'Internacional',
+};
+
+const POSICAO_FINAL_META: Record<PosicaoFinalCampeonato, { label: string; bg: string; fg: string; emoji: string } | undefined> = {
+  campeao: { label: 'Campeão', bg: '#fef3c7', fg: '#92400e', emoji: '🏆' },
+  vice: { label: 'Vice', bg: '#e5e7eb', fg: '#374151', emoji: '🥈' },
+  semifinalista: { label: 'Semifinalista', bg: '#fde68a', fg: '#78350f', emoji: '🥉' },
+  quartas: { label: 'Quartas', bg: '#dbeafe', fg: '#1e3a8a', emoji: '' },
+  oitavas: { label: 'Oitavas', bg: '#dbeafe', fg: '#1e3a8a', emoji: '' },
+  fase_grupos: { label: 'Fase de grupos', bg: '#f3f4f6', fg: '#374151', emoji: '' },
+  eliminado: { label: 'Eliminado', bg: '#fee2e2', fg: '#991b1b', emoji: '' },
+  em_andamento: undefined,
+};
+
+const TIPO_PREM_META: Record<string, { label: string; emoji: string }> = {
+  melhor_jogador: { label: 'Melhor jogador', emoji: '🏆' },
+  melhor_goleiro: { label: 'Melhor goleiro', emoji: '🧤' },
+  artilheiro: { label: 'Artilheiro', emoji: '⚽' },
+  melhor_defesa: { label: 'Melhor defesa', emoji: '🛡️' },
+  destaque: { label: 'Destaque', emoji: '⭐' },
+  outro: { label: 'Outro', emoji: '🏅' },
 };
 
 interface Props {
