@@ -116,6 +116,14 @@ export interface CreateCampeonatoInput {
   data_inicio: string;
   data_final?: string;
   logo_url?: string | null;
+  posicao_final?: PosicaoFinalCampeonato | null;
+}
+
+export interface CreateCampeonatoPremiacaoInput {
+  campeonato_id: string;
+  tipo_premiacao: TipoPremiacaoIndividual;
+  titulo?: string | null;
+  jogo_id?: string | null;
 }
 
 export interface CreateJogoInput {
