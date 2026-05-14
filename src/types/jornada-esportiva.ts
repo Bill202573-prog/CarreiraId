@@ -13,6 +13,24 @@ export type PosicaoJogo =
   | 'atacante'
   | 'ponta';
 
+export type PosicaoFinalCampeonato =
+  | 'campeao'
+  | 'vice'
+  | 'semifinalista'
+  | 'quartas'
+  | 'oitavas'
+  | 'fase_grupos'
+  | 'eliminado'
+  | 'em_andamento';
+
+export type TipoPremiacaoIndividual =
+  | 'melhor_jogador'
+  | 'melhor_goleiro'
+  | 'artilheiro'
+  | 'melhor_defesa'
+  | 'destaque'
+  | 'outro';
+
 export interface Campeonato {
   id: string;
   crianca_id: string;
@@ -22,6 +40,17 @@ export interface Campeonato {
   data_inicio: string;
   data_final?: string;
   logo_url?: string | null;
+  posicao_final?: PosicaoFinalCampeonato | null;
+  created_at: string;
+}
+
+export interface CampeonatoPremiacao {
+  id: string;
+  campeonato_id: string;
+  crianca_id: string;
+  tipo_premiacao: TipoPremiacaoIndividual;
+  titulo?: string | null;
+  jogo_id?: string | null;
   created_at: string;
 }
 
