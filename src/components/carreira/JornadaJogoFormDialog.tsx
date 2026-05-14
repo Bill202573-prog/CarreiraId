@@ -16,13 +16,14 @@ interface Props {
   criancaId: string;
   campeonatos: CampeonatoComJogos[];
   editingJogo?: JogoComMidia | null;
+  onSaved?: () => Promise<void> | void;
 }
 
 const NONE = '__none__';
 const MAX_IMG = 15 * 1024 * 1024;
 const MAX_VIDEO = 100 * 1024 * 1024;
 
-export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonatos, editingJogo }: Props) {
+export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonatos, editingJogo, onSaved }: Props) {
   const { criarJogo, editarJogo, adicionarMidiasJogo, excluirMidia } = useJornada(criancaId);
   const [saving, setSaving] = useState(false);
   const [campeonatoId, setCampeonatoId] = useState<string>(NONE);
@@ -84,6 +85,7 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
     if (!confirm('Remover esta mídia?')) return;
     try {
       await excluirMidia(id);
+      await onSaved?.();
       toast.success('Mídia removida');
     } catch (e: any) {
       toast.error(e.message || 'Erro ao remover');
@@ -119,6 +121,7 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
       if (novosArquivos.length > 0) {
         await adicionarMidiasJogo(jogoId, novosArquivos);
       }
+      await onSaved?.();
       toast.success('Jogo salvo');
       onOpenChange(false);
     } catch (err: any) {
@@ -182,11 +185,11 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Gols marcados</Label>
+              <Label>Gols do atleta</Label>
               <Input type="number" min={0} value={gols} onChange={(e) => setGols(e.target.value)} />
             </div>
             <div>
-              <Label>Assistências</Label>
+              <Label>Assistências do atleta</Label>
               <Input type="number" min={0} value={assist} onChange={(e) => setAssist(e.target.value)} />
             </div>
           </div>

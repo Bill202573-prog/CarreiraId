@@ -40,8 +40,8 @@ export function JornadaEsportiva({ crianca_id }: Props) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Jogos" value={stats.totalJogos} color="bg-blue-600" />
         <StatCard label="Campeonatos" value={stats.totalCampeonatos} color="bg-purple-600" />
-        <StatCard label="Gols" value={stats.totalGols} color="bg-emerald-600" />
-        <StatCard label="Assistências" value={stats.totalAssistencias} color="bg-amber-600" />
+        <StatCard label="Gols do atleta" value={stats.totalGols} color="bg-emerald-600" />
+        <StatCard label="Assist. do atleta" value={stats.totalAssistencias} color="bg-amber-600" />
       </div>
 
       {/* Action buttons */}

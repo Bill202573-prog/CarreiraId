@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { ChevronDown, ChevronUp, Pencil, Trash2, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { CampeonatoComJogos, JogoComMidia, PosicaoFinalCampeonato, TorneioAbrangencia } from '@/types/jornada-esportiva';
@@ -49,11 +47,8 @@ export function CarreiraCampeonatoCard({
 }: Props) {
   const [open, setOpen] = useState(false);
   const c = campeonato;
-
-  const fmt = (d?: string | null) => {
-    if (!d) return '';
-    try { return format(new Date(d), "MMM yyyy", { locale: ptBR }); } catch { return d; }
-  };
+  const times = Array.from(new Set(c.jogos.map((j) => j.time_atleta?.trim()).filter(Boolean) as string[]));
+  const timeRepresentado = times.length > 1 ? `${times[0]} +${times.length - 1}` : times[0];
 
   return (
     <div
@@ -92,14 +87,11 @@ export function CarreiraCampeonatoCard({
               </span>
             )}
           </div>
-          {c.organizador && <p className="text-xs text-muted-foreground">{c.organizador}</p>}
-          <p className="text-xs text-muted-foreground">
-            {fmt(c.data_inicio)}{c.data_final ? ` — ${fmt(c.data_final)}` : ''}
-          </p>
+          {timeRepresentado && <p className="text-xs text-muted-foreground">{timeRepresentado}</p>}
           <div className="flex flex-wrap gap-1.5 mt-1.5 text-[11px]">
             <Mini>{c.totalJogos || 0} jogos</Mini>
-            <Mini>{c.totalGols || 0} gols</Mini>
-            <Mini>{c.totalAssistencias || 0} assist</Mini>
+            <Mini>{c.totalGols || 0} gols do atleta</Mini>
+            <Mini>{c.totalAssistencias || 0} assist. do atleta</Mini>
             <Mini>{c.totalVitorias || 0} vitórias</Mini>
           </div>
           {(c.premiacoes || []).length > 0 && (

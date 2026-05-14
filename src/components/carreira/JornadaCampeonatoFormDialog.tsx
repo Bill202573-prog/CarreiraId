@@ -19,6 +19,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   criancaId: string;
   editingCampeonato?: CampeonatoComJogos | null;
+  onSaved?: () => Promise<void> | void;
 }
 
 const ABRANGENCIAS: TorneioAbrangencia[] = ['regional', 'estadual', 'nacional', 'internacional'];
@@ -43,7 +44,7 @@ const TIPOS_PREMIACAO: { value: TipoPremiacaoIndividual; label: string; emoji: s
   { value: 'outro', label: 'Outro', emoji: '🏅' },
 ];
 
-export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, editingCampeonato }: Props) {
+export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, editingCampeonato, onSaved }: Props) {
   const {
     criarCampeonato, editarCampeonato, uploadArquivo,
     adicionarPremiacaoCampeonato, excluirPremiacaoCampeonato,
@@ -104,6 +105,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
       } else {
         await criarCampeonato(payload);
       }
+      await onSaved?.();
       toast.success('Campeonato salvo');
       onOpenChange(false);
     } catch (err: any) {
@@ -136,6 +138,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
         titulo: novaPremTitulo.trim() || null,
         jogo_id: novaPremJogoId || null,
       });
+      await onSaved?.();
       setNovaPremTitulo('');
       setNovaPremJogoId('');
       toast.success('Reconhecimento adicionado');
@@ -147,6 +150,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
   const handleRemovePremiacao = async (id: string) => {
     try {
       await excluirPremiacaoCampeonato(id);
+      await onSaved?.();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao remover');
     }

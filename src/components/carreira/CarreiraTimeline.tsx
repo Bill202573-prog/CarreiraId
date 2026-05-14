@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PerfilAtleta, usePostsAtleta, useAtividadesPublicas, useEscolinhasCarreira } from '@/hooks/useCarreiraData';
 import { useCarreiraExperiencias, useDeleteCarreiraExperiencia, CarreiraExperiencia } from '@/hooks/useCarreiraExperienciasData';
 import { AtividadeExterna } from '@/hooks/useAtividadesExternasData';
@@ -86,6 +86,19 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
 
   const accentColor = perfil.cor_destaque || '#3b82f6';
   const activeTabs = isCarreiraOnly ? CARREIRA_TABS : INSTITUTIONAL_TABS;
+
+  useEffect(() => {
+    if (editingCampeonato) {
+      const atualizado = jornada.data.campeonatos.find((c) => c.id === editingCampeonato.id);
+      if (atualizado && atualizado !== editingCampeonato) setEditingCampeonato(atualizado);
+    }
+
+    if (editingJogo) {
+      const jogos = [...jornada.data.amistosos, ...jornada.data.campeonatos.flatMap((c) => c.jogos)];
+      const atualizado = jogos.find((j) => j.id === editingJogo.id);
+      if (atualizado && atualizado !== editingJogo) setEditingJogo(atualizado);
+    }
+  }, [editingCampeonato, editingJogo, jornada.data.amistosos, jornada.data.campeonatos]);
 
   const handleTabClick = (value: string) => {
     setActiveTab(prev => prev === value ? null : value);
@@ -432,6 +445,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             onOpenChange={(open) => { setCampeonatoFormOpen(open); if (!open) setEditingCampeonato(null); }}
             criancaId={perfil.crianca_id}
             editingCampeonato={editingCampeonato}
+            onSaved={jornada.fetchData}
           />
           <JornadaJogoFormDialog
             open={jogoFormOpen}
@@ -439,6 +453,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             criancaId={perfil.crianca_id}
             campeonatos={jornada.data.campeonatos}
             editingJogo={editingJogo}
+            onSaved={jornada.fetchData}
           />
         </>
       )}

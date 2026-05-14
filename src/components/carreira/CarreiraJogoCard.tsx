@@ -50,8 +50,8 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
           {dataFmt}{j.local ? ` • ${j.local}` : ''}
         </p>
         <div className="flex flex-wrap gap-1.5 mt-1.5 text-[11px]">
-          {!!j.gols_marcados && <Tag>⚽ {j.gols_marcados} gol(s)</Tag>}
-          {!!j.assistencias && <Tag>🎯 {j.assistencias} assist</Tag>}
+          {!!j.gols_marcados && <Tag>⚽ {j.gols_marcados} gol(s) do atleta</Tag>}
+          {!!j.assistencias && <Tag>🎯 {j.assistencias} assist. do atleta</Tag>}
           {j.fase_campeonato && <Tag>{j.fase_campeonato}</Tag>}
         </div>
         {j.observacoes && <p className="text-xs text-muted-foreground mt-1.5">{j.observacoes}</p>}
