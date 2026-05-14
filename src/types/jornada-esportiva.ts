@@ -87,6 +87,7 @@ export interface JogoComMidia extends Jogo {
 
 export interface CampeonatoComJogos extends Campeonato {
   jogos: JogoComMidia[];
+  premiacoes: CampeonatoPremiacao[];
   totalJogos?: number;
   totalGols?: number;
   totalAssistencias?: number;
