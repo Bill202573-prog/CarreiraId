@@ -475,6 +475,57 @@ export type Database = {
         }
         Relationships: []
       }
+      carreira_campeonato_premiacoes: {
+        Row: {
+          campeonato_id: string
+          created_at: string
+          criado_por: string
+          crianca_id: string
+          id: string
+          jogo_id: string | null
+          tipo_premiacao: string
+          titulo: string | null
+          updated_at: string
+        }
+        Insert: {
+          campeonato_id: string
+          created_at?: string
+          criado_por: string
+          crianca_id: string
+          id?: string
+          jogo_id?: string | null
+          tipo_premiacao: string
+          titulo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campeonato_id?: string
+          created_at?: string
+          criado_por?: string
+          crianca_id?: string
+          id?: string
+          jogo_id?: string | null
+          tipo_premiacao?: string
+          titulo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carreira_campeonato_premiacoes_campeonato_id_fkey"
+            columns: ["campeonato_id"]
+            isOneToOne: false
+            referencedRelation: "carreira_campeonatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carreira_campeonato_premiacoes_jogo_id_fkey"
+            columns: ["jogo_id"]
+            isOneToOne: false
+            referencedRelation: "carreira_jogos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carreira_campeonatos: {
         Row: {
           abrangencia:
@@ -489,6 +540,7 @@ export type Database = {
           logo_url: string | null
           nome: string
           organizador: string | null
+          posicao_final: string | null
           updated_at: string
         }
         Insert: {
@@ -504,6 +556,7 @@ export type Database = {
           logo_url?: string | null
           nome: string
           organizador?: string | null
+          posicao_final?: string | null
           updated_at?: string
         }
         Update: {
@@ -519,6 +572,7 @@ export type Database = {
           logo_url?: string | null
           nome?: string
           organizador?: string | null
+          posicao_final?: string | null
           updated_at?: string
         }
         Relationships: []
