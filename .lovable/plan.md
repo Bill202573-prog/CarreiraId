@@ -1,81 +1,66 @@
 ## Objetivo
 
-Substituir o `JornadaTimeline` (read-only, dados sincronizados) pelo novo `JornadaEsportiva` editável na aba "Jornada Esportiva" do perfil em `CarreiraTimeline.tsx`, seguindo o mesmo padrão arquitetural de Experiência (pai busca dados + abre dialogs, filho "burro" só renderiza).
+Permitir registrar, em cada campeonato da Jornada Esportiva, a **posição final do time** (prêmio coletivo) e os **reconhecimentos individuais** (melhor jogador, goleiro, artilheiro, etc.), e exibir tudo de forma destacada no card do campeonato e na aba **Premiações** do perfil público.
 
-A aba "Premiações" continua usando `JornadaTimeline` (não está no escopo).
+## Onde encaixar
 
-## Arquivos a criar (em `src/components/carreira/`)
+A informação será cadastrada em **dois pontos** complementares, mas armazenada no campeonato (fonte única da verdade):
 
-1. **`JornadaEsportivaSection.tsx`** — componente apresentacional
-   - Props: `campeonatos`, `amistosos`, `estatisticas`, `isOwner`, `accentColor`, `onAddCampeonato`, `onAddJogo`, `onEditCampeonato`, `onEditJogo`, `onDeleteCampeonato`, `onDeleteJogo`
-   - Renderiza grid de 4 `StatCard` (Jogos, Gols, Assistências, Vitórias)
-   - Sub-tabs internos (state local) "Campeonatos" / "Amistosos"
-   - Botões "Novo Campeonato" e "Novo Jogo" só se `isOwner`
-   - Lista de `CarreiraCampeonatoCard` ou `CarreiraJogoCard`
-   - Empty states e visual alinhado com `ExperienciaSection`
+1. **Edição do Campeonato** (dialog atual `JornadaCampeonatoFormDialog`)
+   - Novo campo **"Posição final"** (select): Campeão, Vice-campeão, Semifinalista, Quartas de final, Oitavas, Fase de grupos, Eliminado, Em andamento.
+   - Nova seção **"Reconhecimentos individuais"** (lista dinâmica add/remove) com:
+     - Tipo (select): Melhor jogador, Melhor goleiro, Artilheiro, Melhor defesa, Destaque da partida, Outro.
+     - Descrição/título livre opcional (ex.: "Artilheiro com 8 gols").
+     - Jogo associado (opcional) — select com os jogos do campeonato, default = jogo da final se houver.
 
-2. **`JornadaCampeonatoFormDialog.tsx`** — dialog CRUD campeonato
-   - Props: `open`, `onOpenChange`, `criancaId`, `editingCampeonato?`
-   - Usa shadcn `Dialog` (igual `ExperienciaFormDialog`)
-   - Campos: nome*, organizador, abrangência (Select), data_inicio*, data_final
-   - Validação básica + estados loading/erro com `toast`
-   - Chama `useJornada(criancaId).criarCampeonato`
+2. **Edição do Jogo** (dialog `JornadaJogoFormDialog`) — atalho:
+   - Quando a fase do jogo for "Final", aparece um bloco **"Reconhecimentos da final"** que grava nos mesmos registros do campeonato, já com `jogo_id` preenchido. Evita o atleta ter que voltar até a edição do campeonato.
 
-3. **`JornadaJogoFormDialog.tsx`** — dialog CRUD jogo
-   - Props: `open`, `onOpenChange`, `criancaId`, `campeonatos`, `editingJogo?`
-   - Campos: campeonato (Select opcional), data_jogo*, time_adversario*, placares, gols, assistências, posição (Select), fase, observações
-   - Chama `useJornada(criancaId).criarJogo`
+## Exibição
 
-4. **`CarreiraCampeonatoCard.tsx`** — card read-only de campeonato
-   - Reaproveita lógica visual do existente `src/components/jornada/CampeonatoCard.tsx` mas com cores via `accentColor` e botões edit/delete condicionais a `isOwner`
-   - Renderiza lista interna de `CarreiraJogoCard`
+- **`CarreiraCampeonatoCard`**: ao lado do nome do campeonato, badge colorido com a posição final (ouro=Campeão, prata=Vice, bronze=Semi). Abaixo das estatísticas, uma linha discreta com chips dos reconhecimentos: 🏆 Melhor jogador • 🧤 Melhor goleiro • ⚽ Artilheiro (8 gols).
+- **Aba Premiações** (perfil público): incluir os novos dados da Jornada Esportiva junto às premiações que já vêm de `evento_premiacoes_sync`. Mostrar duas seções:
+  - **Coletivas**: lista de campeonatos com posição final ≠ "Em andamento" / "Eliminado".
+  - **Individuais**: chips com tipo + campeonato + ano.
 
-5. **`CarreiraJogoCard.tsx`** — card read-only de jogo
-   - Placar com cor por resultado (verde/vermelho/cinza)
-   - Tags de gols/assists/posição/fase
-   - Botões edit/delete condicionais a `isOwner`
+## Detalhes técnicos
 
-6. **`StatCard.tsx`** — card de estatística simples
-   - Props: `label`, `value`, `icon?`, `accentColor?`
+### Banco (migração)
 
-Nota: os componentes em `src/components/jornada/*` (criados anteriormente para a página standalone) ficam intactos — não serão tocados nem deletados nesta etapa.
+Tabela `carreira_campeonatos`: adicionar coluna
+- `posicao_final TEXT NULL` — enum em texto: `campeao | vice | semifinalista | quartas | oitavas | fase_grupos | eliminado | em_andamento`.
 
-## Modificações em `src/components/carreira/CarreiraTimeline.tsx`
+Nova tabela `carreira_campeonato_premiacoes`:
+- `id uuid pk`
+- `campeonato_id uuid fk → carreira_campeonatos(id) on delete cascade`
+- `crianca_id uuid` (para RLS, igual aos jogos)
+- `tipo_premiacao text` (mesmos valores do enum acima + `outro`)
+- `titulo text null` (descrição livre)
+- `jogo_id uuid null fk → carreira_jogos(id) on delete set null`
+- `created_at timestamptz default now()`
+- RLS: dono da `crianca_id` faz CRUD; leitura pública apenas se o perfil do atleta for público (espelhar policies já existentes em `carreira_jogos`).
+- Adicionar a publicação `supabase_realtime`.
 
-1. **Imports**: adicionar `useJornada`, `JornadaEsportivaSection`, `JornadaCampeonatoFormDialog`, `JornadaJogoFormDialog`. Remover import de `JornadaTimeline` apenas se não for mais usado em "premiacoes" — manter pois case 'premiacoes' continua usando.
+### Tipos (`src/types/jornada-esportiva.ts`)
 
-2. **State** (junto aos demais):
-   ```
-   const [campeonatoFormOpen, setCampeonatoFormOpen] = useState(false);
-   const [jogoFormOpen, setJogoFormOpen] = useState(false);
-   const [editingCampeonato, setEditingCampeonato] = useState<CampeonatoComJogos | null>(null);
-   const [editingJogo, setEditingJogo] = useState<JogoComMidia | null>(null);
-   ```
+- Novo tipo `PosicaoFinalCampeonato` e `TipoPremiacaoIndividual`.
+- `Campeonato.posicao_final?: PosicaoFinalCampeonato`.
+- Novo tipo `CampeonatoPremiacao` e `CampeonatoComJogos.premiacoes: CampeonatoPremiacao[]`.
 
-3. **Hook** (após `useCarreiraExperiencias`):
-   ```
-   const { data: jornada, excluirCampeonato, excluirJogo } =
-     useJornada(isPlatformProfile ? undefined : perfil.crianca_id);
-   ```
+### Hook (`src/hooks/useJornada.ts`)
 
-4. **Handlers**: `handleEditCampeonato`, `handleEditJogo`, `handleDeleteCampeonato`, `handleDeleteJogo` (com `confirm`).
+- `fetchData()` passa a buscar `carreira_campeonato_premiacoes` por criança e agrupa por campeonato.
+- Novas funções: `addPremiacaoCampeonato`, `updatePremiacaoCampeonato`, `removePremiacaoCampeonato`.
+- Subscrever a nova tabela em realtime (mesmo padrão dos jogos/midias).
+- `updateCampeonato` aceita `posicao_final`.
 
-5. **Case `'jornada'`**: substituir o `<JornadaTimeline ... />` atual pelo novo `<JornadaEsportivaSection ... />` recebendo `jornada.campeonatos`, `jornada.amistosos`, `jornada.estatisticas` e os handlers.
+### UI
 
-6. **Dialogs**: adicionar `<JornadaCampeonatoFormDialog>` e `<JornadaJogoFormDialog>` no bloco de dialogs existente (apenas se `isOwner && perfil.crianca_id`).
+- `JornadaCampeonatoFormDialog`: novo `<Select>` posição final + sub-bloco lista dinâmica de premiações (add/remove). Persiste em duas operações (campeonato + diff de premiações) na hora de salvar.
+- `JornadaJogoFormDialog`: se `fase_campeonato === "Final"`, mostra mini-formulário "Reconhecimentos da final" reaproveitando os mesmos handlers do hook.
+- `CarreiraCampeonatoCard`: badge de posição + linha de chips de reconhecimentos.
+- Aba **Premiações** do perfil público: agregar os dados novos, mantendo compatibilidade com `useCarreiraPremiacoes` atual (apenas concatena).
 
-## Reutilização (não criar)
+### Validação visual (após implementar)
 
-- `src/types/jornada-esportiva.ts` — usar como está
-- `src/hooks/useJornada.ts` — usar como está
-
-## Pendência de RLS
-
-Para INSERT/SELECT funcionar, as policies RLS propostas anteriormente em `carreira_campeonatos`, `carreira_jogos`, `carreira_jogo_midias` precisam estar aplicadas. Se ainda não foram aprovadas, eu reenvio a migração antes de testar o CRUD.
-
-## Checklist
-
-- [ ] Criar 6 componentes novos em `src/components/carreira/`
-- [ ] Editar `CarreiraTimeline.tsx` (state, hook, handlers, case, dialogs)
-- [ ] Verificar build limpo
-- [ ] Confirmar RLS aplicada (caso contrário rodar migração)
+Cadastrar via UI: posição final + 2 reconhecimentos, salvar, conferir realtime, conferir card e aba Premiações.
