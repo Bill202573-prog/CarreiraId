@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type {
+  CampeonatoPremiacao,
   CreateCampeonatoInput,
+  CreateCampeonatoPremiacaoInput,
   CreateJogoInput,
   CreateJogoMidiaInput,
   EstatisticasAtleta,
