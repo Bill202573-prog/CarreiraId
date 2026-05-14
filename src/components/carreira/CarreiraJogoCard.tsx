@@ -35,15 +35,16 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
       style={{ backgroundColor: `${accentColor}08`, borderLeft: `3px solid ${accentColor}50` }}
     >
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-sm">
-            {meuTime} <span className="text-muted-foreground">x</span> {j.time_adversario}
-          </span>
+        <div className="flex items-baseline gap-2 flex-wrap text-sm font-medium text-foreground">
+          <span className="truncate">{meuTime}</span>
           {temPlacar && (
-            <span className={`font-bold text-sm ${placarColor}`}>
-              {j.placar_time_atleta} x {j.placar_adversario}
-            </span>
+            <span className={`font-bold ${placarColor}`}>{j.placar_time_atleta}</span>
           )}
+          <span className="text-muted-foreground">x</span>
+          {temPlacar && (
+            <span className={`font-bold ${placarColor}`}>{j.placar_adversario}</span>
+          )}
+          <span className="truncate">{j.time_adversario}</span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
           {dataFmt}{j.local ? ` • ${j.local}` : ''}
