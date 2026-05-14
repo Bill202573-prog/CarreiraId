@@ -33,8 +33,8 @@ export function JornadaEsportivaSection({
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <StatCard label="Jogos" value={estatisticas.totalJogos || 0} icon={<Swords className="w-4 h-4" />} accentColor={accentColor} />
-        <StatCard label="Gols" value={estatisticas.totalGols || 0} icon={<Goal className="w-4 h-4" />} accentColor={accentColor} />
-        <StatCard label="Assistências" value={estatisticas.totalAssistencias || 0} icon={<Target className="w-4 h-4" />} accentColor={accentColor} />
+        <StatCard label="Gols do atleta" value={estatisticas.totalGols || 0} icon={<Goal className="w-4 h-4" />} accentColor={accentColor} />
+        <StatCard label="Assist. do atleta" value={estatisticas.totalAssistencias || 0} icon={<Target className="w-4 h-4" />} accentColor={accentColor} />
         <StatCard label="Vitórias" value={estatisticas.totalVitorias || 0} icon={<Award className="w-4 h-4" />} accentColor={accentColor} />
       </div>
 
