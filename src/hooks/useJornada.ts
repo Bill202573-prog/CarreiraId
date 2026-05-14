@@ -442,5 +442,7 @@ export function useJornada(criancaId: string | undefined | null) {
     excluirCampeonato,
     excluirJogo,
     excluirMidia,
+    adicionarPremiacaoCampeonato,
+    excluirPremiacaoCampeonato,
   };
 }
