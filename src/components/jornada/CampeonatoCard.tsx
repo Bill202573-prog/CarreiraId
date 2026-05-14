@@ -41,8 +41,8 @@ export function CampeonatoCard({ campeonato, onDelete, onDeleteJogo, onDeleteMid
           {timeRepresentado && <div className="text-sm text-gray-500 mt-0.5">{timeRepresentado}</div>}
           <div className="flex flex-wrap gap-2 mt-2 text-xs">
             <Badge>{c.totalJogos || 0} jogos</Badge>
-            <Badge>{c.totalGols || 0} gols atleta</Badge>
-            <Badge>{c.totalAssistencias || 0} assist atleta</Badge>
+            <Badge>{c.totalGols || 0} gols do atleta</Badge>
+            <Badge>{c.totalAssistencias || 0} assist. do atleta</Badge>
             <Badge>{c.totalVitorias || 0} vitórias</Badge>
           </div>
         </div>
