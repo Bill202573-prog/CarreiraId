@@ -19,6 +19,8 @@ interface Props {
 export function CampeonatoCard({ campeonato, onDelete, onDeleteJogo, onDeleteMidia }: Props) {
   const [open, setOpen] = useState(true);
   const c = campeonato;
+  const times = Array.from(new Set(c.jogos.map((j) => j.time_atleta?.trim()).filter(Boolean) as string[]));
+  const timeRepresentado = times.length > 1 ? `${times[0]} +${times.length - 1}` : times[0];
 
   const handleDelete = async () => {
     if (!confirm(`Excluir o campeonato "${c.nome}"? Esta ação é permanente.`)) return;
@@ -36,14 +38,11 @@ export function CampeonatoCard({ campeonato, onDelete, onDeleteJogo, onDeleteMid
               {c.abrangencia}
             </span>
           </div>
-          {c.organizador && <div className="text-sm text-gray-500 mt-0.5">{c.organizador}</div>}
-          <div className="text-xs text-gray-500 mt-1">
-            {formatDate(c.data_inicio)} {c.data_final ? `— ${formatDate(c.data_final)}` : ''}
-          </div>
+          {timeRepresentado && <div className="text-sm text-gray-500 mt-0.5">{timeRepresentado}</div>}
           <div className="flex flex-wrap gap-2 mt-2 text-xs">
             <Badge>{c.totalJogos || 0} jogos</Badge>
-            <Badge>{c.totalGols || 0} gols</Badge>
-            <Badge>{c.totalAssistencias || 0} assist</Badge>
+            <Badge>{c.totalGols || 0} gols atleta</Badge>
+            <Badge>{c.totalAssistencias || 0} assist atleta</Badge>
             <Badge>{c.totalVitorias || 0} vitórias</Badge>
           </div>
         </div>
@@ -79,12 +78,4 @@ export function CampeonatoCard({ campeonato, onDelete, onDeleteJogo, onDeleteMid
 
 function Badge({ children }: { children: React.ReactNode }) {
   return <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">{children}</span>;
-}
-
-function formatDate(d: string) {
-  try {
-    return new Date(d).toLocaleDateString('pt-BR');
-  } catch {
-    return d;
-  }
 }
