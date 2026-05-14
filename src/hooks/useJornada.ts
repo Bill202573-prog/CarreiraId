@@ -160,6 +160,32 @@ export function useJornada(criancaId: string | undefined | null) {
     fetchData();
   }, [fetchData]);
 
+  // Realtime: refetch automaticamente ao detectar mudanças nas tabelas da Jornada
+  useEffect(() => {
+    if (!criancaId) return;
+    const channel = supabase
+      .channel(`jornada-${criancaId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'carreira_campeonatos', filter: `crianca_id=eq.${criancaId}` },
+        () => { fetchData(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'carreira_jogos', filter: `crianca_id=eq.${criancaId}` },
+        () => { fetchData(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'carreira_jogo_midias' },
+        () => { fetchData(); },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [criancaId, fetchData]);
+
   const criarCampeonato = useCallback(
     async (input: CreateCampeonatoInput) => {
       if (!criancaId) throw new Error('Atleta não definido');
