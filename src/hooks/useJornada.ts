@@ -82,6 +82,24 @@ export function useJornada(criancaId: string | undefined | null) {
         midias = (midiasRes.data || []).map(mapMidia);
       }
 
+      // Premiações por campeonato
+      let premiacoes: CampeonatoPremiacao[] = [];
+      const campIds = campeonatos.map((c: any) => c.id);
+      if (campIds.length > 0) {
+        const premRes = await (supabase as any)
+          .from('carreira_campeonato_premiacoes')
+          .select('*')
+          .in('campeonato_id', campIds);
+        if (premRes.error) throw premRes.error;
+        premiacoes = (premRes.data || []) as CampeonatoPremiacao[];
+      }
+      const premByCamp = new Map<string, CampeonatoPremiacao[]>();
+      premiacoes.forEach((p) => {
+        const arr = premByCamp.get(p.campeonato_id) || [];
+        arr.push(p);
+        premByCamp.set(p.campeonato_id, arr);
+      });
+
       const midiasByJogo = new Map<string, JogoMidia[]>();
       midias.forEach((m) => {
         const arr = midiasByJogo.get(m.jogo_id) || [];
@@ -116,6 +134,7 @@ export function useJornada(criancaId: string | undefined | null) {
         return {
           ...c,
           jogos: cJogos,
+          premiacoes: premByCamp.get(c.id) || [],
           totalJogos: cJogos.length,
           totalGols,
           totalAssistencias,
