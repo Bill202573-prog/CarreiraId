@@ -225,25 +225,38 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
               )}
               {novosArquivos.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
-                  {novosArquivos.map((f, i) => (
-                    <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted border-2 border-dashed border-primary/40">
-                      {f.type.startsWith('video/') ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-xs gap-1">
-                          <Video className="w-5 h-5" />
-                          <span className="truncate px-1 max-w-full">{f.name}</span>
-                        </div>
-                      ) : (
-                        <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeNovo(i)}
-                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
+                  {novosArquivos.map((f, i) => {
+                    const name = f.name.toLowerCase();
+                    const isVid = f.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(name);
+                    const browserPreviewable =
+                      f.type.startsWith('image/') &&
+                      !/\.(heic|heif|tif|tiff)$/i.test(name) &&
+                      f.type !== 'image/heic' && f.type !== 'image/heif' &&
+                      f.type !== 'image/tiff';
+                    return (
+                      <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted border-2 border-dashed border-primary/40">
+                        {isVid ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-xs gap-1 p-1 text-center">
+                            <Video className="w-5 h-5" />
+                            <span className="truncate max-w-full">{f.name}</span>
+                          </div>
+                        ) : browserPreviewable ? (
+                          <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground p-1 text-center">
+                            Pré-visualização indisponível<br />({f.name.split('.').pop()?.toUpperCase()})
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeNovo(i)}
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
@@ -253,11 +266,11 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
                 ref={fileRef}
                 type="file"
                 hidden
-                accept="image/*,video/*,.heic,.heif"
+                accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/bmp,image/tiff,image/heic,image/heif,.jpg,.jpeg,.png,.gif,.webp,.avif,.bmp,.tif,.tiff,.heic,.heif,video/*,.mp4,.mov,.webm,.m4v,.avi,.mkv"
                 multiple
                 onChange={(e) => { handleFiles(e.target.files); if (fileRef.current) fileRef.current.value = ''; }}
               />
-              <p className="text-[11px] text-muted-foreground">Imagens até 10MB, vídeos até 50MB.</p>
+              <p className="text-[11px] text-muted-foreground">JPG, PNG, GIF, WEBP, HEIC, TIF e vídeos. Imagens até 15MB, vídeos até 100MB.</p>
             </div>
           </div>
 
