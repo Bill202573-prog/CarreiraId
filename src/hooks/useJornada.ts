@@ -201,6 +201,11 @@ export function useJornada(criancaId: string | undefined | null) {
         { event: '*', schema: 'public', table: 'carreira_jogo_midias' },
         () => { fetchData(); },
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'carreira_campeonato_premiacoes', filter: `crianca_id=eq.${criancaId}` },
+        () => { fetchData(); },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -208,12 +213,12 @@ export function useJornada(criancaId: string | undefined | null) {
   }, [criancaId, fetchData]);
 
   const criarCampeonato = useCallback(
-    async (input: CreateCampeonatoInput) => {
+    async (input: CreateCampeonatoInput): Promise<string> => {
       if (!criancaId) throw new Error('Atleta não definido');
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) throw new Error('Não autenticado');
-      const { error } = await (supabase as any).from('carreira_campeonatos').insert({
+      const { data: inserted, error } = await (supabase as any).from('carreira_campeonatos').insert({
         crianca_id: criancaId,
         criado_por: uid,
         nome: input.nome,
@@ -222,9 +227,11 @@ export function useJornada(criancaId: string | undefined | null) {
         data_inicio: input.data_inicio,
         data_final: input.data_final,
         logo_url: input.logo_url ?? null,
-      });
+        posicao_final: input.posicao_final ?? null,
+      }).select('id').single();
       if (error) throw error;
       await fetchData();
+      return inserted.id as string;
     },
     [criancaId, fetchData],
   );
@@ -240,8 +247,38 @@ export function useJornada(criancaId: string | undefined | null) {
           data_inicio: input.data_inicio,
           data_final: input.data_final,
           logo_url: input.logo_url ?? null,
+          posicao_final: input.posicao_final ?? null,
         })
         .eq('id', id);
+      if (error) throw error;
+      await fetchData();
+    },
+    [fetchData],
+  );
+
+  const adicionarPremiacaoCampeonato = useCallback(
+    async (input: CreateCampeonatoPremiacaoInput) => {
+      if (!criancaId) throw new Error('Atleta não definido');
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) throw new Error('Não autenticado');
+      const { error } = await (supabase as any).from('carreira_campeonato_premiacoes').insert({
+        campeonato_id: input.campeonato_id,
+        crianca_id: criancaId,
+        criado_por: uid,
+        tipo_premiacao: input.tipo_premiacao,
+        titulo: input.titulo ?? null,
+        jogo_id: input.jogo_id ?? null,
+      });
+      if (error) throw error;
+      await fetchData();
+    },
+    [criancaId, fetchData],
+  );
+
+  const excluirPremiacaoCampeonato = useCallback(
+    async (id: string) => {
+      const { error } = await (supabase as any).from('carreira_campeonato_premiacoes').delete().eq('id', id);
       if (error) throw error;
       await fetchData();
     },
