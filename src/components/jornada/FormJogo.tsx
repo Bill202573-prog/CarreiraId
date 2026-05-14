@@ -111,7 +111,7 @@ export function FormJogo({ campeonatos, onSubmit }: Props) {
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Placar (atleta)">
+        <Field label="Placar (meu time)">
           <input type="number" min="0" className={inp} value={placarAtleta} onChange={(e) => setPlacarAtleta(e.target.value)} />
         </Field>
         <Field label="Placar (adversário)">
@@ -120,10 +120,10 @@ export function FormJogo({ campeonatos, onSubmit }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Gols marcados">
+        <Field label="Gols do atleta">
           <input type="number" min="0" className={inp} value={gols} onChange={(e) => setGols(e.target.value)} />
         </Field>
-        <Field label="Assistências">
+        <Field label="Assistências do atleta">
           <input type="number" min="0" className={inp} value={assist} onChange={(e) => setAssist(e.target.value)} />
         </Field>
       </div>
