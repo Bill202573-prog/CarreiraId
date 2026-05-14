@@ -80,6 +80,17 @@ export function CarreiraCampeonatoCard({
             >
               {ABRANGENCIA_LABEL[c.abrangencia]}
             </span>
+            {c.posicao_final && POSICAO_FINAL_META[c.posicao_final as PosicaoFinalCampeonato] && (
+              <span
+                className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                style={{
+                  backgroundColor: POSICAO_FINAL_META[c.posicao_final as PosicaoFinalCampeonato]!.bg,
+                  color: POSICAO_FINAL_META[c.posicao_final as PosicaoFinalCampeonato]!.fg,
+                }}
+              >
+                {POSICAO_FINAL_META[c.posicao_final as PosicaoFinalCampeonato]!.emoji} {POSICAO_FINAL_META[c.posicao_final as PosicaoFinalCampeonato]!.label}
+              </span>
+            )}
           </div>
           {c.organizador && <p className="text-xs text-muted-foreground">{c.organizador}</p>}
           <p className="text-xs text-muted-foreground">
@@ -91,6 +102,23 @@ export function CarreiraCampeonatoCard({
             <Mini>{c.totalAssistencias || 0} assist</Mini>
             <Mini>{c.totalVitorias || 0} vitórias</Mini>
           </div>
+          {(c.premiacoes || []).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {c.premiacoes.map((p) => {
+                const meta = TIPO_PREM_META[p.tipo_premiacao] || TIPO_PREM_META.outro;
+                return (
+                  <span
+                    key={p.id}
+                    className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                    style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
+                    title={p.titulo || meta.label}
+                  >
+                    {meta.emoji} {meta.label}{p.titulo ? ` (${p.titulo})` : ''}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-0.5 shrink-0">
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(!open)}>
