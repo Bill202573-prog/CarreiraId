@@ -432,6 +432,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             onOpenChange={(open) => { setCampeonatoFormOpen(open); if (!open) setEditingCampeonato(null); }}
             criancaId={perfil.crianca_id}
             editingCampeonato={editingCampeonato}
+            onSaved={jornada.fetchData}
           />
           <JornadaJogoFormDialog
             open={jogoFormOpen}
@@ -439,6 +440,7 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
             criancaId={perfil.crianca_id}
             campeonatos={jornada.data.campeonatos}
             editingJogo={editingJogo}
+            onSaved={jornada.fetchData}
           />
         </>
       )}
