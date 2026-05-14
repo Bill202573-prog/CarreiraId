@@ -185,11 +185,11 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Gols marcados</Label>
+              <Label>Gols do atleta</Label>
               <Input type="number" min={0} value={gols} onChange={(e) => setGols(e.target.value)} />
             </div>
             <div>
-              <Label>Assistências</Label>
+              <Label>Assistências do atleta</Label>
               <Input type="number" min={0} value={assist} onChange={(e) => setAssist(e.target.value)} />
             </div>
           </div>
