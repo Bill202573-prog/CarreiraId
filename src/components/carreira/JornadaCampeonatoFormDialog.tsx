@@ -4,10 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Image as ImageIcon, X, Upload } from 'lucide-react';
+import { Loader2, Image as ImageIcon, X, Upload, Plus, Trash2, Medal } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJornada } from '@/hooks/useJornada';
-import type { CampeonatoComJogos, TorneioAbrangencia } from '@/types/jornada-esportiva';
+import type {
+  CampeonatoComJogos,
+  PosicaoFinalCampeonato,
+  TipoPremiacaoIndividual,
+  TorneioAbrangencia,
+} from '@/types/jornada-esportiva';
 
 interface Props {
   open: boolean;
@@ -18,17 +23,46 @@ interface Props {
 
 const ABRANGENCIAS: TorneioAbrangencia[] = ['regional', 'estadual', 'nacional', 'internacional'];
 
+const POSICOES_FINAIS: { value: PosicaoFinalCampeonato; label: string }[] = [
+  { value: 'em_andamento', label: 'Em andamento' },
+  { value: 'campeao', label: '🏆 Campeão' },
+  { value: 'vice', label: '🥈 Vice-campeão' },
+  { value: 'semifinalista', label: '🥉 Semifinalista' },
+  { value: 'quartas', label: 'Quartas de final' },
+  { value: 'oitavas', label: 'Oitavas de final' },
+  { value: 'fase_grupos', label: 'Fase de grupos' },
+  { value: 'eliminado', label: 'Eliminado' },
+];
+
+const TIPOS_PREMIACAO: { value: TipoPremiacaoIndividual; label: string; emoji: string }[] = [
+  { value: 'melhor_jogador', label: 'Melhor jogador', emoji: '🏆' },
+  { value: 'melhor_goleiro', label: 'Melhor goleiro', emoji: '🧤' },
+  { value: 'artilheiro', label: 'Artilheiro', emoji: '⚽' },
+  { value: 'melhor_defesa', label: 'Melhor defesa', emoji: '🛡️' },
+  { value: 'destaque', label: 'Destaque', emoji: '⭐' },
+  { value: 'outro', label: 'Outro', emoji: '🏅' },
+];
+
 export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, editingCampeonato }: Props) {
-  const { criarCampeonato, editarCampeonato, uploadArquivo } = useJornada(criancaId);
+  const {
+    criarCampeonato, editarCampeonato, uploadArquivo,
+    adicionarPremiacaoCampeonato, excluirPremiacaoCampeonato,
+  } = useJornada(criancaId);
   const [saving, setSaving] = useState(false);
   const [nome, setNome] = useState('');
   const [organizador, setOrganizador] = useState('');
   const [abrangencia, setAbrangencia] = useState<TorneioAbrangencia>('regional');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFinal, setDataFinal] = useState('');
+  const [posicaoFinal, setPosicaoFinal] = useState<PosicaoFinalCampeonato>('em_andamento');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  // Premiações individuais (apenas em modo edição, requer ID do campeonato)
+  const [novaPremTipo, setNovaPremTipo] = useState<TipoPremiacaoIndividual>('melhor_jogador');
+  const [novaPremTitulo, setNovaPremTitulo] = useState('');
+  const [novaPremJogoId, setNovaPremJogoId] = useState<string>('');
 
   useEffect(() => {
     if (open) {
@@ -37,8 +71,12 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
       setAbrangencia(editingCampeonato?.abrangencia || 'regional');
       setDataInicio(editingCampeonato?.data_inicio?.slice(0, 10) || '');
       setDataFinal(editingCampeonato?.data_final?.slice(0, 10) || '');
+      setPosicaoFinal((editingCampeonato?.posicao_final as PosicaoFinalCampeonato) || 'em_andamento');
       setLogoUrl(editingCampeonato?.logo_url || null);
       setLogoFile(null);
+      setNovaPremTipo('melhor_jogador');
+      setNovaPremTitulo('');
+      setNovaPremJogoId('');
     }
   }, [open, editingCampeonato]);
 
@@ -59,6 +97,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
         data_inicio: dataInicio,
         data_final: dataFinal || undefined,
         logo_url: finalLogo,
+        posicao_final: posicaoFinal,
       };
       if (editingCampeonato) {
         await editarCampeonato(editingCampeonato.id, payload);
@@ -87,6 +126,33 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
     setLogoFile(f);
     setLogoUrl(URL.createObjectURL(f));
   };
+
+  const handleAddPremiacao = async () => {
+    if (!editingCampeonato) return;
+    try {
+      await adicionarPremiacaoCampeonato({
+        campeonato_id: editingCampeonato.id,
+        tipo_premiacao: novaPremTipo,
+        titulo: novaPremTitulo.trim() || null,
+        jogo_id: novaPremJogoId || null,
+      });
+      setNovaPremTitulo('');
+      setNovaPremJogoId('');
+      toast.success('Reconhecimento adicionado');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao adicionar reconhecimento');
+    }
+  };
+
+  const handleRemovePremiacao = async (id: string) => {
+    try {
+      await excluirPremiacaoCampeonato(id);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao remover');
+    }
+  };
+
+  const tipoLabel = (t: string) => TIPOS_PREMIACAO.find((x) => x.value === t);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,6 +219,85 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
               <Input type="date" value={dataFinal} onChange={(e) => setDataFinal(e.target.value)} />
             </div>
           </div>
+
+          <div>
+            <Label>Posição final do time</Label>
+            <Select value={posicaoFinal} onValueChange={(v) => setPosicaoFinal(v as PosicaoFinalCampeonato)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {POSICOES_FINAIS.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {editingCampeonato && (
+            <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Medal className="w-4 h-4" />
+                <Label className="m-0">Reconhecimentos individuais</Label>
+              </div>
+              {(editingCampeonato.premiacoes || []).length === 0 && (
+                <p className="text-xs text-muted-foreground">Nenhum reconhecimento ainda.</p>
+              )}
+              {(editingCampeonato.premiacoes || []).map((p) => {
+                const t = tipoLabel(p.tipo_premiacao);
+                const jogo = editingCampeonato.jogos?.find((j) => j.id === p.jogo_id);
+                return (
+                  <div key={p.id} className="flex items-center gap-2 text-sm bg-background rounded p-2">
+                    <span>{t?.emoji || '🏅'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{t?.label || p.tipo_premiacao}</div>
+                      {p.titulo && <div className="text-xs text-muted-foreground truncate">{p.titulo}</div>}
+                      {jogo && <div className="text-[11px] text-muted-foreground truncate">{jogo.fase_campeonato || 'Jogo'} • {jogo.time_adversario}</div>}
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleRemovePremiacao(p.id)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                );
+              })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Select value={novaPremTipo} onValueChange={(v) => setNovaPremTipo(v as TipoPremiacaoIndividual)}>
+                  <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_PREMIACAO.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>{t.emoji} {t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="Detalhe (ex: 8 gols)"
+                  value={novaPremTitulo}
+                  onChange={(e) => setNovaPremTitulo(e.target.value)}
+                />
+              </div>
+              {(editingCampeonato.jogos || []).length > 0 && (
+                <Select value={novaPremJogoId || 'none'} onValueChange={(v) => setNovaPremJogoId(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Jogo (opcional)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem jogo específico</SelectItem>
+                    {editingCampeonato.jogos.map((j) => (
+                      <SelectItem key={j.id} value={j.id}>
+                        {j.fase_campeonato ? `${j.fase_campeonato} — ` : ''}{j.time_atleta || 'Meu time'} x {j.time_adversario}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleAddPremiacao}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar reconhecimento
+              </Button>
+            </div>
+          )}
+
+          {!editingCampeonato && (
+            <p className="text-[11px] text-muted-foreground">
+              Salve o campeonato e edite-o para adicionar reconhecimentos individuais.
+            </p>
+          )}
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
             <Button type="submit" disabled={saving}>
