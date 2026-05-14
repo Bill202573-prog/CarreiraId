@@ -90,8 +90,8 @@ export function CarreiraCampeonatoCard({
           {timeRepresentado && <p className="text-xs text-muted-foreground">{timeRepresentado}</p>}
           <div className="flex flex-wrap gap-1.5 mt-1.5 text-[11px]">
             <Mini>{c.totalJogos || 0} jogos</Mini>
-            <Mini>{c.totalGols || 0} gols atleta</Mini>
-            <Mini>{c.totalAssistencias || 0} assist atleta</Mini>
+            <Mini>{c.totalGols || 0} gols do atleta</Mini>
+            <Mini>{c.totalAssistencias || 0} assist. do atleta</Mini>
             <Mini>{c.totalVitorias || 0} vitórias</Mini>
           </div>
           {(c.premiacoes || []).length > 0 && (
