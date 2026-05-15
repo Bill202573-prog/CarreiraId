@@ -531,6 +531,7 @@ export type Database = {
           abrangencia:
             | Database["public"]["Enums"]["torneio_abrangencia_novo"]
             | null
+          categoria: string | null
           created_at: string
           criado_por: string
           crianca_id: string
@@ -547,6 +548,7 @@ export type Database = {
           abrangencia?:
             | Database["public"]["Enums"]["torneio_abrangencia_novo"]
             | null
+          categoria?: string | null
           created_at?: string
           criado_por: string
           crianca_id: string
@@ -563,6 +565,7 @@ export type Database = {
           abrangencia?:
             | Database["public"]["Enums"]["torneio_abrangencia_novo"]
             | null
+          categoria?: string | null
           created_at?: string
           criado_por?: string
           crianca_id?: string
