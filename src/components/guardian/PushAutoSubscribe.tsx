@@ -2,9 +2,9 @@ import { useEffect, useRef } from 'react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 /**
- * Invisible component that auto-subscribes the guardian to push notifications.
- * No UI is rendered — subscription happens silently on mount.
- * If the user has denied permission at browser level, nothing happens.
+ * Invisible component that restores push subscription only when notification
+ * permission was already granted. It must not trigger a browser permission
+ * prompt automatically during page load.
  */
 export function PushAutoSubscribe() {
   const { isSupported, isSubscribed, isLoading, subscribe } = usePushNotifications();
@@ -14,8 +14,7 @@ export function PushAutoSubscribe() {
     if (!isSupported || isSubscribed || isLoading || attempted.current) return;
     attempted.current = true;
 
-    // Only auto-subscribe if permission is already granted or default (will prompt once)
-    if (Notification.permission !== 'denied') {
+    if (Notification.permission === 'granted') {
       subscribe().catch(() => {});
     }
   }, [isSupported, isSubscribed, isLoading, subscribe]);
