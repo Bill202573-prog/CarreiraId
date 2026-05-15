@@ -47,6 +47,22 @@ export default function CarreiraCadastroPage() {
   const planoParam = searchParams.get('plano') as CarreiraPlano | null;
   const hasPaidPlan = planoParam === 'competidor' || planoParam === 'elite';
 
+  const [step, setStep] = useState<Step>('tutorial');
+  const [isLogin, setIsLogin] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nome, setNome] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [selectedType, setSelectedType] = useState<ProfileType | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [subscriptionConfirmed, setSubscriptionConfirmed] = useState(false);
+  const [createdCriancaId, setCreatedCriancaId] = useState<string | null>(null);
+  const [createdChildName, setCreatedChildName] = useState<string | null>(null);
+  const [profileSlug, setProfileSlug] = useState<string | null>(null);
+  const [showPwaPopup, setShowPwaPopup] = useState(false);
+
   // Persist ?ref params so they survive OAuth redirect / email confirmation
   useEffect(() => {
     if (refParam) {
@@ -65,21 +81,6 @@ export default function CarreiraCadastroPage() {
       setStep('profile-form');
     }
   }, [step, refParam, selectedType]);
-  const [step, setStep] = useState<Step>('tutorial');
-  const [isLogin, setIsLogin] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nome, setNome] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [selectedType, setSelectedType] = useState<ProfileType | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  const [subscriptionConfirmed, setSubscriptionConfirmed] = useState(false);
-  const [createdCriancaId, setCreatedCriancaId] = useState<string | null>(null);
-  const [createdChildName, setCreatedChildName] = useState<string | null>(null);
-  const [profileSlug, setProfileSlug] = useState<string | null>(null);
-  const [showPwaPopup, setShowPwaPopup] = useState(false);
 
   // Auth check + cross-domain session transfer
   useEffect(() => {
