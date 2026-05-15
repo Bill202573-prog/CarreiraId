@@ -77,16 +77,13 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
   const deleteExperiencia = useDeleteCarreiraExperiencia();
   const jornada = useJornada(isPlatformProfile ? null : perfil.crianca_id);
 
-  const hasEscolinhaData = (escolinhas?.length || 0) > 0;
-  const hasSyncedData = perfil.atleta_id_vinculado === true;
-  const isCarreiraOnly = !isPlatformProfile && !hasEscolinhaData && !hasSyncedData;
-
   const dadosPublicos = (perfil as any).dados_publicos as {
     gols?: boolean; campeonatos?: boolean; amistosos?: boolean; premiacoes?: boolean; conquistas?: boolean;
   } | undefined;
 
   const accentColor = perfil.cor_destaque || '#3b82f6';
-  const activeTabs = isCarreiraOnly ? CARREIRA_TABS : INSTITUTIONAL_TABS;
+  const activeTabs = INSTITUTIONAL_TABS;
+
 
   useEffect(() => {
     if (editingCampeonato) {
