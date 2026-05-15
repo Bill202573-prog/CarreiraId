@@ -57,6 +57,14 @@ export default function CarreiraCadastroPage() {
       });
     }
   }, [refParam, refConviteCodigo, refAtletaSlug]);
+
+  // Auto-seleciona tipo quando vem de ?ref=torcedor
+  useEffect(() => {
+    if (step === 'profile-type' && refParam === 'torcedor' && !selectedType) {
+      setSelectedType('torcedor');
+      setStep('profile-form');
+    }
+  }, [step, refParam, selectedType]);
   const [step, setStep] = useState<Step>('tutorial');
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
