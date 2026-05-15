@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useJornada } from './useJornada';
+
 
 // ========== Types ==========
 
@@ -266,20 +268,27 @@ export function useCarreiraStats(criancaId: string | null | undefined) {
   const { data: campeonatos } = useCarreiraCampeonatos(criancaId);
   const { data: premiacoes } = useCarreiraPremiacoes(criancaId);
   const { data: conquistas } = useCarreiraConquistas(criancaId);
+  const jornada = useJornada(criancaId ?? null);
 
-  const totalGols = (gols || []).reduce((sum, g) => sum + g.quantidade, 0);
+  const totalGolsSync = (gols || []).reduce((sum, g) => sum + g.quantidade, 0);
 
-  // Count unique events (amistosos finalizados + orphan gol events)
   const amistososFinalizados = (amistosos || []).filter(a => a.evento?.status === 'finalizado' || a.evento?.status === 'realizado');
   const amistososEventIds = new Set(amistososFinalizados.map(a => a.evento_id));
   const orphanGolEventIds = new Set((gols || []).filter(g => !amistososEventIds.has(g.evento_id) && g.evento).map(g => g.evento_id));
   const uniqueCampeonatoIds = new Set((campeonatos || []).map(c => c.campeonato_id));
 
+  // Jornada própria (carreira_*)
+  const jornadaStats = jornada.data.estatisticas;
+  const jornadaPremiacoes = jornada.data.campeonatos.reduce(
+    (sum, c) => sum + (c.premiacoes?.length || 0),
+    0,
+  );
+
   const stats: CarreiraStats = {
-    totalGols,
-    totalJogos: amistososFinalizados.length + orphanGolEventIds.size,
-    totalCampeonatos: uniqueCampeonatoIds.size,
-    totalPremiacoes: (premiacoes || []).length,
+    totalGols: totalGolsSync + (jornadaStats?.totalGols || 0),
+    totalJogos: amistososFinalizados.length + orphanGolEventIds.size + (jornadaStats?.totalJogos || 0),
+    totalCampeonatos: uniqueCampeonatoIds.size + (jornadaStats?.totalCampeonatos || 0),
+    totalPremiacoes: (premiacoes || []).length + jornadaPremiacoes,
     totalConquistas: (conquistas || []).length,
   };
 
