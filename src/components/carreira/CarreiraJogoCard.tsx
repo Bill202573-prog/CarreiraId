@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { JogoComMidia } from '@/types/jornada-esportiva';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import type { JogoComMidia, JogoMidia } from '@/types/jornada-esportiva';
 
 interface Props {
   jogo: JogoComMidia;
@@ -12,8 +14,100 @@ interface Props {
   onDelete?: (id: string) => void;
 }
 
+const isHeicUrl = (url: string) => /\.(heic|heif)(\?|$)/i.test(url);
+
+// Converte HEIC remoto em blob URL JPEG sob demanda
+async function convertHeicUrlToJpegBlobUrl(url: string): Promise<string> {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const heic2any = (await import('heic2any')).default;
+  const converted = await heic2any({ blob, toType: 'image/jpeg', quality: 0.85 });
+  const finalBlob = Array.isArray(converted) ? converted[0] : converted;
+  return URL.createObjectURL(finalBlob);
+}
+
+function MidiaThumb({
+  midia,
+  onOpen,
+}: {
+  midia: JogoMidia;
+  onOpen: (resolvedUrl: string) => void;
+}) {
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(
+    isHeicUrl(midia.url_midia) ? null : midia.url_midia,
+  );
+  const [failed, setFailed] = useState(false);
+  const [converting, setConverting] = useState(false);
+
+  useEffect(() => {
+    let revoke: string | null = null;
+    if (midia.tipo_midia !== 'video' && isHeicUrl(midia.url_midia) && !resolvedUrl && !failed) {
+      setConverting(true);
+      convertHeicUrlToJpegBlobUrl(midia.url_midia)
+        .then((u) => {
+          revoke = u;
+          setResolvedUrl(u);
+        })
+        .catch((err) => {
+          console.error('Falha ao converter HEIC:', err);
+          setFailed(true);
+        })
+        .finally(() => setConverting(false));
+    }
+    return () => {
+      if (revoke) URL.revokeObjectURL(revoke);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [midia.url_midia]);
+
+  const handleClick = () => {
+    if (midia.tipo_midia === 'video') {
+      onOpen(midia.url_midia);
+    } else if (resolvedUrl) {
+      onOpen(resolvedUrl);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      onContextMenu={(e) => e.preventDefault()}
+      className="aspect-square rounded overflow-hidden bg-muted block relative cursor-zoom-in"
+    >
+      {midia.tipo_midia === 'video' ? (
+        <video
+          src={midia.url_midia}
+          className="w-full h-full object-cover pointer-events-none"
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      ) : converting ? (
+        <div className="w-full h-full flex items-center justify-center">
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        </div>
+      ) : failed || !resolvedUrl ? (
+        <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground p-1 text-center">
+          Pré-visualização indisponível
+        </div>
+      ) : (
+        <img
+          src={resolvedUrl}
+          alt=""
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
+          className="w-full h-full object-cover pointer-events-none select-none"
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </button>
+  );
+}
+
 export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdit, onDelete }: Props) {
   const j = jogo;
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
   const placarColor = (() => {
     if (j.placar_time_atleta == null || j.placar_adversario == null) return 'text-muted-foreground';
     if (j.placar_time_atleta > j.placar_adversario) return 'text-emerald-600';
@@ -28,6 +122,8 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
 
   const meuTime = j.time_atleta?.trim() || 'Meu time';
   const temPlacar = j.placar_time_atleta != null && j.placar_adversario != null;
+
+  const isVideoUrl = (url: string) => /\.(mp4|mov|webm|m4v|avi|mkv)(\?|$)/i.test(url);
 
   return (
     <div
@@ -58,35 +154,7 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
         {j.midias && j.midias.length > 0 && (
           <div className="grid grid-cols-4 gap-1 mt-2">
             {j.midias.slice(0, 8).map((m) => (
-              <a
-                key={m.id}
-                href={m.url_midia}
-                target="_blank"
-                rel="noreferrer"
-                className="aspect-square rounded overflow-hidden bg-muted block relative"
-              >
-                {m.tipo_midia === 'video' ? (
-                  <video src={m.url_midia} className="w-full h-full object-cover" />
-                ) : (
-                  <img
-                    src={m.url_midia}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      el.style.display = 'none';
-                      const p = el.parentElement;
-                      if (p && !p.querySelector('.midia-fallback')) {
-                        const div = document.createElement('div');
-                        div.className = 'midia-fallback w-full h-full flex items-center justify-center text-[10px] text-muted-foreground p-1 text-center';
-                        div.textContent = 'Pré-visualização indisponível (HEIC?)';
-                        p.appendChild(div);
-                      }
-                    }}
-                  />
-                )}
-              </a>
+              <MidiaThumb key={m.id} midia={m} onOpen={(url) => setLightbox(url)} />
             ))}
           </div>
         )}
@@ -105,6 +173,42 @@ export function CarreiraJogoCard({ jogo, isOwner, accentColor = '#3b82f6', onEdi
           )}
         </div>
       )}
+
+      <Dialog open={!!lightbox} onOpenChange={(o) => !o && setLightbox(null)}>
+        <DialogContent
+          className="max-w-4xl p-0 bg-black/95 border-0"
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            className="absolute top-2 right-2 z-10 p-2 rounded-full bg-black/60 text-white hover:bg-black/80"
+            aria-label="Fechar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          {lightbox && (
+            isVideoUrl(lightbox) ? (
+              <video
+                src={lightbox}
+                controls
+                controlsList="nodownload noremoteplayback"
+                disablePictureInPicture
+                onContextMenu={(e) => e.preventDefault()}
+                className="w-full max-h-[85vh] object-contain"
+              />
+            ) : (
+              <img
+                src={lightbox}
+                alt=""
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                className="w-full max-h-[85vh] object-contain select-none"
+              />
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
