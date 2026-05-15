@@ -1,6 +1,7 @@
-// Kill-switch service worker.
-// Replaces previous Workbox/generated SWs that cached stale shells and could
-// block carreiraid.com.br on desktop browsers. No fetch handler — never intercept.
+// Legacy service worker kill-switch.
+// Some browsers may have installed this path from an older PWA build.
+// Keep this file static so those clients can update, clear caches, navigate
+// back to the network, and unregister. No fetch handler — never intercept.
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
