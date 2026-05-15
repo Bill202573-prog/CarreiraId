@@ -31,6 +31,14 @@
   ],
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        { "type": "host", "value": "www.carreiraid.com.br" }
+      ],
+      "destination": "https://carreiraid.com.br/:path*",
+      "permanent": true
+    },
+    {
       "source": "/carreira/:path*",
       "has": [
         { "type": "host", "value": "atletaid.com.br" }
