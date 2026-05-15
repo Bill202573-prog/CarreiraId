@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { Plus, Swords, Trophy, Goal, Target, Award } from 'lucide-react';
+import { Plus, Swords, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type {
   CampeonatoComJogos, EstatisticasAtleta, JogoComMidia,
 } from '@/types/jornada-esportiva';
-import { StatCard } from './StatCard';
 import { CarreiraCampeonatoCard } from './CarreiraCampeonatoCard';
 import { CarreiraJogoCard } from './CarreiraJogoCard';
 
 interface Props {
   campeonatos: CampeonatoComJogos[];
   amistosos: JogoComMidia[];
-  estatisticas: EstatisticasAtleta;
+  estatisticas?: EstatisticasAtleta;
   isOwner?: boolean;
   accentColor?: string;
   onAddCampeonato?: () => void;
@@ -23,21 +22,13 @@ interface Props {
 }
 
 export function JornadaEsportivaSection({
-  campeonatos, amistosos, estatisticas, isOwner, accentColor = '#3b82f6',
+  campeonatos, amistosos, isOwner, accentColor = '#3b82f6',
   onAddCampeonato, onAddJogo, onEditCampeonato, onDeleteCampeonato, onEditJogo, onDeleteJogo,
 }: Props) {
   const [sub, setSub] = useState<'campeonatos' | 'amistosos'>('campeonatos');
 
   return (
     <div className="space-y-4">
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <StatCard label="Jogos" value={estatisticas.totalJogos || 0} icon={<Swords className="w-4 h-4" />} accentColor={accentColor} />
-        <StatCard label="Gols do atleta" value={estatisticas.totalGols || 0} icon={<Goal className="w-4 h-4" />} accentColor={accentColor} />
-        <StatCard label="Assist. do atleta" value={estatisticas.totalAssistencias || 0} icon={<Target className="w-4 h-4" />} accentColor={accentColor} />
-        <StatCard label="Vitórias" value={estatisticas.totalVitorias || 0} icon={<Award className="w-4 h-4" />} accentColor={accentColor} />
-      </div>
-
       {/* Sub-tabs */}
       <div className="flex flex-wrap gap-2">
         <SubTab active={sub === 'campeonatos'} onClick={() => setSub('campeonatos')} accentColor={accentColor} icon={<Trophy className="w-3.5 h-3.5" />}>
