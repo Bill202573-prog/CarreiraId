@@ -77,6 +77,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
       setDataFinal(editingCampeonato?.data_final?.slice(0, 10) || '');
       setPosicaoFinal((editingCampeonato?.posicao_final as PosicaoFinalCampeonato) || 'em_andamento');
       setCategoria((editingCampeonato as any)?.categoria || '');
+      setNomeTime((editingCampeonato as any)?.nome_time || '');
       setLogoUrl(editingCampeonato?.logo_url || null);
       setLogoFile(null);
       setNovaPremTipo('melhor_jogador');
