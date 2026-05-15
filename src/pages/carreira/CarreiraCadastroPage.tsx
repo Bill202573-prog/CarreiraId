@@ -41,8 +41,22 @@ export default function CarreiraCadastroPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('convite');
+  const refParam = searchParams.get('ref') as 'torcedor' | 'atleta' | 'rede' | null;
+  const refConviteCodigo = searchParams.get('c');
+  const refAtletaSlug = searchParams.get('a');
   const planoParam = searchParams.get('plano') as CarreiraPlano | null;
   const hasPaidPlan = planoParam === 'competidor' || planoParam === 'elite';
+
+  // Persist ?ref params so they survive OAuth redirect / email confirmation
+  useEffect(() => {
+    if (refParam) {
+      salvarPendingRef({
+        ref: refParam,
+        conviteCodigo: refConviteCodigo || undefined,
+        atletaSlug: refAtletaSlug || undefined,
+      });
+    }
+  }, [refParam, refConviteCodigo, refAtletaSlug]);
   const [step, setStep] = useState<Step>('tutorial');
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
