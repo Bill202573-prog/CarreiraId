@@ -105,6 +105,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
         logo_url: finalLogo,
         posicao_final: posicaoFinal,
         categoria: categoria || null,
+        nome_time: nomeTime.trim() || null,
       };
       if (editingCampeonato) {
         await editarCampeonato(editingCampeonato.id, payload);
