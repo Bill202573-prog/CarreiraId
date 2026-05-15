@@ -66,7 +66,7 @@ function useCarreiraCampeonatoTrofeus(criancaId: string | null | undefined) {
       const [campRes, premRes] = await Promise.all([
         (supabase as any)
           .from('carreira_campeonatos')
-          .select('id, nome, organizador, data_inicio, data_final, posicao_final, categoria')
+          .select('id, nome, organizador, data_inicio, data_final, posicao_final, categoria, nome_time')
           .eq('crianca_id', criancaId),
         (supabase as any)
           .from('carreira_campeonato_premiacoes')
