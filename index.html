@@ -155,14 +155,37 @@
           // Register ONLY carreira-sw.js and unregister any Workbox SW
           if ('serviceWorker' in navigator) {
             var swScope = isCarreiraDomain ? '/' : '/carreira';
+
+            // Strip stale ?sw-cleanup=... param left over from older SW versions
+            try {
+              if (window.location.search.indexOf('sw-cleanup=') !== -1) {
+                var cleanUrl = window.location.pathname + window.location.hash;
+                window.history.replaceState({}, '', cleanUrl);
+              }
+            } catch (e) {}
+
+            // Unregister obsolete SWs (anything that isn't carreira-sw.js or push-sw.js)
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
               registrations.forEach(function(reg) {
-                if (reg.active && reg.active.scriptURL && !reg.active.scriptURL.includes('carreira-sw.js') && !reg.active.scriptURL.includes('push-sw.js')) {
+                var script = (reg.active && reg.active.scriptURL) || (reg.installing && reg.installing.scriptURL) || (reg.waiting && reg.waiting.scriptURL) || '';
+                if (script && script.indexOf('carreira-sw.js') === -1 && script.indexOf('push-sw.js') === -1) {
                   reg.unregister();
                 }
               });
-            });
-            navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope });
+            }).catch(function() {});
+
+            // Purge legacy caches (workbox-*, carreira-v1) to free trapped clients
+            if (window.caches && caches.keys) {
+              caches.keys().then(function(names) {
+                names.forEach(function(name) {
+                  if (name.indexOf('workbox') !== -1 || name === 'carreira-v1') {
+                    caches.delete(name);
+                  }
+                });
+              }).catch(function() {});
+            }
+
+            navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope }).catch(function() {});
           }
         } else {
           // === Other domains (preview, localhost) ===
