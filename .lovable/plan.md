@@ -1,43 +1,66 @@
-## Problema confirmado
+## Análise
 
-O domínio `carreiraid.com.br` está **online e correto** (DNS, SSL e Vercel OK, HTTP 200). O bloqueio que você está sentindo vem de um **service worker antigo em cache no seu navegador**, deixado por versões anteriores do `carreira-sw.js`. O console mostra reload automático com `?sw-cleanup=...`, parâmetro que não existe mais no código atual — é resquício de bundle antigo preso no cliente.
+O domínio `carreiraid.com.br` está resolvendo e respondendo pelo Vercel:
 
-Outros visitantes (teste em sessão limpa) acessam o site normalmente.
+- `carreiraid.com.br` retorna HTTP 200 em HTTPS.
+- `www.carreiraid.com.br` também retorna HTTP 200 em HTTPS.
+- O servidor identificado é `Vercel`.
+- A página carregou no navegador de teste.
 
-## Objetivo
+Então o problema não parece ser DNS nem Vercel offline.
 
-Garantir que qualquer usuário com SW/cache antigo seja "destravado" automaticamente ao abrir o site, sem precisar limpar dados manualmente. Nenhuma mudança de funcionalidade do app.
+## Problema encontrado
 
-## Mudanças
+Há um erro real no navegador publicado:
 
-### 1. `public/carreira-sw.js` — bump de versão + limpeza agressiva
-- Trocar `CACHE_NAME` de `carreira-v1` para `carreira-v2`.
-- No `activate`, deletar **todos** os caches cujo nome não seja o atual (`caches.keys()` → `caches.delete`).
-- Manter o resto do SW intacto (push, notificationclick, fetch SPA fallback).
+```text
+Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "application/octet-stream".
+```
 
-### 2. `index.html` — kill-switch de bootstrap
-No bloco de registro do SW na seção Carreira, antes de `register('/carreira-sw.js')`:
-- Listar `getRegistrations()` e desregistrar qualquer SW cujo `scriptURL` **não** seja `carreira-sw.js` nem `push-sw.js` (já existe).
-- Adicionalmente: se houver registration de `carreira-sw.js` mas o controller estiver respondendo em uma scope path inesperada, desregistrar e re-registrar.
-- Chamar `caches.keys()` e deletar caches com prefixos antigos conhecidos (`workbox-*`, `carreira-v1`).
-- Remover qualquer lógica antiga que adicione `?sw-cleanup` (não está mais no código, mas garantir que não retorne).
+Esse erro vem de uma linha no HTML publicado:
 
-### 3. `vercel.json` — já está correto
-Já existe `Cache-Control: no-cache, no-store, must-revalidate` para `/carreira-sw.js`, `/sw.js` e `/carreira-manifest.json`. Nada a fazer.
+```html
+<link rel="modulepreload" href="data:application/octet-stream;base64,...">
+```
 
-### 4. Sem alterações em rotas, auth ou backend
-O problema não é de roteamento nem de Supabase — apenas cache do PWA.
+A origem provável é esta linha manual em `index.html`:
 
-## Como validar
+```html
+<link rel="modulepreload" href="/src/main.tsx" />
+```
 
-1. Após deploy, abrir `carreiraid.com.br` em janela normal de um navegador que já tinha o site aberto antes → deve carregar sem reload em loop.
-2. DevTools → Application → Service Workers → mostrar apenas `carreira-sw.js` ativo, sem versões antigas.
-3. `caches.keys()` no console → apenas `carreira-v2`.
-4. Em sessão anônima → carrega igual (regressão zero).
+No build do Vite/Vercel, isso está sendo transformado em um preload `data:application/octet-stream`, que alguns navegadores tratam como script de módulo inválido. Isso pode fazer o site parecer inacessível/bugado para alguns usuários, mesmo com DNS correto.
 
-## O que NÃO vou tocar
+Também há conflito de PWA/service worker:
 
-- DNS, configuração da Vercel, `vercel.json` (já corretos).
-- Rotas do React Router, `BrowserRouter`, `RootRoute`.
-- Lógica de auth (`useCarreiraSession`, `AuthContext`).
-- Service worker do Atleta ID (`sw.js`) — escopo separado.
+- `vite-plugin-pwa` ainda gera `/sw.js` e `/manifest.webmanifest`.
+- `index.html` tenta registrar `/carreira-sw.js` para Carreira ID.
+- O HTML publicado ainda injeta `/manifest.webmanifest` além do manifesto Carreira.
+- Dispositivos que já tinham `/sw.js` antigo podem continuar presos em cache antigo.
+
+## Plano de correção
+
+1. Remover o preload manual inválido de `index.html`:
+   - Apagar `<link rel="modulepreload" href="/src/main.tsx" />`.
+   - Manter apenas o script principal normal no final do body.
+
+2. Evitar conflito entre o PWA do Atleta ID e o domínio Carreira ID:
+   - Ajustar a configuração do `vite-plugin-pwa` para não injetar automaticamente manifesto/registro que conflite com o domínio Carreira.
+   - Manter o manifesto Carreira injetado condicionalmente apenas para `carreiraid.com.br`.
+
+3. Corrigir limpeza dos service workers antigos:
+   - Transformar `public/sw.js` em um kill-switch seguro para remover caches antigos e desregistrar o Workbox antigo em clientes existentes.
+   - Preservar `public/carreira-sw.js` para o Carreira ID, mas garantir que ele não dependa de cache antigo para navegação.
+
+4. Reforçar cabeçalhos no `vercel.json`:
+   - Manter `no-cache/no-store` para `/sw.js`, `/carreira-sw.js`, manifestos e HTML quando aplicável.
+   - Isso ajuda a entregar a correção sem o navegador ficar preso no service worker anterior.
+
+5. Após publicar no Vercel:
+   - Fazer redeploy.
+   - Testar `https://carreiraid.com.br/` em aba anônima.
+   - Para usuários ainda presos no app instalado/PWA antigo, orientar remover e reinstalar o app se necessário, porque iOS/Android podem manter campos de manifesto e service worker antigos em instalações existentes.
+
+## Resultado esperado
+
+O domínio continuará apontando para o Vercel, mas sem o erro de MIME no module preload e com menor risco de cache/service worker antigo impedir o carregamento correto.
