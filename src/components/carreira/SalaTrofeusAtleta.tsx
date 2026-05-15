@@ -17,11 +17,13 @@ interface TrofeuItem {
   id: string;
   categoria: Categoria;
   titulo: string;
-  subtitulo?: string;
+  colocacaoLabel?: string;
+  categoriaIdade?: string;
+  nomeTime?: string;
   data: string; // ISO
   ano: number;
   fonte: 'campeonato' | 'conquista' | 'campeonato_premiacao' | 'evento_premiacao';
-  colocacao?: string; // campeao, vice, terceiro/semifinalista, etc
+  colocacao?: string;
   emoji: string;
 }
 
