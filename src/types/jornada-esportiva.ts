@@ -42,6 +42,7 @@ export interface Campeonato {
   logo_url?: string | null;
   posicao_final?: PosicaoFinalCampeonato | null;
   categoria?: string | null;
+  nome_time?: string | null;
   created_at: string;
 }
 
