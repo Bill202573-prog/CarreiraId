@@ -1,66 +1,39 @@
-## Objetivo
+## Diagnóstico
 
-Permitir registrar, em cada campeonato da Jornada Esportiva, a **posição final do time** (prêmio coletivo) e os **reconhecimentos individuais** (melhor jogador, goleiro, artilheiro, etc.), e exibir tudo de forma destacada no card do campeonato e na aba **Premiações** do perfil público.
+Encontrei a causa mais provável do problema no `carreiraid.com.br`.
 
-## Onde encaixar
+No último ajuste, criamos o arquivo **`public/sw.js`** (um stub vazio com `skipWaiting`/`clients.claim`) para "resolver erros de Service Worker no preview".
 
-A informação será cadastrada em **dois pontos** complementares, mas armazenada no campeonato (fonte única da verdade):
+O problema: o projeto usa **`vite-plugin-pwa`** (configurado em `vite.config.ts`), que **gera automaticamente um `sw.js` no build** com Workbox, precache e `navigateFallbackDenylist: [/^\/~oauth/, /^\/carreira/]`. Quando existe um `public/sw.js`, ele:
 
-1. **Edição do Campeonato** (dialog atual `JornadaCampeonatoFormDialog`)
-   - Novo campo **"Posição final"** (select): Campeão, Vice-campeão, Semifinalista, Quartas de final, Oitavas, Fase de grupos, Eliminado, Em andamento.
-   - Nova seção **"Reconhecimentos individuais"** (lista dinâmica add/remove) com:
-     - Tipo (select): Melhor jogador, Melhor goleiro, Artilheiro, Melhor defesa, Destaque da partida, Outro.
-     - Descrição/título livre opcional (ex.: "Artilheiro com 8 gols").
-     - Jogo associado (opcional) — select com os jogos do campeonato, default = jogo da final se houver.
+1. Conflita com o arquivo gerado pelo plugin (o Vite copia public/* por último, sobrescrevendo o Workbox SW), OU
+2. Faz o build do Vercel falhar / produzir um SW quebrado.
 
-2. **Edição do Jogo** (dialog `JornadaJogoFormDialog`) — atalho:
-   - Quando a fase do jogo for "Final", aparece um bloco **"Reconhecimentos da final"** que grava nos mesmos registros do campeonato, já com `jogo_id` preenchido. Evita o atleta ter que voltar até a edição do campeonato.
+Resultado: o Service Worker servido em produção passa a ser nosso stub vazio, que não tem handler de `fetch` adequado nem precache. Browsers que já tinham o SW antigo registrado podem ficar com cache corrompido, e novos visitantes recebem um SW que não consegue servir o app corretamente — daí a impossibilidade de acessar `carreiraid.com.br`.
 
-## Exibição
+Observação: no `index.html`, o domínio `carreiraid.com.br` registra explicitamente `/carreira-sw.js` (não `/sw.js`), MAS também tenta desregistrar SWs antigos. Se o usuário tinha um Workbox SW (`sw.js`) registrado de uma visita anterior em `atletaid.com.br/carreira`, e agora esse `sw.js` virou um stub, o ciclo de update pode estar travando.
 
-- **`CarreiraCampeonatoCard`**: ao lado do nome do campeonato, badge colorido com a posição final (ouro=Campeão, prata=Vice, bronze=Semi). Abaixo das estatísticas, uma linha discreta com chips dos reconhecimentos: 🏆 Melhor jogador • 🧤 Melhor goleiro • ⚽ Artilheiro (8 gols).
-- **Aba Premiações** (perfil público): incluir os novos dados da Jornada Esportiva junto às premiações que já vêm de `evento_premiacoes_sync`. Mostrar duas seções:
-  - **Coletivas**: lista de campeonatos com posição final ≠ "Em andamento" / "Eliminado".
-  - **Individuais**: chips com tipo + campeonato + ano.
+## Plano
+
+### 1. Remover `public/sw.js`
+Apagar o arquivo criado no último turno. O `vite-plugin-pwa` voltará a gerar o `sw.js` correto no build.
+
+### 2. Resolver de outra forma o "erro de SW no preview"
+O motivo original de termos criado `public/sw.js` foi suprimir um erro de registro de SW no ambiente de preview do Lovable. Como o `vite-plugin-pwa` já gera `sw.js` automaticamente, esse erro não deve mais ocorrer. Se ocorrer, a abordagem correta é ajustar a lógica de registro no `index.html` (não criar um SW dummy que conflite com o build).
+
+### 3. Verificar build do Vercel
+Após o remover `public/sw.js`, confirmar com o usuário que o próximo deploy do Vercel sobe verde e o `sw.js` em produção volta a ser o gerado pelo Workbox (cabeçalho `// This is the service worker with the Workbox library` ou similar).
+
+### 4. Orientação ao usuário (cache do browser)
+Mesmo após o deploy correto, navegadores que receberam o SW quebrado podem precisar:
+- Hard refresh (Ctrl+Shift+R / Cmd+Shift+R), ou
+- Em DevTools → Application → Service Workers → "Unregister" + "Clear storage", ou
+- Aguardar o ciclo de update (o novo Workbox SW vai assumir).
 
 ## Detalhes técnicos
 
-### Banco (migração)
+**Arquivo a remover:** `public/sw.js`
 
-Tabela `carreira_campeonatos`: adicionar coluna
-- `posicao_final TEXT NULL` — enum em texto: `campeao | vice | semifinalista | quartas | oitavas | fase_grupos | eliminado | em_andamento`.
+**Por que isso não afeta o `carreira-sw.js`:** ele continua sendo um arquivo estático separado em `public/carreira-sw.js`, registrado explicitamente para o domínio Carreira no `index.html`. Não tem conflito com o `vite-plugin-pwa` (que só gera `sw.js`).
 
-Nova tabela `carreira_campeonato_premiacoes`:
-- `id uuid pk`
-- `campeonato_id uuid fk → carreira_campeonatos(id) on delete cascade`
-- `crianca_id uuid` (para RLS, igual aos jogos)
-- `tipo_premiacao text` (mesmos valores do enum acima + `outro`)
-- `titulo text null` (descrição livre)
-- `jogo_id uuid null fk → carreira_jogos(id) on delete set null`
-- `created_at timestamptz default now()`
-- RLS: dono da `crianca_id` faz CRUD; leitura pública apenas se o perfil do atleta for público (espelhar policies já existentes em `carreira_jogos`).
-- Adicionar a publicação `supabase_realtime`.
-
-### Tipos (`src/types/jornada-esportiva.ts`)
-
-- Novo tipo `PosicaoFinalCampeonato` e `TipoPremiacaoIndividual`.
-- `Campeonato.posicao_final?: PosicaoFinalCampeonato`.
-- Novo tipo `CampeonatoPremiacao` e `CampeonatoComJogos.premiacoes: CampeonatoPremiacao[]`.
-
-### Hook (`src/hooks/useJornada.ts`)
-
-- `fetchData()` passa a buscar `carreira_campeonato_premiacoes` por criança e agrupa por campeonato.
-- Novas funções: `addPremiacaoCampeonato`, `updatePremiacaoCampeonato`, `removePremiacaoCampeonato`.
-- Subscrever a nova tabela em realtime (mesmo padrão dos jogos/midias).
-- `updateCampeonato` aceita `posicao_final`.
-
-### UI
-
-- `JornadaCampeonatoFormDialog`: novo `<Select>` posição final + sub-bloco lista dinâmica de premiações (add/remove). Persiste em duas operações (campeonato + diff de premiações) na hora de salvar.
-- `JornadaJogoFormDialog`: se `fase_campeonato === "Final"`, mostra mini-formulário "Reconhecimentos da final" reaproveitando os mesmos handlers do hook.
-- `CarreiraCampeonatoCard`: badge de posição + linha de chips de reconhecimentos.
-- Aba **Premiações** do perfil público: agregar os dados novos, mantendo compatibilidade com `useCarreiraPremiacoes` atual (apenas concatena).
-
-### Validação visual (após implementar)
-
-Cadastrar via UI: posição final + 2 reconhecimentos, salvar, conferir realtime, conferir card e aba Premiações.
+**Nada das outras mudanças desta sessão** (premiações, `posicao_final`, ajustes de UI da Jornada, hooks `onSaved`) tem relação com o acesso ao domínio — são puramente código React/dados. O culpado é o `public/sw.js`.
