@@ -42,6 +42,7 @@ export interface Campeonato {
   logo_url?: string | null;
   posicao_final?: PosicaoFinalCampeonato | null;
   categoria?: string | null;
+  nome_time?: string | null;
   created_at: string;
 }
 
@@ -119,6 +120,7 @@ export interface CreateCampeonatoInput {
   logo_url?: string | null;
   posicao_final?: PosicaoFinalCampeonato | null;
   categoria?: string | null;
+  nome_time?: string | null;
 }
 
 export interface CreateCampeonatoPremiacaoInput {

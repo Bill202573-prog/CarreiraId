@@ -66,7 +66,7 @@ function useCarreiraCampeonatoTrofeus(criancaId: string | null | undefined) {
       const [campRes, premRes] = await Promise.all([
         (supabase as any)
           .from('carreira_campeonatos')
-          .select('id, nome, organizador, data_inicio, data_final, posicao_final, categoria')
+          .select('id, nome, organizador, data_inicio, data_final, posicao_final, categoria, nome_time')
           .eq('crianca_id', criancaId),
         (supabase as any)
           .from('carreira_campeonato_premiacoes')
@@ -93,6 +93,7 @@ function useCarreiraCampeonatoTrofeus(criancaId: string | null | undefined) {
           titulo: c.nome,
           colocacaoLabel: meta.label,
           categoriaIdade: c.categoria || undefined,
+          nomeTime: c.nome_time || undefined,
           data,
           ano: data ? new Date(data).getFullYear() : new Date().getFullYear(),
           fonte: 'campeonato',
@@ -112,6 +113,7 @@ function useCarreiraCampeonatoTrofeus(criancaId: string | null | undefined) {
           titulo: camp?.nome || meta.label,
           colocacaoLabel: meta.label,
           categoriaIdade: camp?.categoria || undefined,
+          nomeTime: camp?.nome_time || undefined,
           data,
           ano: data ? new Date(data).getFullYear() : new Date().getFullYear(),
           fonte: 'campeonato_premiacao',

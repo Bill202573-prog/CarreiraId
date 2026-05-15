@@ -58,6 +58,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
   const [dataFinal, setDataFinal] = useState('');
   const [posicaoFinal, setPosicaoFinal] = useState<PosicaoFinalCampeonato>('em_andamento');
   const [categoria, setCategoria] = useState<string>('');
+  const [nomeTime, setNomeTime] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -76,6 +77,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
       setDataFinal(editingCampeonato?.data_final?.slice(0, 10) || '');
       setPosicaoFinal((editingCampeonato?.posicao_final as PosicaoFinalCampeonato) || 'em_andamento');
       setCategoria((editingCampeonato as any)?.categoria || '');
+      setNomeTime((editingCampeonato as any)?.nome_time || '');
       setLogoUrl(editingCampeonato?.logo_url || null);
       setLogoFile(null);
       setNovaPremTipo('melhor_jogador');
@@ -103,6 +105,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
         logo_url: finalLogo,
         posicao_final: posicaoFinal,
         categoria: categoria || null,
+        nome_time: nomeTime.trim() || null,
       };
       if (editingCampeonato) {
         await editarCampeonato(editingCampeonato.id, payload);
@@ -205,6 +208,10 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
           <div>
             <Label>Organizador</Label>
             <Input value={organizador} onChange={(e) => setOrganizador(e.target.value)} placeholder="Ex: Federação Paulista" />
+          </div>
+          <div>
+            <Label>Nome do time que defendeu</Label>
+            <Input value={nomeTime} onChange={(e) => setNomeTime(e.target.value)} placeholder="Ex: Serra Macaense Sub-9" />
           </div>
           <div>
             <Label>Abrangência *</Label>
