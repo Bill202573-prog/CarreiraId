@@ -77,14 +77,6 @@ export function CarreiraCampeonatoCard({
             >
               {ABRANGENCIA_LABEL[c.abrangencia]}
             </span>
-            {(c as any).categoria && (
-              <span
-                className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                style={{ backgroundColor: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}40` }}
-              >
-                {(c as any).categoria}
-              </span>
-            )}
             {c.posicao_final && POSICAO_FINAL_META[c.posicao_final as PosicaoFinalCampeonato] && (
               <span
                 className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
@@ -97,13 +89,19 @@ export function CarreiraCampeonatoCard({
               </span>
             )}
           </div>
-          {timeRepresentado && <p className="text-xs text-muted-foreground">{timeRepresentado}</p>}
-          <div className="flex flex-wrap gap-1.5 mt-1.5 text-[11px]">
-            <Mini>{c.totalJogos || 0} jogos</Mini>
-            <Mini>{c.totalGols || 0} gols do atleta</Mini>
-            <Mini>{c.totalAssistencias || 0} assist. do atleta</Mini>
-            <Mini>{c.totalVitorias || 0} vitórias</Mini>
-          </div>
+          {(categoria || nomeTime) && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-xs text-muted-foreground">
+              {categoria && (
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                  style={{ backgroundColor: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}40` }}
+                >
+                  {categoria}
+                </span>
+              )}
+              {nomeTime && <span className="truncate">{nomeTime}</span>}
+            </div>
+          )}
           {(c.premiacoes || []).length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {c.premiacoes.map((p) => {
