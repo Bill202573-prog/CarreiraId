@@ -1,9 +1,10 @@
 // Service Worker for Carreira PWA
 // Scope: '/' on carreiraid.com.br, '/carreira' on atletaid.com.br
-const CACHE_NAME = 'carreira-v1';
+const CACHE_NAME = 'carreira-v2';
 
 self.addEventListener('install', (event) => {
-  // Don't skip waiting automatically - let PWAUpdatePrompt control it
+  // Take over immediately on new versions to evict stale SWs
+  self.skipWaiting();
 });
 
 self.addEventListener('message', (event) => {
@@ -13,7 +14,12 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((async () => {
+    // Delete every cache that is not the current one (clears workbox-*, carreira-v1, etc.)
+    const names = await caches.keys();
+    await Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
