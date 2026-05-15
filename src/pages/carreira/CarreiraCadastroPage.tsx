@@ -22,6 +22,7 @@ import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import PwaInstallButton from '@/components/shared/PwaInstallButton';
 import { PwaInstallPopup } from '@/components/shared/PwaInstallPopup';
 import { trackCompleteRegistration, trackProfileCreated, trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
+import { salvarPendingRef, processarConviteRef } from '@/lib/processar-convite-ref';
 
 type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form';
 
