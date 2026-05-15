@@ -262,7 +262,26 @@ export function useCarreiraConquistas(criancaId: string | null | undefined) {
 
 // ========== Aggregated Stats ==========
 
-export function useCarreiraStats(criancaId: string | null | undefined) {
+export interface CarreiraStatsExtended extends CarreiraStats {
+  totalAssistencias: number;
+  totalVitorias: number;
+}
+
+export interface UseCarreiraStatsResult {
+  stats: CarreiraStatsExtended;
+  anosDisponiveis: number[];
+}
+
+const yearOf = (s?: string | null): number | null => {
+  if (!s) return null;
+  const y = new Date(s).getFullYear();
+  return Number.isFinite(y) ? y : null;
+};
+
+export function useCarreiraStats(
+  criancaId: string | null | undefined,
+  ano: number | 'todos' = 'todos',
+): UseCarreiraStatsResult {
   const { data: gols } = useCarreiraGols(criancaId);
   const { data: amistosos } = useCarreiraAmistosos(criancaId);
   const { data: campeonatos } = useCarreiraCampeonatos(criancaId);
@@ -270,27 +289,61 @@ export function useCarreiraStats(criancaId: string | null | undefined) {
   const { data: conquistas } = useCarreiraConquistas(criancaId);
   const jornada = useJornada(criancaId ?? null);
 
-  const totalGolsSync = (gols || []).reduce((sum, g) => sum + g.quantidade, 0);
+  // ===== Coletar anos disponíveis (de todas as fontes) =====
+  const yearsSet = new Set<number>();
+  (gols || []).forEach(g => { const y = yearOf(g.evento?.data); if (y) yearsSet.add(y); });
+  (amistosos || []).forEach(a => { const y = yearOf(a.evento?.data); if (y) yearsSet.add(y); });
+  (campeonatos || []).forEach(c => { if (c.campeonato?.ano) yearsSet.add(c.campeonato.ano); });
+  (premiacoes || []).forEach(p => { const y = yearOf(p.evento?.data); if (y) yearsSet.add(y); });
+  (conquistas || []).forEach(c => { if (c.ano) yearsSet.add(c.ano); });
+  jornada.data.campeonatos.forEach((c: any) => { const y = yearOf(c.data_inicio); if (y) yearsSet.add(y); });
+  jornada.data.amistosos.forEach((j: any) => { const y = yearOf(j.data_jogo); if (y) yearsSet.add(y); });
+  jornada.data.campeonatos.forEach((c: any) => {
+    (c.jogos || []).forEach((j: any) => { const y = yearOf(j.data_jogo); if (y) yearsSet.add(y); });
+  });
+  const anosDisponiveis = Array.from(yearsSet).sort((a, b) => b - a);
 
-  const amistososFinalizados = (amistosos || []).filter(a => a.evento?.status === 'finalizado' || a.evento?.status === 'realizado');
+  const matchYear = (y: number | null | undefined) =>
+    ano === 'todos' ? true : y === ano;
+
+  // ===== Sync (escola) =====
+  const golsFiltered = (gols || []).filter(g => matchYear(yearOf(g.evento?.data)));
+  const amistososFiltered = (amistosos || []).filter(a => matchYear(yearOf(a.evento?.data)));
+  const campeonatosFiltered = (campeonatos || []).filter(c => matchYear(c.campeonato?.ano ?? null));
+  const premiacoesFiltered = (premiacoes || []).filter(p => matchYear(yearOf(p.evento?.data)));
+  const conquistasFiltered = (conquistas || []).filter(c => matchYear(c.ano ?? null));
+
+  const totalGolsSync = golsFiltered.reduce((sum, g) => sum + g.quantidade, 0);
+  const amistososFinalizados = amistososFiltered.filter(a => a.evento?.status === 'finalizado' || a.evento?.status === 'realizado');
   const amistososEventIds = new Set(amistososFinalizados.map(a => a.evento_id));
-  const orphanGolEventIds = new Set((gols || []).filter(g => !amistososEventIds.has(g.evento_id) && g.evento).map(g => g.evento_id));
-  const uniqueCampeonatoIds = new Set((campeonatos || []).map(c => c.campeonato_id));
+  const orphanGolEventIds = new Set(golsFiltered.filter(g => !amistososEventIds.has(g.evento_id) && g.evento).map(g => g.evento_id));
+  const uniqueCampeonatoIds = new Set(campeonatosFiltered.map(c => c.campeonato_id));
 
-  // Jornada própria (carreira_*)
-  const jornadaStats = jornada.data.estatisticas;
-  const jornadaPremiacoes = jornada.data.campeonatos.reduce(
-    (sum, c) => sum + (c.premiacoes?.length || 0),
-    0,
+  // ===== Jornada própria (carreira_*) =====
+  const jCampeonatos = jornada.data.campeonatos.filter((c: any) => matchYear(yearOf(c.data_inicio)));
+  const jAmistosos = jornada.data.amistosos.filter((j: any) => matchYear(yearOf(j.data_jogo)));
+  const jJogosCamp = jornada.data.campeonatos.flatMap((c: any) =>
+    (c.jogos || []).filter((j: any) => matchYear(yearOf(j.data_jogo)))
   );
+  const jAllJogos = [...jAmistosos, ...jJogosCamp];
 
-  const stats: CarreiraStats = {
-    totalGols: totalGolsSync + (jornadaStats?.totalGols || 0),
-    totalJogos: amistososFinalizados.length + orphanGolEventIds.size + (jornadaStats?.totalJogos || 0),
-    totalCampeonatos: uniqueCampeonatoIds.size + (jornadaStats?.totalCampeonatos || 0),
-    totalPremiacoes: (premiacoes || []).length + jornadaPremiacoes,
-    totalConquistas: (conquistas || []).length,
+  const jTotalGols = jAllJogos.reduce((s, j: any) => s + (j.gols_marcados || 0), 0);
+  const jTotalAssist = jAllJogos.reduce((s, j: any) => s + (j.assistencias || 0), 0);
+  const jTotalVitorias = jAllJogos.filter((j: any) =>
+    j.placar_time_atleta != null && j.placar_adversario != null &&
+    j.placar_time_atleta > j.placar_adversario
+  ).length;
+  const jTotalPremiacoes = jCampeonatos.reduce((s, c: any) => s + (c.premiacoes?.length || 0), 0);
+
+  const stats: CarreiraStatsExtended = {
+    totalGols: totalGolsSync + jTotalGols,
+    totalJogos: amistososFinalizados.length + orphanGolEventIds.size + jAllJogos.length,
+    totalCampeonatos: uniqueCampeonatoIds.size + jCampeonatos.length,
+    totalPremiacoes: premiacoesFiltered.length + jTotalPremiacoes,
+    totalConquistas: conquistasFiltered.length,
+    totalAssistencias: jTotalAssist,
+    totalVitorias: jTotalVitorias,
   };
 
-  return stats;
+  return { stats, anosDisponiveis };
 }
