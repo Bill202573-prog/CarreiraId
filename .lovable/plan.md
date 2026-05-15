@@ -1,20 +1,31 @@
-Diagnóstico:
-- O arquivo `public/carreira-sw.js` existe e está sendo servido pelo domínio com `200` e `Cache-Control: no-cache, no-store`.
-- O domínio `https://carreiraid.com.br/` carrega no teste remoto, mas há conflito de PWA/Service Worker: o HTML registra manualmente `/carreira-sw.js`, enquanto o projeto também gera `/atletaid-sw.js` via `vite-plugin-pwa`, e ainda existe `/sw.js` como kill-switch.
-- A recomendação de “deixar apenas o SW gerado automaticamente pelo vite-plugin-pwa” faz sentido para reduzir conflito, mas precisa preservar o cleanup de instalações antigas para usuários que já ficaram presos em cache.
-- Também encontrei um erro real de console no HTML publicado: há um `<link rel="modulepreload">` apontando para um `data:application/octet-stream...`, vindo do preload manual de `/src/main.tsx`. Isso deve ser removido porque Vite já injeta os assets corretos no build.
+Diagnóstico atual:
+- O domínio `https://carreiraid.com.br/` responde HTTP 200 pela Vercel e carrega assets JS/CSS normalmente no meu teste.
+- A URL `https://www.carreiraid.com.br/` também responde 200.
+- O DNS está apontando para a Vercel, mas há sinal de configuração inconsistente no `www`: ele aparece com CNAME da Vercel e também A records misturados, o que pode causar falha intermitente dependendo da rede/provedor.
+- O HTML publicado ainda contém referências de lógica antiga de Service Worker (`atletaid-sw.js` e limpeza de SW), mas no domínio Carreira ele não registra mais automaticamente o `carreira-sw.js`; ele tenta apenas desregistrar workers antigos.
+- Como você continua sem acessar enquanto o teste remoto acessa, o cenário mais provável é: cache/Service Worker preso no seu navegador/dispositivo, DNS local/provedor resolvendo diferente, ou domínio `www` com registros conflitantes.
 
-Plano de correção:
-1. Remover do `index.html` o preload manual de `/src/main.tsx`, deixando o Vite gerar apenas os assets finais corretos.
-2. Remover do `index.html` o registro manual de `/carreira-sw.js` para o domínio Carreira ID, deixando de criar um Service Worker dedicado que compete com o PWA gerado.
-3. Manter o manifesto do Carreira ID (`/carreira-manifest.json`) para installability/ícones, mas sem registrar o `carreira-sw.js` automaticamente.
-4. Transformar `public/carreira-sw.js` em um kill-switch temporário, igual ao `/sw.js`: ao ser atualizado, ele limpa caches, recarrega clientes e se desregistra. Isso corrige dispositivos que já registraram esse worker.
-5. Ajustar `src/hooks/useCarreiraPushNotifications.ts` para não registrar `/carreira-sw.js`; se push ainda for necessário, usar o worker dedicado `/push-sw.js`, evitando conflito com navegação/cache.
-6. Ajustar `PWAUpdatePrompt` para não depender mais de `carreira-sw.js` no domínio Carreira ID.
-7. Manter os headers no `vercel.json` sem cache para `/carreira-sw.js`, `/sw.js`, `/atletaid-sw.js` e manifestos, pois isso ajuda o cleanup chegar aos usuários.
+Plano de correção urgente:
+1. Fortalecer o cleanup no próprio app
+   - Adicionar uma rotina de inicialização mais agressiva e segura para `carreiraid.com.br` que desregistre qualquer Service Worker antigo, limpe caches e force uma única recarga limpa com marcador de versão.
+   - Evitar loop infinito usando um parâmetro/localStorage de controle.
+   - Manter `push-sw.js` isolado apenas para notificações, sem controlar navegação.
 
-Resultado esperado:
-- Novos acessos ao `carreiraid.com.br` não registrarão mais `/carreira-sw.js`.
-- Usuários que já tinham `/carreira-sw.js` receberão o kill-switch e terão caches antigos limpos automaticamente.
-- O erro de modulepreload com MIME `application/octet-stream` será removido.
-- O PWA fica centralizado no worker gerado pelo `vite-plugin-pwa`, com menos risco de conflito entre domínios.
+2. Remover ambiguidade de Service Worker no domínio Carreira
+   - Garantir que `carreiraid.com.br` não registre `atletaid-sw.js` nem `carreira-sw.js` como worker de navegação.
+   - Manter `/carreira-sw.js` e `/sw.js` como kill-switch por pelo menos um ciclo de deploy para limpar usuários afetados.
+   - Se necessário, transformar também `/atletaid-sw.js` em kill-switch apenas no deploy do domínio Carreira não é viável por domínio no mesmo build; então a correção será via runtime no HTML/app sem quebrar Atleta ID.
+
+3. Ajustar headers/rewrites para reduzir cache problemático
+   - Revisar `vercel.json` para manter `no-store` nos Service Workers, manifestos e HTML quando aplicável.
+   - Confirmar que os assets versionados continuam funcionando com cache normal.
+
+4. Orientação operacional fora do código
+   - No Vercel/DNS, deixar o domínio raiz `carreiraid.com.br` com os registros recomendados pela Vercel.
+   - Corrigir `www.carreiraid.com.br`: não misturar CNAME e A records para o mesmo host; usar somente o que a Vercel indicar.
+   - Depois do deploy, testar em janela anônima e em outro dispositivo/rede para separar cache local de DNS.
+
+Validação:
+- Comparar `carreiraid.com.br` e a URL Vercel depois das mudanças.
+- Confirmar em browser que não há worker controlador de navegação no domínio Carreira.
+- Confirmar que a landing carrega e os assets principais retornam 200.
