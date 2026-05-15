@@ -22,6 +22,7 @@ import { carreiraPath, isCarreiraDomain } from '@/hooks/useCarreiraBasePath';
 import PwaInstallButton from '@/components/shared/PwaInstallButton';
 import { PwaInstallPopup } from '@/components/shared/PwaInstallPopup';
 import { trackCompleteRegistration, trackProfileCreated, trackInitiateCheckout, trackSubscribe, pushDataLayer } from '@/lib/fbPixel';
+import { salvarPendingRef, processarConviteRef } from '@/lib/processar-convite-ref';
 
 type Step = 'tutorial' | 'auth' | 'profile-type' | 'profile-form';
 
@@ -40,8 +41,12 @@ export default function CarreiraCadastroPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('convite');
+  const refParam = searchParams.get('ref') as 'torcedor' | 'atleta' | 'rede' | null;
+  const refConviteCodigo = searchParams.get('c');
+  const refAtletaSlug = searchParams.get('a');
   const planoParam = searchParams.get('plano') as CarreiraPlano | null;
   const hasPaidPlan = planoParam === 'competidor' || planoParam === 'elite';
+
   const [step, setStep] = useState<Step>('tutorial');
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
@@ -57,6 +62,25 @@ export default function CarreiraCadastroPage() {
   const [createdChildName, setCreatedChildName] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
   const [showPwaPopup, setShowPwaPopup] = useState(false);
+
+  // Persist ?ref params so they survive OAuth redirect / email confirmation
+  useEffect(() => {
+    if (refParam) {
+      salvarPendingRef({
+        ref: refParam,
+        conviteCodigo: refConviteCodigo || undefined,
+        atletaSlug: refAtletaSlug || undefined,
+      });
+    }
+  }, [refParam, refConviteCodigo, refAtletaSlug]);
+
+  // Auto-seleciona tipo quando vem de ?ref=torcedor
+  useEffect(() => {
+    if (step === 'profile-type' && refParam === 'torcedor' && !selectedType) {
+      setSelectedType('torcedor');
+      setStep('profile-form');
+    }
+  }, [step, refParam, selectedType]);
 
   // Auth check + cross-domain session transfer
   useEffect(() => {
@@ -320,6 +344,9 @@ export default function CarreiraCadastroPage() {
 
   const handleProfileCreated = async () => {
     if (userId) {
+      // Processa convite/auto-follow vindos de ?ref&c&a (não bloqueia o fluxo)
+      processarConviteRef(userId).catch(() => { /* silencioso */ });
+
       const { data: perfilAtleta } = await supabase
         .from('perfil_atleta')
         .select('slug, crianca_id, nome')

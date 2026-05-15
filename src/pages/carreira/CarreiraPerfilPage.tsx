@@ -24,6 +24,7 @@ import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 import { PeneirasSection } from '@/components/carreira/PeneirasSection';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
+import { CompartilharPerfilDialog } from '@/components/carreira/CompartilharPerfilDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -924,7 +925,7 @@ export default function CarreiraPerfilPage() {
                 {!isAnonymous && (
                   <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
                 )}
-                <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} />
+                <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} ownerUserId={perfil.user_id} />
               </div>
               </div>
             </Card>
@@ -1322,22 +1323,23 @@ function FollowButton({ perfil, currentUserId, isOwner }: { perfil: any; current
   );
 }
 
-function ShareButton({ slug, nome, accentColor }: { slug: string; nome: string; accentColor?: string }) {
-  const handleShare = async () => {
-    const url = `${window.location.origin}${carreiraPath(`/${slug}`)}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: `${nome} - Carreira Esportiva`, text: `Confira a carreira de ${nome}`, url }); } catch { /* cancelled */ }
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copiado!');
-    }
-  };
-
+function ShareButton({ slug, nome, accentColor, ownerUserId }: { slug: string; nome: string; accentColor?: string; ownerUserId: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={handleShare}
-      style={accentColor ? { borderColor: `${accentColor}50`, color: accentColor } : undefined}>
-      <Share2 className="w-3.5 h-3.5 mr-1" />Compartilhar
-    </Button>
+    <>
+      <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => setOpen(true)}
+        style={accentColor ? { borderColor: `${accentColor}50`, color: accentColor } : undefined}>
+        <Share2 className="w-3.5 h-3.5 mr-1" />Compartilhar
+      </Button>
+      <CompartilharPerfilDialog
+        open={open}
+        onOpenChange={setOpen}
+        ownerUserId={ownerUserId}
+        atletaNome={nome}
+        atletaSlug={slug}
+        accentColor={accentColor}
+      />
+    </>
   );
 }
 
