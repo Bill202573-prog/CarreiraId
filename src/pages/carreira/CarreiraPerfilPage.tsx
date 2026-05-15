@@ -925,7 +925,7 @@ export default function CarreiraPerfilPage() {
                 {!isAnonymous && (
                   <FollowButton perfil={perfil} currentUserId={currentUserId} isOwner={isOwner} />
                 )}
-                <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} />
+                <ShareButton slug={perfil.slug} nome={displayProfileName} accentColor={accentColor} ownerUserId={perfil.user_id} />
               </div>
               </div>
             </Card>
