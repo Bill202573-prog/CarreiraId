@@ -1,66 +1,43 @@
-## Análise
+## Diagnóstico dos novos testes
 
-O domínio `carreiraid.com.br` está resolvendo e respondendo pelo Vercel:
-
-- `carreiraid.com.br` retorna HTTP 200 em HTTPS.
-- `www.carreiraid.com.br` também retorna HTTP 200 em HTTPS.
-- O servidor identificado é `Vercel`.
-- A página carregou no navegador de teste.
-
-Então o problema não parece ser DNS nem Vercel offline.
-
-## Problema encontrado
-
-Há um erro real no navegador publicado:
-
-```text
-Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "application/octet-stream".
-```
-
-Esse erro vem de uma linha no HTML publicado:
-
-```html
-<link rel="modulepreload" href="data:application/octet-stream;base64,...">
-```
-
-A origem provável é esta linha manual em `index.html`:
-
-```html
-<link rel="modulepreload" href="/src/main.tsx" />
-```
-
-No build do Vite/Vercel, isso está sendo transformado em um preload `data:application/octet-stream`, que alguns navegadores tratam como script de módulo inválido. Isso pode fazer o site parecer inacessível/bugado para alguns usuários, mesmo com DNS correto.
-
-Também há conflito de PWA/service worker:
-
-- `vite-plugin-pwa` ainda gera `/sw.js` e `/manifest.webmanifest`.
-- `index.html` tenta registrar `/carreira-sw.js` para Carreira ID.
-- O HTML publicado ainda injeta `/manifest.webmanifest` além do manifesto Carreira.
-- Dispositivos que já tinham `/sw.js` antigo podem continuar presos em cache antigo.
+- `https://carreiraid.com.br/` respondeu `200` via Vercel nos testes externos.
+- Os assets principais também responderam corretamente com `content-type: application/javascript` e CSS correto.
+- No navegador limpo, o site carregou e a rede mostrou `200` para HTML, JS, CSS e manifest.
+- A imagem do usuário mostra um Service Worker ativo em `https://carreiraid...` com fonte `carreira-sw.js`; isso confirma que o problema está preso no navegador/dispositivo do usuário via Service Worker/cache, não em DNS puro.
+- O build publicado ainda contém `/sw.js` gerado pelo Workbox e `/manifest.webmanifest`; esse SW antigo intercepta navegações com `createHandlerBoundToURL("index.html")`, o que pode manter clientes travados ou provocar `ERR_FAILED`/timeout em navegadores que já registraram a versão problemática.
 
 ## Plano de correção
 
-1. Remover o preload manual inválido de `index.html`:
-   - Apagar `<link rel="modulepreload" href="/src/main.tsx" />`.
-   - Manter apenas o script principal normal no final do body.
+1. **Trocar `/sw.js` por um kill-switch real**
+   - Remover o Workbox gerado como controlador principal.
+   - Publicar um `/sw.js` estático sem `fetch` handler, que:
+     - chama `skipWaiting()`;
+     - apaga caches Workbox/legados;
+     - navega clientes controlados para a mesma URL com parâmetro de limpeza;
+     - faz `unregister()` depois da navegação.
+   - Isso é o padrão mais seguro para desinstalar Service Workers quebrados que já chegaram aos navegadores dos usuários.
 
-2. Evitar conflito entre o PWA do Atleta ID e o domínio Carreira ID:
-   - Ajustar a configuração do `vite-plugin-pwa` para não injetar automaticamente manifesto/registro que conflite com o domínio Carreira.
-   - Manter o manifesto Carreira injetado condicionalmente apenas para `carreiraid.com.br`.
+2. **Ajustar `carreira-sw.js` para não prender navegação**
+   - Remover qualquer fallback de navegação que dependa de cache de `/index.html`.
+   - Manter apenas push notification e limpeza de caches.
+   - Assim, o domínio sempre busca HTML/JS direto da rede/Vercel, evitando shell antigo.
 
-3. Corrigir limpeza dos service workers antigos:
-   - Transformar `public/sw.js` em um kill-switch seguro para remover caches antigos e desregistrar o Workbox antigo em clientes existentes.
-   - Preservar `public/carreira-sw.js` para o Carreira ID, mas garantir que ele não dependa de cache antigo para navegação.
+3. **Limpar o registro automático no `index.html`**
+   - Parar de registrar `/sw.js` em preview/outros domínios.
+   - No domínio `carreiraid.com.br`, registrar somente `carreira-sw.js` após tentar remover registros legados.
+   - Manter o manifest específico `carreira-manifest.json`, removendo o `manifest.webmanifest` injetado pelo plugin quando necessário.
 
-4. Reforçar cabeçalhos no `vercel.json`:
-   - Manter `no-cache/no-store` para `/sw.js`, `/carreira-sw.js`, manifestos e HTML quando aplicável.
-   - Isso ajuda a entregar a correção sem o navegador ficar preso no service worker anterior.
+4. **Ajustar `vite.config.ts`**
+   - Desativar/remover a geração do Service Worker Workbox (`vite-plugin-pwa`) para impedir que `/sw.js` volte a ser gerado e publicado com precache.
+   - Preservar os assets/manifest necessários sem criar outro SW interceptador.
 
-5. Após publicar no Vercel:
-   - Fazer redeploy.
-   - Testar `https://carreiraid.com.br/` em aba anônima.
-   - Para usuários ainda presos no app instalado/PWA antigo, orientar remover e reinstalar o app se necessário, porque iOS/Android podem manter campos de manifesto e service worker antigos em instalações existentes.
+5. **Validar após implementação**
+   - Verificar no domínio publicado/preview que:
+     - `/sw.js` retorna o kill-switch simples;
+     - `/carreira-sw.js` retorna JS sem fallback cache-first de navegação;
+     - HTML/JS/CSS continuam com status `200` e MIME corretos;
+     - não existem mais `modulepreload` com MIME errado.
 
-## Resultado esperado
+## Orientação temporária para o usuário final
 
-O domínio continuará apontando para o Vercel, mas sem o erro de MIME no module preload e com menor risco de cache/service worker antigo impedir o carregamento correto.
+Mesmo após publicar a correção via Vercel, alguns navegadores podem precisar fechar todas as abas do site e abrir novamente, porque o Chrome só solta um Service Worker antigo quando não há clientes controlados. A nova versão deve automatizar a limpeza no próximo acesso.
