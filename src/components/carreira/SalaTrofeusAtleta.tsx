@@ -93,6 +93,7 @@ function useCarreiraCampeonatoTrofeus(criancaId: string | null | undefined) {
           titulo: c.nome,
           colocacaoLabel: meta.label,
           categoriaIdade: c.categoria || undefined,
+          nomeTime: c.nome_time || undefined,
           data,
           ano: data ? new Date(data).getFullYear() : new Date().getFullYear(),
           fonte: 'campeonato',
