@@ -335,6 +335,9 @@ export default function CarreiraCadastroPage() {
 
   const handleProfileCreated = async () => {
     if (userId) {
+      // Processa convite/auto-follow vindos de ?ref&c&a (não bloqueia o fluxo)
+      processarConviteRef(userId).catch(() => { /* silencioso */ });
+
       const { data: perfilAtleta } = await supabase
         .from('perfil_atleta')
         .select('slug, crianca_id, nome')
