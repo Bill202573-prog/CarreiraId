@@ -19,7 +19,15 @@ export function CarreiraStatsCards({ criancaId, accentColor = '#3b82f6' }: Carre
 
   const hasAnyStats = stats.totalGols > 0 || stats.totalJogos > 0 || stats.totalCampeonatos > 0 || stats.totalPremiacoes > 0;
 
-  if (!hasAnyStats) return null;
+  if (!hasAnyStats) {
+    return (
+      <div className="text-center py-12 text-muted-foreground border rounded-lg" style={{ borderColor: `${accentColor}25` }}>
+        <Trophy className="w-10 h-10 mx-auto opacity-40 mb-2" style={{ color: accentColor }} />
+        <p className="text-sm">Nenhuma estatística ainda.</p>
+        <p className="text-xs mt-1">Registre campeonatos e jogos na aba <strong>Jornada Esportiva</strong> para ver suas estatísticas aqui.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
