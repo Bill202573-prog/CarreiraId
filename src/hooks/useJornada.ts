@@ -228,6 +228,7 @@ export function useJornada(criancaId: string | undefined | null) {
         data_final: input.data_final,
         logo_url: input.logo_url ?? null,
         posicao_final: input.posicao_final ?? null,
+        categoria: input.categoria ?? null,
       }).select('id').single();
       if (error) throw error;
       await fetchData();
@@ -248,6 +249,7 @@ export function useJornada(criancaId: string | undefined | null) {
           data_final: input.data_final,
           logo_url: input.logo_url ?? null,
           posicao_final: input.posicao_final ?? null,
+          categoria: input.categoria ?? null,
         })
         .eq('id', id);
       if (error) throw error;
