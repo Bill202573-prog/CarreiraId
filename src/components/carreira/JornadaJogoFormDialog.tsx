@@ -59,21 +59,35 @@ export function JornadaJogoFormDialog({ open, onOpenChange, criancaId, campeonat
 
   const num = (s: string) => (s.trim() === '' ? undefined : Number(s));
 
-  const handleFiles = (files: FileList | null) => {
+  const handleFiles = async (files: FileList | null) => {
     if (!files) return;
     const ok: File[] = [];
-    Array.from(files).forEach((f) => {
+    for (const f of Array.from(files)) {
       const name = f.name.toLowerCase();
       const isImg = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?|avif)$/i.test(name);
       const isVid = f.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(name);
-      if (!isImg && !isVid) { toast.error(`${f.name}: formato não suportado`); return; }
-      if (isImg && f.size > MAX_IMG) { toast.error(`${f.name}: imagem > 15MB`); return; }
-      if (isVid && f.size > MAX_VIDEO) { toast.error(`${f.name}: vídeo > 100MB`); return; }
-      if (/\.(heic|heif)$/i.test(name)) {
-        toast.warning(`${f.name}: HEIC pode não exibir miniatura em alguns navegadores`);
+      if (!isImg && !isVid) { toast.error(`${f.name}: formato não suportado`); continue; }
+      if (isImg && f.size > MAX_IMG) { toast.error(`${f.name}: imagem > 15MB`); continue; }
+      if (isVid && f.size > MAX_VIDEO) { toast.error(`${f.name}: vídeo > 100MB`); continue; }
+
+      // Convert HEIC/HEIF to JPEG so todos navegadores conseguem exibir a miniatura
+      const isHeic = f.type === 'image/heic' || f.type === 'image/heif' || /\.(heic|heif)$/i.test(name);
+      if (isHeic) {
+        try {
+          const heic2any = (await import('heic2any')).default;
+          const blobResult = await heic2any({ blob: f, toType: 'image/jpeg', quality: 0.85 });
+          const blob = Array.isArray(blobResult) ? blobResult[0] : blobResult;
+          const newName = f.name.replace(/\.(heic|heif)$/i, '.jpg');
+          ok.push(new File([blob], newName, { type: 'image/jpeg' }));
+          continue;
+        } catch (err) {
+          console.error('Erro ao converter HEIC:', err);
+          toast.error(`${f.name}: não foi possível converter o HEIC`);
+          continue;
+        }
       }
       ok.push(f);
-    });
+    }
     setNovosArquivos((prev) => [...prev, ...ok]);
   };
 
