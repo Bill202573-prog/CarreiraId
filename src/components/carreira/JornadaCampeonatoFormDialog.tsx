@@ -210,6 +210,10 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
             <Input value={organizador} onChange={(e) => setOrganizador(e.target.value)} placeholder="Ex: Federação Paulista" />
           </div>
           <div>
+            <Label>Nome do time que defendeu</Label>
+            <Input value={nomeTime} onChange={(e) => setNomeTime(e.target.value)} placeholder="Ex: Serra Macaense Sub-9" />
+          </div>
+          <div>
             <Label>Abrangência *</Label>
             <Select value={abrangencia} onValueChange={(v) => setAbrangencia(v as TorneioAbrangencia)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
