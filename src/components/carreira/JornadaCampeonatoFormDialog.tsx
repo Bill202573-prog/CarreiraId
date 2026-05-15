@@ -217,6 +217,18 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label>Categoria</Label>
+            <Select value={categoria || 'none'} onValueChange={(v) => setCategoria(v === 'none' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="Sem categoria" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem categoria</SelectItem>
+                {CATEGORIAS.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data início *</Label>
