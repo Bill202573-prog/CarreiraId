@@ -289,20 +289,26 @@ function TrofeuRow({ item, accentColor }: { item: TrofeuItem; accentColor: strin
 
   const Icone = item.categoria === 'coletivo' ? Trophy : Medal;
 
+  const colocLinha = [item.colocacaoLabel, item.categoriaIdade].filter(Boolean).join(' • ');
+
   return (
     <div
-      className="flex items-start gap-3 p-3 rounded-lg border"
+      className="flex items-stretch gap-3 p-3 rounded-lg border"
       style={{ borderColor: `${corFundo}40`, backgroundColor: `${corFundo}10` }}
     >
-      <div
-        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-base"
-        style={{ backgroundColor: `${corFundo}25`, color: corFundo }}
-      >
-        <span aria-hidden>{item.emoji}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-sm">{item.titulo}</span>
+      <div className="flex-1 min-w-0 space-y-1">
+        <h5 className="font-semibold text-sm leading-snug truncate" title={item.titulo}>
+          {item.titulo}
+        </h5>
+        {colocLinha && (
+          <p className="text-xs font-medium" style={{ color: corFundo }}>
+            {colocLinha}
+          </p>
+        )}
+        {item.nomeTime && (
+          <p className="text-xs text-muted-foreground truncate">{item.nomeTime}</p>
+        )}
+        <div className="flex items-center gap-2 flex-wrap pt-0.5">
           <Badge
             variant="outline"
             className="text-[10px] px-1.5 py-0"
@@ -310,15 +316,12 @@ function TrofeuRow({ item, accentColor }: { item: TrofeuItem; accentColor: strin
           >
             {item.categoria === 'coletivo' ? 'Coletivo' : 'Individual'}
           </Badge>
+          {formattedDate && (
+            <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
+          )}
         </div>
-        {item.subtitulo && (
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.subtitulo}</p>
-        )}
-        {formattedDate && (
-          <p className="text-[10px] text-muted-foreground mt-0.5">{formattedDate}</p>
-        )}
       </div>
-      <Icone className="w-4 h-4 mt-1 shrink-0" style={{ color: corFundo }} />
+      <Icone className="w-5 h-5 mt-0.5 shrink-0" style={{ color: corFundo }} />
     </div>
   );
 }
