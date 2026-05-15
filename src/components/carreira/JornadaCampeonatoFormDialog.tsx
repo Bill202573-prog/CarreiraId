@@ -58,6 +58,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
   const [dataFinal, setDataFinal] = useState('');
   const [posicaoFinal, setPosicaoFinal] = useState<PosicaoFinalCampeonato>('em_andamento');
   const [categoria, setCategoria] = useState<string>('');
+  const [nomeTime, setNomeTime] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
