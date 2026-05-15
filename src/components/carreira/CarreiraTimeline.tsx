@@ -8,6 +8,7 @@ import { AtividadePublicaCard } from './AtividadePublicaCard';
 import { ExperienciaSection } from './ExperienciaSection';
 import { CarreiraStatsCards } from './CarreiraStatsCards';
 import { JornadaTimeline } from './JornadaTimeline';
+import { SalaTrofeusAtleta } from './SalaTrofeusAtleta';
 import { CarreiraAtividadeFormDialog } from './CarreiraAtividadeFormDialog';
 import { ExperienciaFormDialog } from './ExperienciaFormDialog';
 import { JornadaEsportivaSection } from './JornadaEsportivaSection';
@@ -355,10 +356,14 @@ export function CarreiraTimeline({ perfil, isOwner = false }: CarreiraTimelinePr
         );
       case 'premiacoes':
         return (
-          <JornadaTimeline
+          <SalaTrofeusAtleta
             criancaId={perfil.crianca_id}
-            dadosPublicos={{ gols: false, amistosos: false, campeonatos: false, premiacoes: dadosPublicos?.premiacoes !== false, conquistas: dadosPublicos?.conquistas !== false }}
             accentColor={accentColor}
+            dadosPublicos={{
+              premiacoes: dadosPublicos?.premiacoes !== false,
+              campeonatos: dadosPublicos?.campeonatos !== false,
+              conquistas: dadosPublicos?.conquistas !== false,
+            }}
           />
         );
       default:
