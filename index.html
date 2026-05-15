@@ -9,6 +9,16 @@
     <meta name="keywords" content="carreira esportiva, identidade esportiva, atleta de base, perfil atleta, futebol base, carreira id, gestão escolinha futebol" />
     <link rel="icon" href="/carreira-icon-512.png" type="image/png" />
     <link rel="canonical" href="https://carreiraid.com.br/" />
+
+    <script>
+      (function() {
+        var host = window.location.hostname;
+        var isCarreiraHost = host === 'carreiraid.com.br' || host === 'www.carreiraid.com.br';
+        if (isCarreiraHost && (window.location.protocol !== 'https:' || host === 'www.carreiraid.com.br')) {
+          window.location.replace('https://carreiraid.com.br' + window.location.pathname + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1e3a5f" media="(prefers-color-scheme: light)" />
