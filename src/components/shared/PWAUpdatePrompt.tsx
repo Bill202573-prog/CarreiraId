@@ -10,14 +10,17 @@ export function PWAUpdatePrompt() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
+    const CARREIRA_DOMAINS = ['carreiraid.com.br', 'www.carreiraid.com.br'];
+    const isCarreiraDomain = CARREIRA_DOMAINS.includes(window.location.hostname);
+
     const isRelevantSW = (sw: ServiceWorker | null) => {
       if (!sw?.scriptURL) return false;
-      // Listen only to the Workbox-generated SW. Ignore the legacy carreira-sw.js
-      // (now a kill-switch), the standalone push-sw.js, and the global /sw.js cleanup.
-      if (sw.scriptURL.includes('carreira-sw.js')) return false;
-      if (sw.scriptURL.includes('push-sw.js')) return false;
-      if (sw.scriptURL.endsWith('/sw.js')) return false;
-      return true;
+      if (isCarreiraDomain) {
+        // On carreira domain, only listen to carreira-sw.js
+        return sw.scriptURL.includes('carreira-sw.js');
+      }
+      // On atletaid domain, only listen to workbox sw.js (not carreira or push)
+      return !sw.scriptURL.includes('carreira-sw.js') && !sw.scriptURL.includes('push-sw.js');
     };
 
     const listenForUpdates = (registration: ServiceWorkerRegistration) => {

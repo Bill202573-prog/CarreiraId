@@ -1,31 +1,66 @@
-Diagnóstico atual:
-- O domínio `https://carreiraid.com.br/` responde HTTP 200 pela Vercel e carrega assets JS/CSS normalmente no meu teste.
-- A URL `https://www.carreiraid.com.br/` também responde 200.
-- O DNS está apontando para a Vercel, mas há sinal de configuração inconsistente no `www`: ele aparece com CNAME da Vercel e também A records misturados, o que pode causar falha intermitente dependendo da rede/provedor.
-- O HTML publicado ainda contém referências de lógica antiga de Service Worker (`atletaid-sw.js` e limpeza de SW), mas no domínio Carreira ele não registra mais automaticamente o `carreira-sw.js`; ele tenta apenas desregistrar workers antigos.
-- Como você continua sem acessar enquanto o teste remoto acessa, o cenário mais provável é: cache/Service Worker preso no seu navegador/dispositivo, DNS local/provedor resolvendo diferente, ou domínio `www` com registros conflitantes.
+## Objetivo
 
-Plano de correção urgente:
-1. Fortalecer o cleanup no próprio app
-   - Adicionar uma rotina de inicialização mais agressiva e segura para `carreiraid.com.br` que desregistre qualquer Service Worker antigo, limpe caches e force uma única recarga limpa com marcador de versão.
-   - Evitar loop infinito usando um parâmetro/localStorage de controle.
-   - Manter `push-sw.js` isolado apenas para notificações, sem controlar navegação.
+Permitir registrar, em cada campeonato da Jornada Esportiva, a **posição final do time** (prêmio coletivo) e os **reconhecimentos individuais** (melhor jogador, goleiro, artilheiro, etc.), e exibir tudo de forma destacada no card do campeonato e na aba **Premiações** do perfil público.
 
-2. Remover ambiguidade de Service Worker no domínio Carreira
-   - Garantir que `carreiraid.com.br` não registre `atletaid-sw.js` nem `carreira-sw.js` como worker de navegação.
-   - Manter `/carreira-sw.js` e `/sw.js` como kill-switch por pelo menos um ciclo de deploy para limpar usuários afetados.
-   - Se necessário, transformar também `/atletaid-sw.js` em kill-switch apenas no deploy do domínio Carreira não é viável por domínio no mesmo build; então a correção será via runtime no HTML/app sem quebrar Atleta ID.
+## Onde encaixar
 
-3. Ajustar headers/rewrites para reduzir cache problemático
-   - Revisar `vercel.json` para manter `no-store` nos Service Workers, manifestos e HTML quando aplicável.
-   - Confirmar que os assets versionados continuam funcionando com cache normal.
+A informação será cadastrada em **dois pontos** complementares, mas armazenada no campeonato (fonte única da verdade):
 
-4. Orientação operacional fora do código
-   - No Vercel/DNS, deixar o domínio raiz `carreiraid.com.br` com os registros recomendados pela Vercel.
-   - Corrigir `www.carreiraid.com.br`: não misturar CNAME e A records para o mesmo host; usar somente o que a Vercel indicar.
-   - Depois do deploy, testar em janela anônima e em outro dispositivo/rede para separar cache local de DNS.
+1. **Edição do Campeonato** (dialog atual `JornadaCampeonatoFormDialog`)
+   - Novo campo **"Posição final"** (select): Campeão, Vice-campeão, Semifinalista, Quartas de final, Oitavas, Fase de grupos, Eliminado, Em andamento.
+   - Nova seção **"Reconhecimentos individuais"** (lista dinâmica add/remove) com:
+     - Tipo (select): Melhor jogador, Melhor goleiro, Artilheiro, Melhor defesa, Destaque da partida, Outro.
+     - Descrição/título livre opcional (ex.: "Artilheiro com 8 gols").
+     - Jogo associado (opcional) — select com os jogos do campeonato, default = jogo da final se houver.
 
-Validação:
-- Comparar `carreiraid.com.br` e a URL Vercel depois das mudanças.
-- Confirmar em browser que não há worker controlador de navegação no domínio Carreira.
-- Confirmar que a landing carrega e os assets principais retornam 200.
+2. **Edição do Jogo** (dialog `JornadaJogoFormDialog`) — atalho:
+   - Quando a fase do jogo for "Final", aparece um bloco **"Reconhecimentos da final"** que grava nos mesmos registros do campeonato, já com `jogo_id` preenchido. Evita o atleta ter que voltar até a edição do campeonato.
+
+## Exibição
+
+- **`CarreiraCampeonatoCard`**: ao lado do nome do campeonato, badge colorido com a posição final (ouro=Campeão, prata=Vice, bronze=Semi). Abaixo das estatísticas, uma linha discreta com chips dos reconhecimentos: 🏆 Melhor jogador • 🧤 Melhor goleiro • ⚽ Artilheiro (8 gols).
+- **Aba Premiações** (perfil público): incluir os novos dados da Jornada Esportiva junto às premiações que já vêm de `evento_premiacoes_sync`. Mostrar duas seções:
+  - **Coletivas**: lista de campeonatos com posição final ≠ "Em andamento" / "Eliminado".
+  - **Individuais**: chips com tipo + campeonato + ano.
+
+## Detalhes técnicos
+
+### Banco (migração)
+
+Tabela `carreira_campeonatos`: adicionar coluna
+- `posicao_final TEXT NULL` — enum em texto: `campeao | vice | semifinalista | quartas | oitavas | fase_grupos | eliminado | em_andamento`.
+
+Nova tabela `carreira_campeonato_premiacoes`:
+- `id uuid pk`
+- `campeonato_id uuid fk → carreira_campeonatos(id) on delete cascade`
+- `crianca_id uuid` (para RLS, igual aos jogos)
+- `tipo_premiacao text` (mesmos valores do enum acima + `outro`)
+- `titulo text null` (descrição livre)
+- `jogo_id uuid null fk → carreira_jogos(id) on delete set null`
+- `created_at timestamptz default now()`
+- RLS: dono da `crianca_id` faz CRUD; leitura pública apenas se o perfil do atleta for público (espelhar policies já existentes em `carreira_jogos`).
+- Adicionar a publicação `supabase_realtime`.
+
+### Tipos (`src/types/jornada-esportiva.ts`)
+
+- Novo tipo `PosicaoFinalCampeonato` e `TipoPremiacaoIndividual`.
+- `Campeonato.posicao_final?: PosicaoFinalCampeonato`.
+- Novo tipo `CampeonatoPremiacao` e `CampeonatoComJogos.premiacoes: CampeonatoPremiacao[]`.
+
+### Hook (`src/hooks/useJornada.ts`)
+
+- `fetchData()` passa a buscar `carreira_campeonato_premiacoes` por criança e agrupa por campeonato.
+- Novas funções: `addPremiacaoCampeonato`, `updatePremiacaoCampeonato`, `removePremiacaoCampeonato`.
+- Subscrever a nova tabela em realtime (mesmo padrão dos jogos/midias).
+- `updateCampeonato` aceita `posicao_final`.
+
+### UI
+
+- `JornadaCampeonatoFormDialog`: novo `<Select>` posição final + sub-bloco lista dinâmica de premiações (add/remove). Persiste em duas operações (campeonato + diff de premiações) na hora de salvar.
+- `JornadaJogoFormDialog`: se `fase_campeonato === "Final"`, mostra mini-formulário "Reconhecimentos da final" reaproveitando os mesmos handlers do hook.
+- `CarreiraCampeonatoCard`: badge de posição + linha de chips de reconhecimentos.
+- Aba **Premiações** do perfil público: agregar os dados novos, mantendo compatibilidade com `useCarreiraPremiacoes` atual (apenas concatena).
+
+### Validação visual (após implementar)
+
+Cadastrar via UI: posição final + 2 reconhecimentos, salvar, conferir realtime, conferir card e aba Premiações.

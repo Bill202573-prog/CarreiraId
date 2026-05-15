@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Carreira ID VAPID public key — safe to expose in frontend
+// TODO: Replace with your actual Carreira VAPID public key
 const CARREIRA_VAPID_PUBLIC_KEY = import.meta.env.VITE_CARREIRA_VAPID_PUBLIC_KEY || '';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -32,13 +33,11 @@ export function useCarreiraPushNotifications() {
     }
   }, []);
 
-  // Use the dedicated push-sw.js with an isolated scope so it does NOT
-  // intercept navigation requests on carreiraid.com.br.
   const getSwRegistration = async (): Promise<ServiceWorkerRegistration> => {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    const existing = registrations.find(r => r.active?.scriptURL?.includes('push-sw.js'));
+    const existing = registrations.find(r => r.active?.scriptURL?.includes('carreira-sw.js'));
     if (existing) return existing;
-    return navigator.serviceWorker.register('/push-sw.js', { scope: '/push-handler' });
+    return navigator.serviceWorker.register('/carreira-sw.js');
   };
 
   const checkExistingSubscription = async () => {

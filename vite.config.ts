@@ -14,7 +14,6 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      filename: "atletaid-sw.js",
       registerType: "prompt",
       injectRegister: false,
       includeAssets: [

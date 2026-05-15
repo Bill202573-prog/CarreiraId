@@ -87,7 +87,8 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://cdn.gpteng.co" />
 
-    <!-- Vite injects the production module preloads automatically -->
+    <!-- Preload critical assets for LCP -->
+    <link rel="modulepreload" href="/src/main.tsx" />
 
     <!-- Conditional PWA setup: Carreira vs AtletaID -->
     <script>
@@ -121,10 +122,10 @@
           var appName = document.querySelector('meta[name="application-name"]');
           if (appName) appName.content = 'ATLETA ID';
 
-          // Register Atleta ID Workbox SW
+          // Register Workbox SW
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/atletaid-sw.js', { scope: '/' });
+              navigator.serviceWorker.register('/sw.js', { scope: '/' });
             });
           }
         } else if (isCarreiraDomain || isCarreiraRoute) {
@@ -151,66 +152,23 @@
           link.href = '/carreira-manifest.json';
           document.head.appendChild(link);
 
-          // Emergency cleanup for Carreira domain: remove any old navigation SW
-          // and force one clean reload so devices stuck in a stale cache recover.
-          // /carreira-sw.js is intentionally a temporary kill-switch worker.
+          // Register ONLY carreira-sw.js and unregister any Workbox SW
           if ('serviceWorker' in navigator) {
-            var CLEANUP_VERSION = '2026-05-15-carreira-domain-sw-cleanup-v2';
-            var cleanupAlreadyDone = false;
-            try {
-              cleanupAlreadyDone = window.localStorage.getItem('carreira-sw-cleanup-version') === CLEANUP_VERSION;
-            } catch (e) {}
-
-            var hasCleanupMarker = window.location.search.indexOf('sw-cleanup=') !== -1;
-            var shouldReloadAfterCleanup = !cleanupAlreadyDone && !hasCleanupMarker;
-
-            var markCleanupDone = function() {
-              try {
-                window.localStorage.setItem('carreira-sw-cleanup-version', CLEANUP_VERSION);
-              } catch (e) {}
-            };
-
-            var clearServiceWorkerState = function() {
-              return navigator.serviceWorker.getRegistrations()
-                .then(function(registrations) {
-                  return Promise.all(registrations.map(function(reg) {
-                    var urls = [reg.active, reg.installing, reg.waiting]
-                      .filter(Boolean)
-                      .map(function(worker) { return worker.scriptURL || ''; });
-                    var isPushOnly = urls.some(function(url) { return url.indexOf('push-sw.js') !== -1; });
-                    return isPushOnly ? Promise.resolve() : reg.unregister();
-                  }));
-                })
-                .then(function() {
-                  if (!(window.caches && caches.keys)) return;
-                  return caches.keys().then(function(names) {
-                    return Promise.all(names.map(function(n) { return caches.delete(n); }));
-                  });
-                })
-                .then(function() {
-                  markCleanupDone();
-                  if (shouldReloadAfterCleanup) {
-                    var cleanUrl = new URL(window.location.href);
-                    cleanUrl.searchParams.set('sw-cleanup', CLEANUP_VERSION);
-                    window.location.replace(cleanUrl.toString());
-                  }
-                })
-                .catch(function(err) {
-                  console.warn('[Carreira SW cleanup] failed:', err);
-                });
-            };
-
-            // Installing the same-path kill-switch forces browsers with an old
-            // /carreira-sw.js registration to fetch the self-unregistering worker.
-            navigator.serviceWorker.register('/carreira-sw.js?cleanup=' + encodeURIComponent(CLEANUP_VERSION), { scope: '/' })
-              .catch(function() { return null; })
-              .then(clearServiceWorkerState);
+            var swScope = isCarreiraDomain ? '/' : '/carreira';
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              registrations.forEach(function(reg) {
+                if (reg.active && reg.active.scriptURL && !reg.active.scriptURL.includes('carreira-sw.js') && !reg.active.scriptURL.includes('push-sw.js')) {
+                  reg.unregister();
+                }
+              });
+            });
+            navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope });
           }
         } else {
           // === Other domains (preview, localhost) ===
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/atletaid-sw.js', { scope: '/' });
+              navigator.serviceWorker.register('/sw.js', { scope: '/' });
             });
           }
         }
