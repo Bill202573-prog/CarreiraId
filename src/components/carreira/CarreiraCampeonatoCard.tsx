@@ -48,7 +48,9 @@ export function CarreiraCampeonatoCard({
   const [open, setOpen] = useState(false);
   const c = campeonato;
   const times = Array.from(new Set(c.jogos.map((j) => j.time_atleta?.trim()).filter(Boolean) as string[]));
-  const timeRepresentado = times.length > 1 ? `${times[0]} +${times.length - 1}` : times[0];
+  const timeFromJogos = times.length > 1 ? `${times[0]} +${times.length - 1}` : times[0];
+  const nomeTime = (c as any).nome_time || timeFromJogos;
+  const categoria = (c as any).categoria as string | undefined;
 
   return (
     <div
