@@ -129,8 +129,9 @@
         } catch (e) {}
 
         if ('serviceWorker' in navigator) {
-          // 1) Always unregister any service worker that is NOT carreira-sw.js
-          //    or push-sw.js (kills the old Workbox /sw.js that was trapping users).
+          // 1) Clean up legacy service workers. Do not register a new SW on page load:
+          //    desktop browsers with stale Workbox installs must be allowed to fall back
+          //    to the network instead of getting another controller automatically.
           navigator.serviceWorker.getRegistrations().then(function(registrations) {
             registrations.forEach(function(reg) {
               var script = (reg.active && reg.active.scriptURL)
@@ -154,19 +155,7 @@
             }).catch(function() {});
           }
 
-          // 3) On carreira domain/route, register the push-only carreira-sw.js
-          if (isCarreiraDomain || isCarreiraRoute) {
-            var swScope = isCarreiraDomain ? '/' : '/carreira';
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope }).catch(function() {});
-            });
-          } else {
-            // 4) On any other host (atletaid, preview, localhost), register
-            //    the kill-switch /sw.js so old Workbox installs get cleaned up.
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
-            });
-          }
+          // Push SWs are registered only after the user enables notifications.
         }
       })();
     </script>

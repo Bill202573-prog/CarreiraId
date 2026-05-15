@@ -39,19 +39,26 @@ export function usePushNotifications() {
     }
   }, []);
 
-  const getPushRegistration = async (): Promise<ServiceWorkerRegistration> => {
-    // Register dedicated push SW with a unique scope to avoid conflicts with Workbox SW
+  const getExistingPushRegistration = async (): Promise<ServiceWorkerRegistration | null> => {
     const registrations = await navigator.serviceWorker.getRegistrations();
     const existing = registrations.find(r => r.active?.scriptURL?.includes('push-sw.js'));
+    return existing ?? null;
+  };
+
+  const getPushRegistration = async (): Promise<ServiceWorkerRegistration> => {
+    // Register dedicated push SW with a unique scope only after explicit user action.
+    const existing = await getExistingPushRegistration();
     if (existing) return existing;
     return navigator.serviceWorker.register('/push-sw.js', { scope: '/push-handler' });
   };
 
   const checkExistingSubscription = async () => {
     try {
-      const reg = await getPushRegistration();
-      // Wait for SW to be active
-      await navigator.serviceWorker.ready;
+      const reg = await getExistingPushRegistration();
+      if (!reg) {
+        setIsSubscribed(false);
+        return;
+      }
       const subscription = await reg.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
     } catch {
@@ -128,7 +135,12 @@ export function usePushNotifications() {
     
     setIsLoading(true);
     try {
-      const registration = await getPushRegistration();
+      const registration = await getExistingPushRegistration();
+      if (!registration) {
+        setIsSubscribed(false);
+        setIsLoading(false);
+        return;
+      }
       const subscription = await registration.pushManager.getSubscription();
       
       if (subscription) {

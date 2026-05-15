@@ -33,17 +33,25 @@ export function useCarreiraPushNotifications() {
     }
   }, []);
 
-  const getSwRegistration = async (): Promise<ServiceWorkerRegistration> => {
+  const getExistingSwRegistration = async (): Promise<ServiceWorkerRegistration | null> => {
     const registrations = await navigator.serviceWorker.getRegistrations();
     const existing = registrations.find(r => r.active?.scriptURL?.includes('carreira-sw.js'));
+    return existing ?? null;
+  };
+
+  const getSwRegistration = async (): Promise<ServiceWorkerRegistration> => {
+    const existing = await getExistingSwRegistration();
     if (existing) return existing;
     return navigator.serviceWorker.register('/carreira-sw.js');
   };
 
   const checkExistingSubscription = async () => {
     try {
-      const reg = await getSwRegistration();
-      await navigator.serviceWorker.ready;
+      const reg = await getExistingSwRegistration();
+      if (!reg) {
+        setIsSubscribed(false);
+        return;
+      }
       const subscription = await reg.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
     } catch {
@@ -103,7 +111,12 @@ export function useCarreiraPushNotifications() {
     if (!session?.user?.id) return;
     setIsLoading(true);
     try {
-      const registration = await getSwRegistration();
+      const registration = await getExistingSwRegistration();
+      if (!registration) {
+        setIsSubscribed(false);
+        setIsLoading(false);
+        return;
+      }
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         await subscription.unsubscribe();

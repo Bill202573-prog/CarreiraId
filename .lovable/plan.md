@@ -1,43 +1,32 @@
-## Diagnóstico dos novos testes
+## Diagnóstico
 
-- `https://carreiraid.com.br/` respondeu `200` via Vercel nos testes externos.
-- Os assets principais também responderam corretamente com `content-type: application/javascript` e CSS correto.
-- No navegador limpo, o site carregou e a rede mostrou `200` para HTML, JS, CSS e manifest.
-- A imagem do usuário mostra um Service Worker ativo em `https://carreiraid...` com fonte `carreira-sw.js`; isso confirma que o problema está preso no navegador/dispositivo do usuário via Service Worker/cache, não em DNS puro.
-- O build publicado ainda contém `/sw.js` gerado pelo Workbox e `/manifest.webmanifest`; esse SW antigo intercepta navegações com `createHandlerBoundToURL("index.html")`, o que pode manter clientes travados ou provocar `ERR_FAILED`/timeout em navegadores que já registraram a versão problemática.
+O domínio `https://carreiraid.com.br/` está respondendo corretamente no desktop: HTML, JS, CSS e manifest carregam com status 200, e eu consegui abrir a landing page e navegar até `/cadastro` no navegador de teste.
+
+O ponto que ainda pode impedir computadores específicos de entrarem é o estado antigo salvo no navegador desktop: service worker/cache de uma versão anterior. Isso combina com o relato: celular funciona, mas computador não. No preview também existe erro de service worker (`/sw.js` atrás de redirect), indicando que a lógica atual ainda tenta registrar SW em ambientes onde não deveria.
 
 ## Plano de correção
 
-1. **Trocar `/sw.js` por um kill-switch real**
-   - Remover o Workbox gerado como controlador principal.
-   - Publicar um `/sw.js` estático sem `fetch` handler, que:
-     - chama `skipWaiting()`;
-     - apaga caches Workbox/legados;
-     - navega clientes controlados para a mesma URL com parâmetro de limpeza;
-     - faz `unregister()` depois da navegação.
-   - Isso é o padrão mais seguro para desinstalar Service Workers quebrados que já chegaram aos navegadores dos usuários.
+1. **Parar registro automático de service worker no carregamento inicial**
+   - Remover do `index.html` o registro automático de `/carreira-sw.js` no domínio Carreira.
+   - Manter apenas limpeza defensiva de caches e unregister de service workers legados.
+   - Não registrar `/sw.js` no preview/Lovable/localhost para evitar erro de redirect no desktop.
 
-2. **Ajustar `carreira-sw.js` para não prender navegação**
-   - Remover qualquer fallback de navegação que dependa de cache de `/index.html`.
-   - Manter apenas push notification e limpeza de caches.
-   - Assim, o domínio sempre busca HTML/JS direto da rede/Vercel, evitando shell antigo.
+2. **Manter notificações push sem travar navegação**
+   - Deixar `/carreira-sw.js` ser registrado somente quando o usuário realmente usar/ativar notificações push dentro do app.
+   - Garantir que esse SW continue sem `fetch handler`, para nunca interceptar páginas.
 
-3. **Limpar o registro automático no `index.html`**
-   - Parar de registrar `/sw.js` em preview/outros domínios.
-   - No domínio `carreiraid.com.br`, registrar somente `carreira-sw.js` após tentar remover registros legados.
-   - Manter o manifest específico `carreira-manifest.json`, removendo o `manifest.webmanifest` injetado pelo plugin quando necessário.
+3. **Fortalecer o kill-switch contra computadores presos em cache antigo**
+   - Ajustar `/sw.js` para limpar caches, forçar navegação cache-busting e se desregistrar de forma mais robusta.
+   - Adicionar também `/service-worker.js` com o mesmo kill-switch, caso algum desktop tenha registrado esse caminho em uma versão antiga.
 
-4. **Ajustar `vite.config.ts`**
-   - Desativar/remover a geração do Service Worker Workbox (`vite-plugin-pwa`) para impedir que `/sw.js` volte a ser gerado e publicado com precache.
-   - Preservar os assets/manifest necessários sem criar outro SW interceptador.
+4. **Reduzir prompts/atualizações de PWA que podem bloquear desktop**
+   - Ajustar `PWAUpdatePrompt` para ignorar preview/iframe e não tentar atualizar SWs irrelevantes.
+   - Evitar qualquer fluxo que dependa de service worker para o site abrir.
 
-5. **Validar após implementação**
-   - Verificar no domínio publicado/preview que:
-     - `/sw.js` retorna o kill-switch simples;
-     - `/carreira-sw.js` retorna JS sem fallback cache-first de navegação;
-     - HTML/JS/CSS continuam com status `200` e MIME corretos;
-     - não existem mais `modulepreload` com MIME errado.
+5. **Validação**
+   - Testar no domínio real/preview em desktop após a mudança.
+   - Conferir console/rede para confirmar ausência de erro de service worker e que a tela inicial/login abre normalmente.
 
-## Orientação temporária para o usuário final
+## Observação importante
 
-Mesmo após publicar a correção via Vercel, alguns navegadores podem precisar fechar todas as abas do site e abrir novamente, porque o Chrome só solta um Service Worker antigo quando não há clientes controlados. A nova versão deve automatizar a limpeza no próximo acesso.
+Depois de publicado no Vercel, computadores que já estavam presos em cache antigo podem precisar de uma atualização forçada uma vez: `Ctrl + F5` ou limpar dados do site para `carreiraid.com.br`. A correção reduz a chance de isso continuar acontecendo e limpa automaticamente quem conseguir receber o novo `/sw.js`.

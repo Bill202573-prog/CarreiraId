@@ -12,15 +12,18 @@ export function PWAUpdatePrompt() {
 
     const CARREIRA_DOMAINS = ['carreiraid.com.br', 'www.carreiraid.com.br'];
     const isCarreiraDomain = CARREIRA_DOMAINS.includes(window.location.hostname);
+    const isPreviewHost = window.location.hostname.includes('lovable.app')
+      || window.location.hostname.includes('lovableproject.com')
+      || window.location.hostname === 'localhost';
+    const isInIframe = (() => {
+      try { return window.self !== window.top; } catch { return true; }
+    })();
+
+    if (!isCarreiraDomain || isPreviewHost || isInIframe) return;
 
     const isRelevantSW = (sw: ServiceWorker | null) => {
       if (!sw?.scriptURL) return false;
-      if (isCarreiraDomain) {
-        // On carreira domain, only listen to carreira-sw.js
-        return sw.scriptURL.includes('carreira-sw.js');
-      }
-      // On atletaid domain, only listen to workbox sw.js (not carreira or push)
-      return !sw.scriptURL.includes('carreira-sw.js') && !sw.scriptURL.includes('push-sw.js');
+      return sw.scriptURL.includes('carreira-sw.js');
     };
 
     const listenForUpdates = (registration: ServiceWorkerRegistration) => {
