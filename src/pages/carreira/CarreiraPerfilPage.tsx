@@ -24,6 +24,7 @@ import { CarreiraThemeToggle } from '@/components/carreira/CarreiraThemeToggle';
 import { PeneirasSection } from '@/components/carreira/PeneirasSection';
 
 import { DescobrirAtletasSection } from '@/components/carreira/DescobrirAtletasSection';
+import { CompartilharPerfilDialog } from '@/components/carreira/CompartilharPerfilDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
