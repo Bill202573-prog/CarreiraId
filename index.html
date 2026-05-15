@@ -92,103 +92,79 @@
       (function() {
         var CARREIRA_DOMAINS = ['carreiraid.com.br', 'www.carreiraid.com.br'];
         var ATLETAID_DOMAINS = ['atletaid.com.br', 'www.atletaid.com.br'];
-        var isCarreiraDomain = CARREIRA_DOMAINS.indexOf(window.location.hostname) !== -1;
-        var isAtletaIdDomain = ATLETAID_DOMAINS.indexOf(window.location.hostname) !== -1;
+        var host = window.location.hostname;
+        var isCarreiraDomain = CARREIRA_DOMAINS.indexOf(host) !== -1;
+        var isAtletaIdDomain = ATLETAID_DOMAINS.indexOf(host) !== -1;
         var isCarreiraRoute = window.location.pathname.startsWith('/carreira');
-        
+
+        // Update meta tags for AtletaID domain (non-carreira routes)
         if (isAtletaIdDomain && !isCarreiraRoute) {
-          // === ATLETAID DOMAIN (non-carreira routes) ===
-          // Override meta tags back to Atleta ID
           document.title = 'ATLETA ID - Gestão Inteligente para Escolinhas de Futebol';
           var metaDesc = document.querySelector('meta[name="description"]');
           if (metaDesc) metaDesc.content = 'Sistema completo de gestão para escolinhas de futebol.';
           var favicon = document.querySelector('link[rel="icon"]');
           if (favicon) favicon.href = '/pwa-icon-192.png';
-          var ogTitle = document.querySelector('meta[property="og:title"]');
-          if (ogTitle) ogTitle.content = 'ATLETA ID - Gestão Inteligente para Escolinhas';
-          var ogDesc = document.querySelector('meta[property="og:description"]');
-          if (ogDesc) ogDesc.content = 'Sistema completo de gestão para escolinhas de futebol.';
-          var ogImage = document.querySelector('meta[property="og:image"]');
-          if (ogImage) ogImage.content = 'https://atletaid.com.br/pwa-icon-512.png';
-          var ogUrl = document.querySelector('meta[property="og:url"]');
-          if (ogUrl) ogUrl.content = 'https://atletaid.com.br/';
-          var canonical = document.querySelector('link[rel="canonical"]');
-          if (canonical) canonical.href = 'https://atletaid.com.br/';
           var appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
           if (appleTitle) appleTitle.content = 'ATLETA ID';
           var appName = document.querySelector('meta[name="application-name"]');
           if (appName) appName.content = 'ATLETA ID';
+        }
 
-          // Register Workbox SW
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js', { scope: '/' });
-            });
-          }
-        } else if (isCarreiraDomain || isCarreiraRoute) {
-          // === CARREIRA DOMAIN / ROUTE ===
-          // Remove any existing manifest links (from vite-plugin-pwa)
+        // Inject Carreira manifest on carreira domain/route
+        if (isCarreiraDomain || isCarreiraRoute) {
           var existingManifests = document.querySelectorAll('link[rel="manifest"]');
           existingManifests.forEach(function(el) { el.parentNode.removeChild(el); });
-
-          // Observe future manifest injections by vite-plugin-pwa and remove them
-          var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(m) {
-              m.addedNodes.forEach(function(node) {
-                if (node.tagName === 'LINK' && node.rel === 'manifest' && node.href.indexOf('carreira') === -1) {
-                  node.parentNode.removeChild(node);
-                }
-              });
-            });
-          });
-          observer.observe(document.head, { childList: true });
-
-          // Inject Carreira manifest
           var link = document.createElement('link');
           link.rel = 'manifest';
           link.href = '/carreira-manifest.json';
           document.head.appendChild(link);
+        }
 
-          // Register ONLY carreira-sw.js and unregister any Workbox SW
-          if ('serviceWorker' in navigator) {
-            var swScope = isCarreiraDomain ? '/' : '/carreira';
+        // Strip stale ?sw-cleanup=... param left over from kill-switch SW
+        try {
+          if (window.location.search.indexOf('sw-cleanup=') !== -1) {
+            var cleanUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, '', cleanUrl);
+          }
+        } catch (e) {}
 
-            // Strip stale ?sw-cleanup=... param left over from older SW versions
-            try {
-              if (window.location.search.indexOf('sw-cleanup=') !== -1) {
-                var cleanUrl = window.location.pathname + window.location.hash;
-                window.history.replaceState({}, '', cleanUrl);
+        if ('serviceWorker' in navigator) {
+          // 1) Always unregister any service worker that is NOT carreira-sw.js
+          //    or push-sw.js (kills the old Workbox /sw.js that was trapping users).
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            registrations.forEach(function(reg) {
+              var script = (reg.active && reg.active.scriptURL)
+                || (reg.installing && reg.installing.scriptURL)
+                || (reg.waiting && reg.waiting.scriptURL) || '';
+              if (script && script.indexOf('carreira-sw.js') === -1
+                  && script.indexOf('push-sw.js') === -1) {
+                reg.unregister();
               }
-            } catch (e) {}
+            });
+          }).catch(function() {});
 
-            // Unregister obsolete SWs (anything that isn't carreira-sw.js or push-sw.js)
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-              registrations.forEach(function(reg) {
-                var script = (reg.active && reg.active.scriptURL) || (reg.installing && reg.installing.scriptURL) || (reg.waiting && reg.waiting.scriptURL) || '';
-                if (script && script.indexOf('carreira-sw.js') === -1 && script.indexOf('push-sw.js') === -1) {
-                  reg.unregister();
+          // 2) Purge legacy caches (workbox-*, carreira-v1/v2)
+          if (window.caches && caches.keys) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) {
+                if (name.indexOf('workbox') !== -1 || name === 'carreira-v1' || name === 'carreira-v2') {
+                  caches.delete(name);
                 }
               });
             }).catch(function() {});
-
-            // Purge legacy caches (workbox-*, carreira-v1) to free trapped clients
-            if (window.caches && caches.keys) {
-              caches.keys().then(function(names) {
-                names.forEach(function(name) {
-                  if (name.indexOf('workbox') !== -1 || name === 'carreira-v1') {
-                    caches.delete(name);
-                  }
-                });
-              }).catch(function() {});
-            }
-
-            navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope }).catch(function() {});
           }
-        } else {
-          // === Other domains (preview, localhost) ===
-          if ('serviceWorker' in navigator) {
+
+          // 3) On carreira domain/route, register the push-only carreira-sw.js
+          if (isCarreiraDomain || isCarreiraRoute) {
+            var swScope = isCarreiraDomain ? '/' : '/carreira';
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js', { scope: '/' });
+              navigator.serviceWorker.register('/carreira-sw.js', { scope: swScope }).catch(function() {});
+            });
+          } else {
+            // 4) On any other host (atletaid, preview, localhost), register
+            //    the kill-switch /sw.js so old Workbox installs get cleaned up.
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
             });
           }
         }
