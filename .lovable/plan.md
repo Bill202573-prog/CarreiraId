@@ -1,34 +1,76 @@
 ## Objetivo
 
-Remover o bloco de estatísticas (Jogos / Gols do atleta / Assist. do atleta / Vitórias) da aba **Jornada Esportiva** e levar esses números para a aba **Estatísticas**, adicionando um filtro por **ano**.
+Botão "Compartilhar" no perfil do atleta abre um modal com 3 caminhos de convite. Reaproveita a infra existente de `convite_codigo`, `rede_convites`, `rede_conexoes` e gamificação. **Zero migrations.**
 
-## Mudanças
+## Fluxos do modal
 
-### 1. `JornadaEsportivaSection.tsx`
-- Remover o grid de 4 `StatCard` no topo (Jogos, Gols, Assistências, Vitórias).
-- Manter sub-tabs (Campeonatos / Amistosos), botões de ação e listas.
-- A prop `estatisticas` deixa de ser usada aqui (pode ser removida da interface e do call site em `CarreiraTimeline`).
+**1. Chamar Torcedores** (avó, tio, primo, amigo)
+- 3 templates: Direto / Curto / Explicativo. Todos começam com "Aqui é o [nome do atleta]".
+- Link: `/carreira/cadastro?ref=torcedor&c=<convite_codigo>&a=<atleta_slug>`
+- Pós-cadastro: cria perfil tipo `torcedor` (já existe), conexão aceita com o atleta (criança), pontos via trigger existente.
 
-### 2. `CarreiraStatsCards.tsx` (aba Estatísticas)
-- Adicionar seletor de **ano** no topo do bloco.
-  - Opção "Todos" + lista de anos detectados (derivada dos dados da jornada + sync: jogos, campeonatos, premiações, conquistas).
-- Recalcular os totais aplicando o filtro de ano antes de somar.
-- Mostrar os mesmos 4 cards atuais (Gols, Jogos, Campeonatos, Premiações) **+** adicionar **Assistências** e **Vitórias** (que hoje só aparecem na Jornada), para concentrar tudo aqui.
-- Estado vazio continua igual quando não houver nenhum dado no ano selecionado.
+**2. Convidar Atleta** (colega de time / outro pai)
+- Toggle de tom no topo: "Sou eu (atleta)" vs "Sou o responsável".
+- Templates focados em ranking/níveis/gamificação.
+- Link: `/carreira/cadastro?ref=atleta&c=<convite_codigo>`
+- Pós-cadastro: pré-seleciona tipo `atleta`, auto-follow no atleta convidante.
 
-### 3. `useCarreiraJornadaData.ts` (`useCarreiraStats`)
-- Aceitar parâmetro opcional `ano?: number | 'todos'`.
-- Filtrar por ano antes de agregar:
-  - `gols` / `amistosos` / `premiacoes` → pelo `evento.data`.
-  - `campeonatos` (sync) → pelo `campeonato.ano`.
-  - `conquistas` → pelo `ano`.
-  - Jornada própria (`carreira_*`) → filtrar `campeonatos` por `data_inicio` e `amistosos`/jogos por `data_jogo` antes de recomputar `totalJogos`, `totalGols`, `totalAssistencias`, `totalVitorias`, `totalCampeonatos` e `totalPremiacoes`.
-- Expor também a lista de anos disponíveis (`anosDisponiveis: number[]`) para popular o filtro.
+**3. Entrar na Minha Rede** (técnico, scout, professor)
+- 2 templates: Profissional formal / Técnico conhecido (informal).
+- Link: `/carreira/cadastro?ref=rede&c=<convite_codigo>`
+- Pós-cadastro: usuário escolhe subtipo no fluxo normal, auto-follow no atleta.
 
-### 4. Sem mudanças de schema, rotas ou backend.
+Todos os modos: preview editável, botões WhatsApp / SMS / Email / Copiar.
+
+## Arquitetura
+
+```text
+PerfilHeader / CarreiraPerfilPage
+  └─ [Compartilhar] ──► CompartilharPerfilDialog
+                          ├─ Tabs: Torcedores | Atletas | Rede
+                          ├─ Seletor de template
+                          ├─ Textarea editável (preview)
+                          └─ Ações: WhatsApp · SMS · Email · Copiar
+
+CarreiraCadastroPage  (ajuste)
+  ├─ Lê ?ref, ?c, ?a do query string
+  ├─ Pré-seleciona tipo de perfil conforme ?ref
+  └─ Após signup confirmado → processarConviteRef()
+        ├─ Resolve convidante via convite_codigo
+        ├─ INSERT rede_convites  (trigger dá pontos)
+        └─ INSERT rede_conexoes status=aceito  (auto-follow)
+```
+
+## Arquivos
+
+**Novos:**
+- `src/components/carreira/CompartilharPerfilDialog.tsx` — modal com 3 tabs e ações de envio.
+- `src/components/carreira/templates-compartilhar.ts` — constantes de templates por fluxo, com placeholders `{nome}`, `{link}`.
+- `src/lib/processar-convite-ref.ts` — função utilitária que faz os 2 inserts (rede_convites + rede_conexoes) após cadastro confirmado.
+
+**Alterados:**
+- `src/components/atleta-id/PerfilHeader.tsx` (ou `CarreiraPerfilPage.tsx`) — adicionar botão "Compartilhar" ao lado de "Compartilhar" atual (substituir o atual, que só copia link).
+- `src/pages/carreira/CarreiraCadastroPage.tsx` — ler `?ref`/`?c`/`?a`, pré-selecionar tipo, e ao concluir cadastro chamar `processarConviteRef`.
 
 ## Detalhes técnicos
 
-- O filtro será um `<select>` simples estilizado com o `accentColor` (mesmo padrão visual já usado na tela), controlado por `useState<number | 'todos'>('todos')`.
-- `useCarreiraStats` passa a retornar `{ stats, anosDisponiveis }` (breaking change interno — só é usado por `CarreiraStatsCards`, então atualizo lá).
-- Reaproveito a lógica atual de dedupe (`amistososEventIds`, `orphanGolEventIds`, `uniqueCampeonatoIds`) aplicando o filtro de ano antes do `Set`.
+- **Atribuição:** `convite_codigo` já existe em `perfis_rede`. Resolvemos o convidante com `select user_id, id from perfis_rede where convite_codigo = ?`.
+- **Auto-follow no atleta criança:** `rede_conexoes` insert direto com `solicitante_id = novo_user_id`, `destinatario_id = atleta_user_id`, `status = 'aceito'`. O trigger `handle_conexao_aceita` já dá pontos.
+- **Pontos do convidante:** o trigger `handle_convite_confirmado` em `rede_convites` já calcula pontos por `tipo_convidado` via `gamificacao_pontos_tipo`. Só precisamos inserir.
+- **WhatsApp:** `https://wa.me/?text=${encodeURIComponent(mensagem)}` — abre app do dispositivo (sem como forçar "WhatsApp do pai", é decisão de UX usar o celular dele).
+- **SMS:** `sms:?body=...` (iOS/Android).
+- **Email:** `mailto:?subject=...&body=...`.
+- **Copiar:** `navigator.clipboard.writeText(...)`.
+- **RLS:** `rede_convites` e `rede_conexoes` já têm policies que permitem o próprio user inserir como `convidado_user_id` / `solicitante_id`. Validar antes; se não permitir, encapsular em edge function `aceitar-convite-ref` com `SUPABASE_SERVICE_ROLE_KEY`.
+
+## Limites e premissas
+
+- O link **não** cadastra sozinho — sempre passa pelo signup. O `?ref` apenas pré-seleciona tipo e dispara a atribuição após o cadastro confirmar email.
+- "WhatsApp do pai" é decisão de uso, não tecnologia.
+- Templates híbridos (criança + responsável): texto fala em primeira pessoa do atleta ("Aqui é o João"), mas é o pai que clica enviar.
+
+## Fora do escopo
+
+- Migrations de banco.
+- Mudança no schema de `perfis_rede`, `rede_convites` ou gamificação.
+- Atribuição cross-device sem cadastro (ex.: cookies de referência).
