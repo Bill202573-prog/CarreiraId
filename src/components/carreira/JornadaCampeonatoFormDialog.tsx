@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Image as ImageIcon, X, Upload, Plus, Trash2, Medal } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJornada } from '@/hooks/useJornada';
+import { CATEGORIAS } from '@/constants/esportes';
 import type {
   CampeonatoComJogos,
   PosicaoFinalCampeonato,
@@ -56,6 +57,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
   const [dataInicio, setDataInicio] = useState('');
   const [dataFinal, setDataFinal] = useState('');
   const [posicaoFinal, setPosicaoFinal] = useState<PosicaoFinalCampeonato>('em_andamento');
+  const [categoria, setCategoria] = useState<string>('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -73,6 +75,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
       setDataInicio(editingCampeonato?.data_inicio?.slice(0, 10) || '');
       setDataFinal(editingCampeonato?.data_final?.slice(0, 10) || '');
       setPosicaoFinal((editingCampeonato?.posicao_final as PosicaoFinalCampeonato) || 'em_andamento');
+      setCategoria((editingCampeonato as any)?.categoria || '');
       setLogoUrl(editingCampeonato?.logo_url || null);
       setLogoFile(null);
       setNovaPremTipo('melhor_jogador');
@@ -99,6 +102,7 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
         data_final: dataFinal || undefined,
         logo_url: finalLogo,
         posicao_final: posicaoFinal,
+        categoria: categoria || null,
       };
       if (editingCampeonato) {
         await editarCampeonato(editingCampeonato.id, payload);
@@ -209,6 +213,18 @@ export function JornadaCampeonatoFormDialog({ open, onOpenChange, criancaId, edi
               <SelectContent>
                 {ABRANGENCIAS.map((a) => (
                   <SelectItem key={a} value={a}>{a.charAt(0).toUpperCase() + a.slice(1)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Categoria</Label>
+            <Select value={categoria || 'none'} onValueChange={(v) => setCategoria(v === 'none' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="Sem categoria" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem categoria</SelectItem>
+                {CATEGORIAS.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
