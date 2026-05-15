@@ -571,12 +571,23 @@ export default function CarreiraCadastroPage() {
         )}
 
         {step === 'profile-type' && (
-          <ProfileTypeSelector
-            onSelect={(type) => {
-              setSelectedType(type);
-              setStep('profile-form');
-            }}
-          />
+          <>
+            {refParam === 'torcedor' && !selectedType ? (
+              (() => {
+                // Auto-pula para o form de torcedor quando vem de ?ref=torcedor
+                setSelectedType('torcedor');
+                setStep('profile-form');
+                return null;
+              })()
+            ) : (
+              <ProfileTypeSelector
+                onSelect={(type) => {
+                  setSelectedType(type);
+                  setStep('profile-form');
+                }}
+              />
+            )}
+          </>
         )}
 
         {step === 'profile-form' && selectedType === 'atleta_filho' && userId && (
