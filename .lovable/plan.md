@@ -1,32 +1,32 @@
-## Diagnóstico
-
-O domínio `https://carreiraid.com.br/` está respondendo corretamente no desktop: HTML, JS, CSS e manifest carregam com status 200, e eu consegui abrir a landing page e navegar até `/cadastro` no navegador de teste.
-
-O ponto que ainda pode impedir computadores específicos de entrarem é o estado antigo salvo no navegador desktop: service worker/cache de uma versão anterior. Isso combina com o relato: celular funciona, mas computador não. No preview também existe erro de service worker (`/sw.js` atrás de redirect), indicando que a lógica atual ainda tenta registrar SW em ambientes onde não deveria.
-
 ## Plano de correção
 
-1. **Parar registro automático de service worker no carregamento inicial**
-   - Remover do `index.html` o registro automático de `/carreira-sw.js` no domínio Carreira.
-   - Manter apenas limpeza defensiva de caches e unregister de service workers legados.
-   - Não registrar `/sw.js` no preview/Lovable/localhost para evitar erro de redirect no desktop.
+1. **Neutralizar completamente `/carreira-sw.js`**
+   - Transformar `public/carreira-sw.js` em um kill-switch seguro, sem `fetch`, sem `push`, sem cache e sem `clients.claim()` persistente.
+   - No `activate`, limpar caches, navegar clientes para uma URL cache-busting e fazer `unregister()`.
+   - Isso permite que navegadores que já têm esse SW instalado recebam a nova versão e se limpem.
 
-2. **Manter notificações push sem travar navegação**
-   - Deixar `/carreira-sw.js` ser registrado somente quando o usuário realmente usar/ativar notificações push dentro do app.
-   - Garantir que esse SW continue sem `fetch handler`, para nunca interceptar páginas.
+2. **Remover novos registros do `carreira-sw.js` no frontend**
+   - Alterar `src/hooks/useCarreiraPushNotifications.ts` para não registrar mais `/carreira-sw.js`.
+   - Para Carreira ID, notificações push ficarão temporariamente indisponíveis até uma solução sem conflito ser definida.
+   - O objetivo agora é prioridade máxima: garantir que o site abra.
 
-3. **Fortalecer o kill-switch contra computadores presos em cache antigo**
-   - Ajustar `/sw.js` para limpar caches, forçar navegação cache-busting e se desregistrar de forma mais robusta.
-   - Adicionar também `/service-worker.js` com o mesmo kill-switch, caso algum desktop tenha registrado esse caminho em uma versão antiga.
+3. **Desativar o prompt de atualização PWA ligado ao `carreira-sw.js`**
+   - Remover ou tornar inoperante o `PWAUpdatePrompt`, porque ele hoje procura especificamente `carreira-sw.js` e pode chamar `reg.update()` nele.
+   - Também remover o uso em `src/App.tsx` se ficar sem função.
 
-4. **Reduzir prompts/atualizações de PWA que podem bloquear desktop**
-   - Ajustar `PWAUpdatePrompt` para ignorar preview/iframe e não tentar atualizar SWs irrelevantes.
-   - Evitar qualquer fluxo que dependa de service worker para o site abrir.
+4. **Manter apenas manifesto único do Carreira**
+   - Preservar a lógica do `index.html` que remove manifestos existentes e injeta somente `/carreira-manifest.json` no domínio/rota Carreira.
+   - Não adicionar manifesto duplicado.
 
-5. **Validação**
-   - Testar no domínio real/preview em desktop após a mudança.
-   - Conferir console/rede para confirmar ausência de erro de service worker e que a tela inicial/login abre normalmente.
+5. **Não reintroduzir `vite-plugin-pwa` agora**
+   - O projeto atualmente não usa `vite-plugin-pwa` e `package.json` não contém essa dependência.
+   - Reintroduzir Workbox agora pode recriar o mesmo problema de cache/stale shell. A correção será “manifest-only + kill-switch SWs”.
 
-## Observação importante
+6. **Manter kill-switches legados `/sw.js` e `/service-worker.js`**
+   - Eles continuam necessários para limpar navegadores que tenham instalado service workers antigos nesses caminhos.
+   - Garantir que nenhum deles tenha `fetch handler`.
 
-Depois de publicado no Vercel, computadores que já estavam presos em cache antigo podem precisar de uma atualização forçada uma vez: `Ctrl + F5` ou limpar dados do site para `carreiraid.com.br`. A correção reduz a chance de isso continuar acontecendo e limpa automaticamente quem conseguir receber o novo `/sw.js`.
+7. **Validação após implementação**
+   - Conferir por busca que não existe mais `navigator.serviceWorker.register('/carreira-sw.js')` nem lógica ativa de update para `carreira-sw.js`.
+   - Validar que `vercel.json` continua servindo `/carreira-sw.js`, `/sw.js` e `/service-worker.js` com `Cache-Control: no-cache, no-store, must-revalidate`.
+   - Após deploy no Vercel, testar em janela anônima `https://carreiraid.com.br` e, em desktops afetados, limpar dados do site se o SW antigo ainda estiver preso.

@@ -1,62 +1,31 @@
-// Service Worker for Carreira PWA — push-only.
-// Intentionally NO fetch handler so navigations are never intercepted.
-// Previous version cached /index.html and could trap users on a stale shell.
-const CACHE_NAME = 'carreira-v3';
+// Kill-switch for carreira-sw.js.
+// Previous versions caused FetchEvent errors that blocked carreiraid.com.br.
+// No fetch handler, no push handler, no cache — just self-cleanup.
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    const names = await caches.keys();
-    await Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)));
-    await self.clients.claim();
-  })());
-});
-
-// ========== PUSH NOTIFICATIONS ==========
-self.addEventListener('push', (event) => {
-  let data = { title: 'Carreira ID', body: 'Você tem uma nova notificação' };
-  try {
-    if (event.data) data = event.data.json();
-  } catch (e) {
-    if (event.data) data.body = event.data.text();
-  }
-
-  const options = {
-    body: data.body || '',
-    icon: data.icon || '/carreira-icon-512.png',
-    badge: '/carreira-icon-512.png',
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'carreira',
-    renotify: true,
-    data: { url: data.url || '/carreira' },
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Carreira ID', options)
-  );
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const url = event.notification.data?.url || '/carreira';
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          client.navigate(url);
-          return client.focus();
+    try {
+      await self.clients.claim();
+      const names = await caches.keys();
+      await Promise.all(names.map((n) => caches.delete(n)));
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      await Promise.all(clients.map((c) => {
+        try {
+          const url = new URL(c.url);
+          if (!url.searchParams.has('sw-cleanup')) {
+            url.searchParams.set('sw-cleanup', Date.now().toString());
+          }
+          return c.navigate(url.toString());
+        } catch (e) {
+          return Promise.resolve();
         }
-      }
-      return self.clients.openWindow(url);
-    })
-  );
+      }));
+    } finally {
+      try { await self.registration.unregister(); } catch (e) {}
+    }
+  })());
 });
