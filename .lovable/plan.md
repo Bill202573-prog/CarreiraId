@@ -1,39 +1,20 @@
-## Diagnóstico
+Diagnóstico:
+- O arquivo `public/carreira-sw.js` existe e está sendo servido pelo domínio com `200` e `Cache-Control: no-cache, no-store`.
+- O domínio `https://carreiraid.com.br/` carrega no teste remoto, mas há conflito de PWA/Service Worker: o HTML registra manualmente `/carreira-sw.js`, enquanto o projeto também gera `/atletaid-sw.js` via `vite-plugin-pwa`, e ainda existe `/sw.js` como kill-switch.
+- A recomendação de “deixar apenas o SW gerado automaticamente pelo vite-plugin-pwa” faz sentido para reduzir conflito, mas precisa preservar o cleanup de instalações antigas para usuários que já ficaram presos em cache.
+- Também encontrei um erro real de console no HTML publicado: há um `<link rel="modulepreload">` apontando para um `data:application/octet-stream...`, vindo do preload manual de `/src/main.tsx`. Isso deve ser removido porque Vite já injeta os assets corretos no build.
 
-Encontrei a causa mais provável do problema no `carreiraid.com.br`.
+Plano de correção:
+1. Remover do `index.html` o preload manual de `/src/main.tsx`, deixando o Vite gerar apenas os assets finais corretos.
+2. Remover do `index.html` o registro manual de `/carreira-sw.js` para o domínio Carreira ID, deixando de criar um Service Worker dedicado que compete com o PWA gerado.
+3. Manter o manifesto do Carreira ID (`/carreira-manifest.json`) para installability/ícones, mas sem registrar o `carreira-sw.js` automaticamente.
+4. Transformar `public/carreira-sw.js` em um kill-switch temporário, igual ao `/sw.js`: ao ser atualizado, ele limpa caches, recarrega clientes e se desregistra. Isso corrige dispositivos que já registraram esse worker.
+5. Ajustar `src/hooks/useCarreiraPushNotifications.ts` para não registrar `/carreira-sw.js`; se push ainda for necessário, usar o worker dedicado `/push-sw.js`, evitando conflito com navegação/cache.
+6. Ajustar `PWAUpdatePrompt` para não depender mais de `carreira-sw.js` no domínio Carreira ID.
+7. Manter os headers no `vercel.json` sem cache para `/carreira-sw.js`, `/sw.js`, `/atletaid-sw.js` e manifestos, pois isso ajuda o cleanup chegar aos usuários.
 
-No último ajuste, criamos o arquivo **`public/sw.js`** (um stub vazio com `skipWaiting`/`clients.claim`) para "resolver erros de Service Worker no preview".
-
-O problema: o projeto usa **`vite-plugin-pwa`** (configurado em `vite.config.ts`), que **gera automaticamente um `sw.js` no build** com Workbox, precache e `navigateFallbackDenylist: [/^\/~oauth/, /^\/carreira/]`. Quando existe um `public/sw.js`, ele:
-
-1. Conflita com o arquivo gerado pelo plugin (o Vite copia public/* por último, sobrescrevendo o Workbox SW), OU
-2. Faz o build do Vercel falhar / produzir um SW quebrado.
-
-Resultado: o Service Worker servido em produção passa a ser nosso stub vazio, que não tem handler de `fetch` adequado nem precache. Browsers que já tinham o SW antigo registrado podem ficar com cache corrompido, e novos visitantes recebem um SW que não consegue servir o app corretamente — daí a impossibilidade de acessar `carreiraid.com.br`.
-
-Observação: no `index.html`, o domínio `carreiraid.com.br` registra explicitamente `/carreira-sw.js` (não `/sw.js`), MAS também tenta desregistrar SWs antigos. Se o usuário tinha um Workbox SW (`sw.js`) registrado de uma visita anterior em `atletaid.com.br/carreira`, e agora esse `sw.js` virou um stub, o ciclo de update pode estar travando.
-
-## Plano
-
-### 1. Remover `public/sw.js`
-Apagar o arquivo criado no último turno. O `vite-plugin-pwa` voltará a gerar o `sw.js` correto no build.
-
-### 2. Resolver de outra forma o "erro de SW no preview"
-O motivo original de termos criado `public/sw.js` foi suprimir um erro de registro de SW no ambiente de preview do Lovable. Como o `vite-plugin-pwa` já gera `sw.js` automaticamente, esse erro não deve mais ocorrer. Se ocorrer, a abordagem correta é ajustar a lógica de registro no `index.html` (não criar um SW dummy que conflite com o build).
-
-### 3. Verificar build do Vercel
-Após o remover `public/sw.js`, confirmar com o usuário que o próximo deploy do Vercel sobe verde e o `sw.js` em produção volta a ser o gerado pelo Workbox (cabeçalho `// This is the service worker with the Workbox library` ou similar).
-
-### 4. Orientação ao usuário (cache do browser)
-Mesmo após o deploy correto, navegadores que receberam o SW quebrado podem precisar:
-- Hard refresh (Ctrl+Shift+R / Cmd+Shift+R), ou
-- Em DevTools → Application → Service Workers → "Unregister" + "Clear storage", ou
-- Aguardar o ciclo de update (o novo Workbox SW vai assumir).
-
-## Detalhes técnicos
-
-**Arquivo a remover:** `public/sw.js`
-
-**Por que isso não afeta o `carreira-sw.js`:** ele continua sendo um arquivo estático separado em `public/carreira-sw.js`, registrado explicitamente para o domínio Carreira no `index.html`. Não tem conflito com o `vite-plugin-pwa` (que só gera `sw.js`).
-
-**Nada das outras mudanças desta sessão** (premiações, `posicao_final`, ajustes de UI da Jornada, hooks `onSaved`) tem relação com o acesso ao domínio — são puramente código React/dados. O culpado é o `public/sw.js`.
+Resultado esperado:
+- Novos acessos ao `carreiraid.com.br` não registrarão mais `/carreira-sw.js`.
+- Usuários que já tinham `/carreira-sw.js` receberão o kill-switch e terão caches antigos limpos automaticamente.
+- O erro de modulepreload com MIME `application/octet-stream` será removido.
+- O PWA fica centralizado no worker gerado pelo `vite-plugin-pwa`, com menos risco de conflito entre domínios.
