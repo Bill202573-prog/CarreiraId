@@ -122,10 +122,10 @@
           var appName = document.querySelector('meta[name="application-name"]');
           if (appName) appName.content = 'ATLETA ID';
 
-          // Register Workbox SW
+          // Register Atleta ID Workbox SW
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js', { scope: '/' });
+              navigator.serviceWorker.register('/atletaid-sw.js', { scope: '/' });
             });
           }
         } else if (isCarreiraDomain || isCarreiraRoute) {
@@ -168,7 +168,7 @@
           // === Other domains (preview, localhost) ===
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js', { scope: '/' });
+              navigator.serviceWorker.register('/atletaid-sw.js', { scope: '/' });
             });
           }
         }
