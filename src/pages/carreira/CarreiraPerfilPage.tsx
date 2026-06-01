@@ -274,9 +274,23 @@ function useProfileBySlug(slug: string) {
         .eq('slug', slug)
         .maybeSingle();
       if (redeError && redeError.code !== 'PGRST116') throw redeError;
-      if (redeData) return { type: 'rede' as const, ...redeData } as UnifiedProfile;
+      if (redeData) {
+        // If this is a pai_responsavel rede profile, prefer the user's perfil_atleta when it exists.
+        // perfil_atleta is the source of truth (jornada, histórico, etc.); perfis_rede pai_responsavel
+        // is a legacy duplicate that breaks the timeline.
+        if ((redeData as any).tipo === 'pai_responsavel' && (redeData as any).user_id) {
+          const { data: atletaDoUser } = await supabase
+            .from('perfil_atleta')
+            .select('*')
+            .eq('user_id', (redeData as any).user_id)
+            .maybeSingle();
+          if (atletaDoUser) return { type: 'atleta' as const, ...atletaDoUser } as UnifiedProfile;
+        }
+        return { type: 'rede' as const, ...redeData } as UnifiedProfile;
+      }
 
       return null;
+
     },
     enabled: !!slug,
   });
