@@ -14,69 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      amistoso_convocacoes_sync: {
-        Row: {
-          atleta_id_convocacao_id: string
-          created_at: string | null
-          crianca_id: string
-          evento_adversario: string | null
-          evento_data: string | null
-          evento_local: string | null
-          evento_nome: string | null
-          evento_placar_time1: number | null
-          evento_placar_time2: number | null
-          evento_status: string | null
-          evento_tipo: string | null
-          id: string
-          origem: string
-          presente: boolean | null
-          status: string | null
-          synced_at: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          atleta_id_convocacao_id: string
-          created_at?: string | null
-          crianca_id: string
-          evento_adversario?: string | null
-          evento_data?: string | null
-          evento_local?: string | null
-          evento_nome?: string | null
-          evento_placar_time1?: number | null
-          evento_placar_time2?: number | null
-          evento_status?: string | null
-          evento_tipo?: string | null
-          id?: string
-          origem?: string
-          presente?: boolean | null
-          status?: string | null
-          synced_at?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          atleta_id_convocacao_id?: string
-          created_at?: string | null
-          crianca_id?: string
-          evento_adversario?: string | null
-          evento_data?: string | null
-          evento_local?: string | null
-          evento_nome?: string | null
-          evento_placar_time1?: number | null
-          evento_placar_time2?: number | null
-          evento_status?: string | null
-          evento_tipo?: string | null
-          id?: string
-          origem?: string
-          presente?: boolean | null
-          status?: string | null
-          synced_at?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       atividades_externas: {
         Row: {
           carga_horaria_horas: number | null
@@ -194,99 +131,6 @@ export type Database = {
         }
         Relationships: []
       }
-      atividades_externas_sync: {
-        Row: {
-          atleta_id_atividade_id: string
-          carga_horaria_horas: number | null
-          created_at: string
-          credibilidade_status: string
-          crianca_id: string
-          data: string
-          data_fim: string | null
-          duracao_minutos: number
-          evidencia_tipo: string | null
-          evidencia_url: string | null
-          fotos_urls: string[] | null
-          frequencia_semanal: number | null
-          id: string
-          local_atividade: string
-          metodologia: string | null
-          objetivos: string[] | null
-          observacoes: string | null
-          organizador: string | null
-          origem: string
-          profissionais_envolvidos: string[] | null
-          profissional_instituicao: string
-          synced_at: string
-          tipo: string
-          tipo_outro_descricao: string | null
-          tornar_publico: boolean | null
-          torneio_abrangencia: string | null
-          torneio_nome: string | null
-          updated_at: string
-        }
-        Insert: {
-          atleta_id_atividade_id: string
-          carga_horaria_horas?: number | null
-          created_at?: string
-          credibilidade_status?: string
-          crianca_id: string
-          data: string
-          data_fim?: string | null
-          duracao_minutos?: number
-          evidencia_tipo?: string | null
-          evidencia_url?: string | null
-          fotos_urls?: string[] | null
-          frequencia_semanal?: number | null
-          id?: string
-          local_atividade: string
-          metodologia?: string | null
-          objetivos?: string[] | null
-          observacoes?: string | null
-          organizador?: string | null
-          origem?: string
-          profissionais_envolvidos?: string[] | null
-          profissional_instituicao: string
-          synced_at?: string
-          tipo: string
-          tipo_outro_descricao?: string | null
-          tornar_publico?: boolean | null
-          torneio_abrangencia?: string | null
-          torneio_nome?: string | null
-          updated_at?: string
-        }
-        Update: {
-          atleta_id_atividade_id?: string
-          carga_horaria_horas?: number | null
-          created_at?: string
-          credibilidade_status?: string
-          crianca_id?: string
-          data?: string
-          data_fim?: string | null
-          duracao_minutos?: number
-          evidencia_tipo?: string | null
-          evidencia_url?: string | null
-          fotos_urls?: string[] | null
-          frequencia_semanal?: number | null
-          id?: string
-          local_atividade?: string
-          metodologia?: string | null
-          objetivos?: string[] | null
-          observacoes?: string | null
-          organizador?: string | null
-          origem?: string
-          profissionais_envolvidos?: string[] | null
-          profissional_instituicao?: string
-          synced_at?: string
-          tipo?: string
-          tipo_outro_descricao?: string | null
-          tornar_publico?: boolean | null
-          torneio_abrangencia?: string | null
-          torneio_nome?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       atividades_externas_whitelist: {
         Row: {
           ativo: boolean
@@ -370,108 +214,195 @@ export type Database = {
         }
         Relationships: []
       }
-      campeonato_convocacoes_sync: {
+      carreira_asaas_jobs: {
         Row: {
-          atleta_id_convocacao_id: string
-          campeonato_ano: number | null
-          campeonato_categoria: string | null
-          campeonato_nome: string | null
-          campeonato_nome_time: string | null
-          campeonato_status: string | null
-          created_at: string | null
-          crianca_id: string
-          escolinha_nome: string | null
+          created_at: string
+          erro: string | null
           id: string
-          origem: string
-          status: string | null
-          synced_at: string | null
-          updated_at: string | null
-          user_id: string
+          payload: Json | null
+          processed_at: string | null
+          resultado: Json | null
+          status: string
+          tipo: string
         }
         Insert: {
-          atleta_id_convocacao_id: string
-          campeonato_ano?: number | null
-          campeonato_categoria?: string | null
-          campeonato_nome?: string | null
-          campeonato_nome_time?: string | null
-          campeonato_status?: string | null
-          created_at?: string | null
-          crianca_id: string
-          escolinha_nome?: string | null
+          created_at?: string
+          erro?: string | null
           id?: string
-          origem?: string
-          status?: string | null
-          synced_at?: string | null
-          updated_at?: string | null
-          user_id: string
+          payload?: Json | null
+          processed_at?: string | null
+          resultado?: Json | null
+          status: string
+          tipo: string
         }
         Update: {
-          atleta_id_convocacao_id?: string
-          campeonato_ano?: number | null
-          campeonato_categoria?: string | null
-          campeonato_nome?: string | null
-          campeonato_nome_time?: string | null
-          campeonato_status?: string | null
-          created_at?: string | null
-          crianca_id?: string
-          escolinha_nome?: string | null
+          created_at?: string
+          erro?: string | null
           id?: string
-          origem?: string
-          status?: string | null
-          synced_at?: string | null
-          updated_at?: string | null
-          user_id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          resultado?: Json | null
+          status?: string
+          tipo?: string
         }
         Relationships: []
       }
       carreira_assinaturas: {
         Row: {
           cancelada_em: string | null
+          card_brand: string | null
+          card_last4: string | null
           created_at: string
           crianca_id: string
           expira_em: string | null
           gateway: string | null
+          gateway_card_token: string | null
           gateway_subscription_id: string | null
           id: string
           inicio_em: string
           metodo_pagamento: string | null
+          observacoes: string | null
           plano: string
           status: string
+          trial_termina_em: string | null
           updated_at: string
           user_id: string
           valor: number | null
         }
         Insert: {
           cancelada_em?: string | null
+          card_brand?: string | null
+          card_last4?: string | null
           created_at?: string
           crianca_id: string
           expira_em?: string | null
           gateway?: string | null
+          gateway_card_token?: string | null
           gateway_subscription_id?: string | null
           id?: string
           inicio_em?: string
           metodo_pagamento?: string | null
+          observacoes?: string | null
           plano?: string
           status?: string
+          trial_termina_em?: string | null
           updated_at?: string
           user_id: string
           valor?: number | null
         }
         Update: {
           cancelada_em?: string | null
+          card_brand?: string | null
+          card_last4?: string | null
           created_at?: string
           crianca_id?: string
           expira_em?: string | null
           gateway?: string | null
+          gateway_card_token?: string | null
           gateway_subscription_id?: string | null
           id?: string
           inicio_em?: string
           metodo_pagamento?: string | null
+          observacoes?: string | null
           plano?: string
           status?: string
+          trial_termina_em?: string | null
           updated_at?: string
           user_id?: string
           valor?: number | null
+        }
+        Relationships: []
+      }
+      carreira_cadastro_bancario: {
+        Row: {
+          agencia: string
+          asaas_account_id: string | null
+          asaas_api_key: string | null
+          asaas_atualizado_em: string | null
+          asaas_enviado_em: string | null
+          asaas_status: string | null
+          asaas_status_detail: Json | null
+          asaas_wallet_id: string | null
+          bairro: string | null
+          banco: string
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
+          conta: string
+          cpf_cnpj: string | null
+          created_at: string
+          data_nascimento: string | null
+          email: string
+          estado: string | null
+          id: string
+          income_value: number | null
+          nome: string
+          numero: string | null
+          rua: string | null
+          telefone: string | null
+          tipo_conta: string
+          tipo_pessoa: string
+          updated_at: string
+        }
+        Insert: {
+          agencia: string
+          asaas_account_id?: string | null
+          asaas_api_key?: string | null
+          asaas_atualizado_em?: string | null
+          asaas_enviado_em?: string | null
+          asaas_status?: string | null
+          asaas_status_detail?: Json | null
+          asaas_wallet_id?: string | null
+          bairro?: string | null
+          banco: string
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          conta: string
+          cpf_cnpj?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          email: string
+          estado?: string | null
+          id?: string
+          income_value?: number | null
+          nome: string
+          numero?: string | null
+          rua?: string | null
+          telefone?: string | null
+          tipo_conta: string
+          tipo_pessoa: string
+          updated_at?: string
+        }
+        Update: {
+          agencia?: string
+          asaas_account_id?: string | null
+          asaas_api_key?: string | null
+          asaas_atualizado_em?: string | null
+          asaas_enviado_em?: string | null
+          asaas_status?: string | null
+          asaas_status_detail?: Json | null
+          asaas_wallet_id?: string | null
+          bairro?: string | null
+          banco?: string
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          conta?: string
+          cpf_cnpj?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          email?: string
+          estado?: string | null
+          id?: string
+          income_value?: number | null
+          nome?: string
+          numero?: string | null
+          rua?: string | null
+          telefone?: string | null
+          tipo_conta?: string
+          tipo_pessoa?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -653,6 +584,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      carreira_documentos: {
+        Row: {
+          asaas_document_id: string | null
+          asaas_status: string | null
+          created_at: string
+          id: string
+          mime_type: string | null
+          nome_arquivo: string
+          storage_path: string
+          tamanho_bytes: number
+          tipo_documento: string
+        }
+        Insert: {
+          asaas_document_id?: string | null
+          asaas_status?: string | null
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          nome_arquivo: string
+          storage_path: string
+          tamanho_bytes: number
+          tipo_documento: string
+        }
+        Update: {
+          asaas_document_id?: string | null
+          asaas_status?: string | null
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          nome_arquivo?: string
+          storage_path?: string
+          tamanho_bytes?: number
+          tipo_documento?: string
+        }
+        Relationships: []
       }
       carreira_experiencias: {
         Row: {
@@ -977,51 +944,6 @@ export type Database = {
           },
         ]
       }
-      conquistas_coletivas_sync: {
-        Row: {
-          atleta_id_conquista_id: string
-          created_at: string
-          crianca_id: string
-          data: string | null
-          descricao: string | null
-          evento_nome: string | null
-          id: string
-          origem: string
-          synced_at: string
-          tipo: string
-          titulo: string
-          updated_at: string
-        }
-        Insert: {
-          atleta_id_conquista_id: string
-          created_at?: string
-          crianca_id: string
-          data?: string | null
-          descricao?: string | null
-          evento_nome?: string | null
-          id?: string
-          origem?: string
-          synced_at?: string
-          tipo: string
-          titulo: string
-          updated_at?: string
-        }
-        Update: {
-          atleta_id_conquista_id?: string
-          created_at?: string
-          crianca_id?: string
-          data?: string | null
-          descricao?: string | null
-          evento_nome?: string | null
-          id?: string
-          origem?: string
-          synced_at?: string
-          tipo?: string
-          titulo?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       conta_deletada_backup: {
         Row: {
           dados_conexoes: Json | null
@@ -1230,105 +1152,6 @@ export type Database = {
           quantidade_meta?: number
           tipo_perfil_alvo?: string[] | null
           titulo?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      evento_gols_sync: {
-        Row: {
-          atleta_id_gol_id: string
-          created_at: string
-          crianca_id: string
-          evento_adversario: string | null
-          evento_data: string | null
-          evento_id: string | null
-          evento_nome: string | null
-          evento_placar_time1: number | null
-          evento_placar_time2: number | null
-          id: string
-          origem: string
-          quantidade: number
-          synced_at: string
-          time_id: string | null
-          time_nome: string | null
-          updated_at: string
-        }
-        Insert: {
-          atleta_id_gol_id: string
-          created_at?: string
-          crianca_id: string
-          evento_adversario?: string | null
-          evento_data?: string | null
-          evento_id?: string | null
-          evento_nome?: string | null
-          evento_placar_time1?: number | null
-          evento_placar_time2?: number | null
-          id?: string
-          origem?: string
-          quantidade?: number
-          synced_at?: string
-          time_id?: string | null
-          time_nome?: string | null
-          updated_at?: string
-        }
-        Update: {
-          atleta_id_gol_id?: string
-          created_at?: string
-          crianca_id?: string
-          evento_adversario?: string | null
-          evento_data?: string | null
-          evento_id?: string | null
-          evento_nome?: string | null
-          evento_placar_time1?: number | null
-          evento_placar_time2?: number | null
-          id?: string
-          origem?: string
-          quantidade?: number
-          synced_at?: string
-          time_id?: string | null
-          time_nome?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      evento_premiacoes_sync: {
-        Row: {
-          atleta_id_premiacao_id: string
-          created_at: string
-          crianca_id: string
-          evento_data: string | null
-          evento_id: string | null
-          evento_nome: string | null
-          id: string
-          origem: string
-          synced_at: string
-          tipo_premiacao: string
-          updated_at: string
-        }
-        Insert: {
-          atleta_id_premiacao_id: string
-          created_at?: string
-          crianca_id: string
-          evento_data?: string | null
-          evento_id?: string | null
-          evento_nome?: string | null
-          id?: string
-          origem?: string
-          synced_at?: string
-          tipo_premiacao: string
-          updated_at?: string
-        }
-        Update: {
-          atleta_id_premiacao_id?: string
-          created_at?: string
-          crianca_id?: string
-          evento_data?: string | null
-          evento_id?: string | null
-          evento_nome?: string | null
-          id?: string
-          origem?: string
-          synced_at?: string
-          tipo_premiacao?: string
           updated_at?: string
         }
         Relationships: []
@@ -1610,8 +1433,6 @@ export type Database = {
       perfil_atleta: {
         Row: {
           atleta_app_id: string | null
-          atleta_id_sync_at: string | null
-          atleta_id_vinculado: boolean
           banner_url: string | null
           bio: string | null
           categoria: string | null
@@ -1645,8 +1466,6 @@ export type Database = {
         }
         Insert: {
           atleta_app_id?: string | null
-          atleta_id_sync_at?: string | null
-          atleta_id_vinculado?: boolean
           banner_url?: string | null
           bio?: string | null
           categoria?: string | null
@@ -1680,8 +1499,6 @@ export type Database = {
         }
         Update: {
           atleta_app_id?: string | null
-          atleta_id_sync_at?: string | null
-          atleta_id_vinculado?: boolean
           banner_url?: string | null
           bio?: string | null
           categoria?: string | null
@@ -2222,6 +2039,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      expirar_trials_carreira: { Args: never; Returns: number }
       get_acao_pontos: { Args: { p_acao_tipo: string }; Returns: number }
       get_user_role: {
         Args: { _user_id: string }
