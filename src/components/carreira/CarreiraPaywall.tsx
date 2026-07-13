@@ -95,6 +95,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
   const cpfValid = cpfDigits.length === 11;
   const planInfo = PLANOS[selectedPlan];
   const isElite = selectedPlan === 'elite';
+  const isSandboxTest = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('asaas_sandbox') === '1';
 
   const resolveUser = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -212,6 +213,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
           nome: resolvedUser.name,
           email: resolvedUser.email,
           plano: selectedPlan,
+          sandbox: isSandboxTest,
           card: {
             holderName: cardHolder.trim(),
             number: cleanNumber,
@@ -282,6 +284,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
         body: {
           payment_id: paymentId,
           subscription_id: subscriptionId,
+          sandbox: isSandboxTest,
         },
       });
 
@@ -484,6 +487,11 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
             <p className="text-xs text-muted-foreground">
               Assinatura recorrente de R$ {preco.toFixed(2).replace('.', ',')}/mês
             </p>
+            {isSandboxTest && (
+              <Badge variant="outline" className="mt-1.5 text-[10px] border-amber-500/50 text-amber-600 bg-amber-500/10">
+                🧪 Modo teste (sandbox)
+              </Badge>
+            )}
           </div>
         </div>
 
