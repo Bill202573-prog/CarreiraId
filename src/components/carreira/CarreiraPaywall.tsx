@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, Star, Zap, Trophy, Copy, CheckCircle, Loader2, CreditCard, QrCode, Crown } from 'lucide-react';
+import { Lock, Star, Zap, Trophy, Copy, CheckCircle, Loader2, CreditCard, QrCode, Crown, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { CarreiraLimitResult } from '@/hooks/useCarreiraFreemium';
 import { PLANOS, CarreiraPlano } from '@/config/carreiraPlanos';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,7 +21,7 @@ interface CarreiraPaywallProps {
   onSubscribed?: () => void;
 }
 
-type PaywallStep = 'info' | 'loading' | 'pix' | 'checking' | 'success';
+type PaywallStep = 'info' | 'loading' | 'pix' | 'checking' | 'cartao-form' | 'cartao-processing' | 'success';
 type PaymentMethod = 'pix' | 'cartao';
 
 const formatCpf = (value: string) => {
@@ -30,6 +30,31 @@ const formatCpf = (value: string) => {
   if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
   if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
+const formatCardNumber = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 19);
+  return digits.replace(/(.{4})/g, '$1 ').trim();
+};
+
+const formatExpiry = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+};
+
+const formatCep = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+};
+
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
 export function CarreiraPaywall({ limitResult, childName, criancaId, planoSelecionado, onClose, onSubscribed }: CarreiraPaywallProps) {
@@ -49,25 +74,42 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     expiresAt: string;
     valor: number;
   } | null>(null);
-  const [checkoutData, setCheckoutData] = useState<{
+  const [cardPollData, setCardPollData] = useState<{
     paymentId: string;
-    subscriptionId: string;
+    subscriptionRecordId: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [pollCount, setPollCount] = useState(0);
+  const [, setPollCount] = useState(0);
+
+  // Card form state
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCcv, setCardCcv] = useState('');
+  const [cardCep, setCardCep] = useState('');
+  const [cardAddressNumber, setCardAddressNumber] = useState('');
+  const [cardPhone, setCardPhone] = useState('');
+  const [cardSubmitting, setCardSubmitting] = useState(false);
 
   const cpfDigits = cpfInput.replace(/\D/g, '');
   const cpfValid = cpfDigits.length === 11;
   const planInfo = PLANOS[selectedPlan];
   const isElite = selectedPlan === 'elite';
 
-  const generatePix = async () => {
-    const cleanCpf = cpfInput.replace(/\D/g, '');
-    
+  const resolveUser = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const sessionUser = sessionData.session?.user;
-    const resolvedUser = user || (sessionUser ? { id: sessionUser.id, name: sessionUser.user_metadata?.nome || sessionUser.user_metadata?.full_name || 'Usuário', email: sessionUser.email || '' } : null);
-    
+    return user || (sessionUser ? {
+      id: sessionUser.id,
+      name: sessionUser.user_metadata?.nome || sessionUser.user_metadata?.full_name || 'Usuário',
+      email: sessionUser.email || '',
+    } : null);
+  };
+
+  const generatePix = async () => {
+    const cleanCpf = cpfInput.replace(/\D/g, '');
+    const resolvedUser = await resolveUser();
+
     if (!resolvedUser || !criancaId || cleanCpf.length !== 11) {
       toast.error(!criancaId ? 'Atleta não identificado' : !resolvedUser ? 'Sessão expirada. Faça login novamente.' : 'Informe um CPF válido para gerar o pagamento');
       return;
@@ -99,50 +141,126 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     }
   };
 
-  const generateCheckout = async () => {
+  const openCardForm = () => {
+    if (!cpfValid) {
+      toast.error('Informe um CPF válido');
+      return;
+    }
+    if (!criancaId) {
+      toast.error('Atleta não identificado');
+      return;
+    }
+    setStep('cartao-form');
+  };
+
+  const submitCardSubscription = async () => {
     const cleanCpf = cpfInput.replace(/\D/g, '');
-    
-    const { data: sessionData } = await supabase.auth.getSession();
-    const sessionUser = sessionData.session?.user;
-    const resolvedUser = user || (sessionUser ? { id: sessionUser.id, name: sessionUser.user_metadata?.nome || sessionUser.user_metadata?.full_name || 'Usuário', email: sessionUser.email || '' } : null);
-    
-    if (!resolvedUser || !criancaId || cleanCpf.length !== 11) {
-      toast.error(!criancaId ? 'Atleta não identificado' : !resolvedUser ? 'Sessão expirada. Faça login novamente.' : 'Informe um CPF válido');
+    const cleanNumber = cardNumber.replace(/\D/g, '');
+    const cleanCep = cardCep.replace(/\D/g, '');
+    const cleanPhone = cardPhone.replace(/\D/g, '');
+    const [expMonth, expYear] = cardExpiry.split('/');
+
+    // Client-side validation
+    if (cleanNumber.length < 13 || cleanNumber.length > 19) {
+      toast.error('Número do cartão inválido');
+      return;
+    }
+    if (!cardHolder.trim() || cardHolder.trim().length < 3) {
+      toast.error('Informe o nome impresso no cartão');
+      return;
+    }
+    if (!expMonth || !expYear || expMonth.length !== 2 || expYear.length !== 2) {
+      toast.error('Validade inválida (use MM/AA)');
+      return;
+    }
+    const monthNum = parseInt(expMonth, 10);
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      toast.error('Mês de validade inválido');
+      return;
+    }
+    if (cardCcv.length < 3 || cardCcv.length > 4) {
+      toast.error('CVV inválido');
+      return;
+    }
+    if (cleanCep.length !== 8) {
+      toast.error('CEP inválido');
+      return;
+    }
+    if (!cardAddressNumber.trim()) {
+      toast.error('Informe o número do endereço');
+      return;
+    }
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      toast.error('Telefone inválido');
       return;
     }
 
-    setStep('loading');
+    const resolvedUser = await resolveUser();
+    if (!resolvedUser || !criancaId) {
+      toast.error(!criancaId ? 'Atleta não identificado' : 'Sessão expirada. Faça login novamente.');
+      return;
+    }
+
+    setCardSubmitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-carreira-checkout', {
+      const { data, error } = await supabase.functions.invoke('create-carreira-card-subscription', {
         body: {
           user_id: resolvedUser.id,
           crianca_id: criancaId,
           cpf: cleanCpf,
           nome: resolvedUser.name,
           email: resolvedUser.email,
-          callback_url: window.location.href,
           plano: selectedPlan,
+          card: {
+            holderName: cardHolder.trim(),
+            number: cleanNumber,
+            expiryMonth: expMonth,
+            expiryYear: expYear,
+            ccv: cardCcv,
+          },
+          holderInfo: {
+            name: resolvedUser.name,
+            email: resolvedUser.email,
+            cpfCnpj: cleanCpf,
+            postalCode: cleanCep,
+            addressNumber: cardAddressNumber.trim(),
+            phone: cleanPhone,
+          },
         },
       });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const checkoutUrl = data.data?.checkoutUrl;
-      const paymentId = data.data?.paymentId;
-      if (checkoutUrl && paymentId) {
-        window.open(checkoutUrl, '_blank');
-        // Store checkout data and start polling
-        setCheckoutData({ paymentId, subscriptionId: '' });
-        setStep('checking');
+      const payload = data?.data;
+      if (!payload) throw new Error('Resposta inválida do servidor');
+
+      // Clear sensitive fields immediately after successful submission
+      setCardNumber('');
+      setCardCcv('');
+
+      if (payload.status === 'approved') {
+        setStep('success');
+        toast.success('Assinatura ativada!');
+        queryClient.invalidateQueries({ queryKey: ['carreira-plano'] });
+        queryClient.invalidateQueries({ queryKey: ['carreira-atividade-limit'] });
+        onSubscribed?.();
+      } else if (payload.status === 'processing') {
+        setCardPollData({
+          paymentId: payload.paymentId,
+          subscriptionRecordId: payload.subscriptionRecordId,
+        });
+        setStep('cartao-processing');
       } else {
-        throw new Error('URL de checkout não gerada');
+        throw new Error('Status de pagamento desconhecido');
       }
     } catch (err: any) {
-      console.error('Erro ao gerar checkout:', err);
-      toast.error(err.message || 'Erro ao gerar checkout');
-      setStep('info');
+      console.error('Erro na assinatura por cartão:', err?.message || 'erro');
+      toast.error(err?.message || 'Não foi possível processar o cartão. Tente novamente.');
+      // Stay on cartao-form so user can retry / switch method
+    } finally {
+      setCardSubmitting(false);
     }
   };
 
@@ -150,19 +268,20 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     if (paymentMethod === 'pix') {
       generatePix();
     } else {
-      generateCheckout();
+      openCardForm();
     }
   };
 
-  const checkPayment = useCallback(async (overridePaymentId?: string) => {
-    const paymentId = overridePaymentId || pixData?.paymentId || checkoutData?.paymentId;
+  const checkPayment = useCallback(async (overridePaymentId?: string, overrideSubId?: string) => {
+    const paymentId = overridePaymentId || pixData?.paymentId || cardPollData?.paymentId;
+    const subscriptionId = overrideSubId || pixData?.subscriptionId || cardPollData?.subscriptionRecordId || '';
     if (!paymentId) return false;
 
     try {
       const { data, error } = await supabase.functions.invoke('check-carreira-payment', {
         body: {
           payment_id: paymentId,
-          subscription_id: pixData?.subscriptionId || '',
+          subscription_id: subscriptionId,
         },
       });
 
@@ -171,7 +290,6 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       if (data?.data?.isPaid) {
         setStep('success');
         toast.success('Pagamento confirmado! Assinatura ativada.');
-        // Invalidate plano and limit caches so badges and features update instantly
         queryClient.invalidateQueries({ queryKey: ['carreira-plano'] });
         queryClient.invalidateQueries({ queryKey: ['carreira-atividade-limit'] });
         onSubscribed?.();
@@ -182,7 +300,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       console.error('Erro ao verificar pagamento:', err);
       return false;
     }
-  }, [pixData, checkoutData, onSubscribed]);
+  }, [pixData, cardPollData, onSubscribed, queryClient]);
 
   // Poll for PIX payment
   useEffect(() => {
@@ -197,9 +315,9 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     return () => clearInterval(interval);
   }, [step, pixData, checkPayment]);
 
-  // Poll for checkout (card) payment
+  // Poll for card recurring payment (processing state)
   useEffect(() => {
-    if (step !== 'checking' || !checkoutData) return;
+    if (step !== 'cartao-processing' || !cardPollData) return;
 
     const interval = setInterval(async () => {
       setPollCount(prev => prev + 1);
@@ -207,19 +325,16 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
       if (paid) clearInterval(interval);
     }, 5000);
 
-    // Stop polling after 10 minutes
     const timeout = setTimeout(() => {
       clearInterval(interval);
-      if (step === 'checking') {
-        toast.info('Tempo de verificação expirado. Use o botão para verificar manualmente.');
-      }
+      toast.info('Ainda confirmando... você pode verificar manualmente.');
     }, 10 * 60_000);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [step, checkoutData, checkPayment]);
+  }, [step, cardPollData, checkPayment]);
 
   const copyBrCode = () => {
     if (!pixData?.brCode) return;
@@ -261,6 +376,27 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
     );
   }
 
+  if (step === 'cartao-processing') {
+    return (
+      <div className="space-y-4 py-2 text-center">
+        <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+        </div>
+        <h3 className="text-lg font-bold text-foreground">Confirmando pagamento...</h3>
+        <p className="text-sm text-muted-foreground">
+          Estamos aguardando a confirmação do seu cartão. Isso costuma levar alguns segundos.
+        </p>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Verificando automaticamente...
+        </div>
+        <Button variant="outline" size="sm" className="w-full" onClick={() => checkPayment()}>
+          Verificar agora
+        </Button>
+      </div>
+    );
+  }
+
   if (step === 'checking') {
     return (
       <div className="space-y-4 py-2 text-center">
@@ -269,7 +405,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
         </div>
         <h3 className="text-lg font-bold text-foreground">Aguardando pagamento</h3>
         <p className="text-sm text-muted-foreground">
-          Complete o pagamento na aba que foi aberta. Estamos verificando automaticamente.
+          Estamos verificando automaticamente.
         </p>
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="w-3 h-3 animate-spin" />
@@ -279,7 +415,7 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
           Já paguei, verificar agora
         </Button>
         {onClose && (
-          <Button variant="ghost" className="w-full" onClick={() => { setStep('info'); setCheckoutData(null); }}>
+          <Button variant="ghost" className="w-full" onClick={() => { setStep('info'); }}>
             Cancelar
           </Button>
         )}
@@ -331,6 +467,160 @@ export function CarreiraPaywall({ limitResult, childName, criancaId, planoSeleci
             Cancelar
           </Button>
         )}
+      </div>
+    );
+  }
+
+  if (step === 'cartao-form') {
+    const preco = planInfo.preco;
+    return (
+      <div className="space-y-4 py-2 max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setStep('info')} disabled={cardSubmitting}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h3 className="text-base font-bold">Dados do cartão</h3>
+            <p className="text-xs text-muted-foreground">
+              Assinatura recorrente de R$ {preco.toFixed(2).replace('.', ',')}/mês
+            </p>
+          </div>
+        </div>
+
+        <Card className="border" style={{ borderColor: `${planInfo.cor}30` }}>
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="card-number" className="text-xs">Número do cartão</Label>
+              <Input
+                id="card-number"
+                placeholder="0000 0000 0000 0000"
+                inputMode="numeric"
+                autoComplete="cc-number"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                maxLength={23}
+                disabled={cardSubmitting}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="card-holder" className="text-xs">Nome impresso no cartão</Label>
+              <Input
+                id="card-holder"
+                placeholder="Como está no cartão"
+                autoComplete="cc-name"
+                value={cardHolder}
+                onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                disabled={cardSubmitting}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="card-expiry" className="text-xs">Validade (MM/AA)</Label>
+                <Input
+                  id="card-expiry"
+                  placeholder="MM/AA"
+                  inputMode="numeric"
+                  autoComplete="cc-exp"
+                  value={cardExpiry}
+                  onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                  maxLength={5}
+                  disabled={cardSubmitting}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="card-ccv" className="text-xs">CVV</Label>
+                <Input
+                  id="card-ccv"
+                  placeholder="000"
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                  value={cardCcv}
+                  onChange={(e) => setCardCcv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  maxLength={4}
+                  disabled={cardSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="card-cep" className="text-xs">CEP</Label>
+                <Input
+                  id="card-cep"
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  value={cardCep}
+                  onChange={(e) => setCardCep(formatCep(e.target.value))}
+                  maxLength={9}
+                  disabled={cardSubmitting}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="card-addr-num" className="text-xs">Número</Label>
+                <Input
+                  id="card-addr-num"
+                  placeholder="123"
+                  value={cardAddressNumber}
+                  onChange={(e) => setCardAddressNumber(e.target.value.slice(0, 10))}
+                  disabled={cardSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="card-phone" className="text-xs">Telefone (com DDD)</Label>
+              <Input
+                id="card-phone"
+                placeholder="(00) 00000-0000"
+                inputMode="tel"
+                autoComplete="tel"
+                value={cardPhone}
+                onChange={(e) => setCardPhone(formatPhone(e.target.value))}
+                maxLength={15}
+                disabled={cardSubmitting}
+              />
+            </div>
+
+            <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-muted/30 rounded-md p-2">
+              <ShieldCheck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <span>Dados enviados de forma segura para nosso provedor de pagamentos. Não armazenamos seu cartão.</span>
+            </div>
+
+            <Button
+              type="button"
+              className="w-full text-white gap-2"
+              style={{ backgroundColor: planInfo.cor }}
+              onClick={submitCardSubscription}
+              disabled={cardSubmitting}
+            >
+              {cardSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Assinar por R$ {preco.toFixed(2).replace('.', ',')}/mês
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={() => { setPaymentMethod('pix'); setStep('info'); }}
+              disabled={cardSubmitting}
+            >
+              Prefiro pagar via PIX
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
